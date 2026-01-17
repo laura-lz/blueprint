@@ -1,0 +1,109 @@
+.button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 400;
+    border: none;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none;
+    aspect-ratio: 1;
+    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.button:active {
+    transform: scale(0.95);
+}
+
+/* Number buttons */
+.number {
+    background: linear-gradient(145deg, #2d2d44, #252538);
+    color: #ffffff;
+    box-shadow:
+        0 4px 15px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.number:hover {
+    background: linear-gradient(145deg, #3a3a55, #2d2d44);
+}
+
+.number:active {
+    background: linear-gradient(145deg, #252538, #2d2d44);
+    box-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Operator buttons */
+.operator {
+    background: linear-gradient(145deg, #ff9500, #e68600);
+    color: #ffffff;
+    box-shadow:
+        0 4px 15px rgba(255, 149, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.operator:hover {
+    background: linear-gradient(145deg, #ffaa33, #ff9500);
+}
+
+.operator:active {
+    background: linear-gradient(145deg, #e68600, #cc7700);
+}
+
+/* Special buttons (C, ±, %) */
+.special {
+    background: linear-gradient(145deg, #505068, #404055);
+    color: #ffffff;
+    box-shadow:
+        0 4px 15px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.special:hover {
+    background: linear-gradient(145deg, #606080, #505068);
+}
+
+.special:active {
+    background: linear-gradient(145deg, #404055, #505068);
+}
+
+/* Equals button */
+.equals {
+    background: linear-gradient(145deg, #34c759, #2db84e);
+    color: #ffffff;
+    box-shadow:
+        0 4px 15px rgba(52, 199, 89, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.equals:hover {
+    background: linear-gradient(145deg, #4cd964, #34c759);
+}
+
+.equals:active {
+    background: linear-gradient(145deg, #2db84e, #28a745);
+}
+
+/* Wide button (for 0) */
+.wide {
+    aspect-ratio: auto;
+    grid-column: span 2;
+    padding: 0 32px;
+    justify-content: flex-start;
+    padding-left: 36px;
+}
+
+@media (max-width: 480px) {
+    .button {
+        font-size: 1.25rem;
+        border-radius: 12px;
+    }
+
+    .wide {
+        padding-left: 28px;
+    }
+}
