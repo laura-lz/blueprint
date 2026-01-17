@@ -8,19 +8,20 @@
         "nexhacks-agent": "./cli/index.ts"
     },
     "scripts": {
-        "dev": "npm run dev --prefix samples/calculator",
-        "build": "npm run build --prefix samples/calculator",
+        "dev": "next dev",
+        "build": "next build",
+        "start": "next start",
         "agent": "npx tsx cli/index.ts",
         "agent:sample": "npx tsx cli/index.ts --target ./samples/calculator --output ./output",
-        "typecheck": "tsc --noEmit"
+        "typecheck": "tsc --noEmit",
+        "calculator": "npm run dev --prefix samples/calculator"
     },
     "keywords": [
         "codebase",
         "documentation",
         "wiki",
         "mermaid",
-        "agent",
-        "openrouter"
+        "agent"
     ],
     "author": "",
     "license": "MIT",
@@ -29,14 +30,19 @@
         "@babel/traverse": "^7.23.0",
         "@babel/types": "^7.23.0",
         "commander": "^12.0.0",
-        "dotenv": "^17.2.3",
         "dagre": "^0.8.5",
+        "dotenv": "^17.2.3",
+        "next": "^15.0.0",
+        "react": "^19.0.0",
+        "react-dom": "^19.0.0",
         "reactflow": "^11.11.4"
     },
     "devDependencies": {
         "@types/babel__traverse": "^7.20.0",
         "@types/dagre": "^0.7.53",
         "@types/node": "^20.0.0",
+        "@types/react": "^19.0.0",
+        "@types/react-dom": "^19.0.0",
         "tsx": "^4.7.0",
         "typescript": "^5.3.0"
     },

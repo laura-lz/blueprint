@@ -310,7 +310,7 @@ const applyDagreLayout = (nodes: FileNode[], edges: Edge[]) => {
 };
 
 // --- MAIN COMPONENT ---
-export default function CodeVisualizer() {
+export default function Visualizer() {
     const [capsules, setCapsules] = useState<CapsulesData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
