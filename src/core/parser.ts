@@ -9,13 +9,23 @@ import type { NodePath } from "@babel/traverse";
 import * as t from "@babel/types";
 import type { FileType } from "./scanner";
 
+export interface SymbolLocation {
+    startLine: number;
+    endLine: number;
+}
+
+export interface SymbolInfo {
+    name: string;
+    location: SymbolLocation;
+}
+
 export interface ParsedFile {
     imports: ImportInfo[];
     exports: ExportInfo[];
     isReactComponent: boolean;
-    functions: string[];
-    classes: string[];
-    constants: string[];
+    functions: SymbolInfo[];
+    classes: SymbolInfo[];
+    constants: SymbolInfo[];
 }
 
 export interface ImportInfo {
@@ -29,6 +39,7 @@ export interface ExportInfo {
     name: string;
     type: "function" | "class" | "variable" | "default" | "type";
     isDefault: boolean;
+    location?: SymbolLocation;
 }
 
 /**
@@ -120,29 +131,43 @@ export function parseFile(content: string, fileType: FileType): ParsedFile {
             const declaration = path.node.declaration;
 
             if (declaration) {
+                const loc = declaration.loc;
+                const location: SymbolLocation = {
+                    startLine: loc?.start.line ?? 0,
+                    endLine: loc?.end.line ?? 0,
+                };
+
                 if (t.isFunctionDeclaration(declaration) && declaration.id) {
                     result.exports.push({
                         name: declaration.id.name,
                         type: "function",
                         isDefault: false,
+                        location,
                     });
-                    result.functions.push(declaration.id.name);
+                    result.functions.push({ name: declaration.id.name, location });
                 } else if (t.isClassDeclaration(declaration) && declaration.id) {
                     result.exports.push({
                         name: declaration.id.name,
                         type: "class",
                         isDefault: false,
+                        location,
                     });
-                    result.classes.push(declaration.id.name);
+                    result.classes.push({ name: declaration.id.name, location });
                 } else if (t.isVariableDeclaration(declaration)) {
                     for (const decl of declaration.declarations) {
                         if (t.isIdentifier(decl.id)) {
+                            const declLoc = decl.loc;
+                            const declLocation: SymbolLocation = {
+                                startLine: declLoc?.start.line ?? 0,
+                                endLine: declLoc?.end.line ?? 0,
+                            };
                             result.exports.push({
                                 name: decl.id.name,
                                 type: "variable",
                                 isDefault: false,
+                                location: declLocation,
                             });
-                            result.constants.push(decl.id.name);
+                            result.constants.push({ name: decl.id.name, location: declLocation });
                         }
                     }
                 } else if (t.isTSTypeAliasDeclaration(declaration)) {
@@ -179,13 +204,32 @@ export function parseFile(content: string, fileType: FileType): ParsedFile {
         ExportDefaultDeclaration(path: NodePath<t.ExportDefaultDeclaration>) {
             const declaration = path.node.declaration;
             let name = "default";
+            const loc = path.node.loc;
+            const location: SymbolLocation = {
+                startLine: loc?.start.line ?? 0,
+                endLine: loc?.end.line ?? 0,
+            };
 
             if (t.isFunctionDeclaration(declaration) && declaration.id) {
                 name = declaration.id.name;
-                result.functions.push(name);
+                const declLoc = declaration.loc;
+                result.functions.push({
+                    name,
+                    location: {
+                        startLine: declLoc?.start.line ?? 0,
+                        endLine: declLoc?.end.line ?? 0,
+                    },
+                });
             } else if (t.isClassDeclaration(declaration) && declaration.id) {
                 name = declaration.id.name;
-                result.classes.push(name);
+                const declLoc = declaration.loc;
+                result.classes.push({
+                    name,
+                    location: {
+                        startLine: declLoc?.start.line ?? 0,
+                        endLine: declLoc?.end.line ?? 0,
+                    },
+                });
             } else if (t.isIdentifier(declaration)) {
                 name = declaration.name;
             }
@@ -194,20 +238,35 @@ export function parseFile(content: string, fileType: FileType): ParsedFile {
                 name,
                 type: "default",
                 isDefault: true,
+                location,
             });
         },
 
         // Track function declarations (non-exported)
         FunctionDeclaration(path: NodePath<t.FunctionDeclaration>) {
             if (path.node.id && !path.findParent((p) => t.isExportDeclaration(p.node))) {
-                result.functions.push(path.node.id.name);
+                const loc = path.node.loc;
+                result.functions.push({
+                    name: path.node.id.name,
+                    location: {
+                        startLine: loc?.start.line ?? 0,
+                        endLine: loc?.end.line ?? 0,
+                    },
+                });
             }
         },
 
         // Track class declarations (non-exported)
         ClassDeclaration(path: NodePath<t.ClassDeclaration>) {
             if (path.node.id && !path.findParent((p) => t.isExportDeclaration(p.node))) {
-                result.classes.push(path.node.id.name);
+                const loc = path.node.loc;
+                result.classes.push({
+                    name: path.node.id.name,
+                    location: {
+                        startLine: loc?.start.line ?? 0,
+                        endLine: loc?.end.line ?? 0,
+                    },
+                });
             }
         },
 

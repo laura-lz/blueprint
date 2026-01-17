@@ -9,27 +9,18 @@ import { Command } from "commander";
 import * as fs from "fs/promises";
 import * as path from "path";
 import {
-    scanDirectory,
-    readFileContent,
-    parseFile,
-    buildComponentGraph,
-    generateWiki,
-    createOpenRouterClient,
-    type FileInfo,
-    type ParsedFile,
+    createUpperLevelAPI,
+    type FileCapsule,
 } from "../src/core";
 
 const program = new Command();
 
 program
     .name("nexhacks-agent")
-    .description("Codebase documentation agent - generates wiki and diagrams")
+    .description("Codebase documentation agent - generates file capsules for upper-level graph")
     .version("1.0.0")
     .requiredOption("-t, --target <path>", "Target directory to scan")
-    .option("-o, --output <path>", "Output directory for documentation", "./output")
-    .option("-m, --model <model>", "OpenRouter model to use", "anthropic/claude-3.5-sonnet")
-    .option("--no-ai", "Disable AI-powered summaries")
-    .option("--no-diagrams", "Disable Mermaid diagram generation")
+    .option("-o, --output <path>", "Output directory for capsules.json", "./output")
     .option("-v, --verbose", "Enable verbose logging")
     .parse(process.argv);
 
@@ -45,89 +36,52 @@ async function main() {
     console.log(`📤 Output: ${outputPath}`);
     console.log("");
 
-    // Step 1: Scan the codebase
-    console.log("📂 Scanning codebase...");
-    const files = await scanDirectory({ rootDir: targetPath });
-    console.log(`   Found ${files.length} code files`);
+    // Build upper-level graph using API
+    console.log("📂 Building upper-level graph...");
+    const api = await createUpperLevelAPI(targetPath);
+    const stats = api.getStats();
+    console.log(`   ${stats.totalFiles} files, ${stats.totalEdges} edges`);
 
-    if (files.length === 0) {
-        console.log("❌ No code files found. Exiting.");
-        process.exit(1);
-    }
+    // Get all file capsules
+    const allFiles = api.getAllFiles();
+    const capsules = new Map<string, FileCapsule>();
 
-    // Step 2: Parse each file
-    console.log("🔍 Parsing files...");
-    const parsedFiles = new Map<string, { file: FileInfo; parsed: ParsedFile }>();
-
-    for (const file of files) {
-        if (options.verbose) {
-            console.log(`   Parsing: ${file.relativePath}`);
-        }
-
-        try {
-            const content = await readFileContent(file.path);
-            const parsed = parseFile(content, file.type);
-            parsedFiles.set(file.path, { file, parsed });
-        } catch (error) {
-            if (options.verbose) {
-                console.warn(`   ⚠️ Failed to parse: ${file.relativePath}`);
-            }
+    for (const filePath of allFiles) {
+        const capsule = api.getFileCapsule(filePath);
+        if (capsule) {
+            capsules.set(filePath, capsule);
         }
     }
 
-    console.log(`   Parsed ${parsedFiles.size} files successfully`);
+    console.log(`   ${capsules.size} file capsules generated`);
 
-    // Step 3: Build component graph
-    console.log("🔗 Building component graph...");
-    const graph = buildComponentGraph(parsedFiles);
-    console.log(`   ${graph.nodes.size} nodes, ${graph.edges.length} edges`);
-
-    // Step 4: Create OpenRouter client
-    const client = options.ai ? createOpenRouterClient() : null;
-
-    if (options.ai && client?.isConfigured()) {
-        console.log("🤖 AI summaries enabled");
-    } else if (options.ai) {
-        console.log("⚠️ No OPENROUTER_API_KEY found - using basic summaries");
-    }
-
-    // Step 5: Generate wiki
-    console.log("📝 Generating documentation...");
-    const wiki = await generateWiki(graph, client || undefined, {
-        includeDiagrams: options.diagrams,
-        useAI: options.ai && client?.isConfigured(),
-        maxAIFiles: 20,
-    });
-
-    // Step 6: Write output
-    console.log("💾 Writing output files...");
+    // Write output
+    console.log("💾 Writing output...");
     await fs.mkdir(outputPath, { recursive: true });
 
-    const wikiPath = path.join(outputPath, "wiki.md");
-    await fs.writeFile(wikiPath, wiki.markdown, "utf-8");
-    console.log(`   📄 Wiki: ${wikiPath}`);
+    // Output capsules JSON with stats
+    const capsulesPath = path.join(outputPath, "capsules.json");
+    const output = {
+        stats,
+        files: Object.fromEntries(
+            Array.from(capsules.entries()).map(([, v]) => [v.relativePath, v])
+        ),
+    };
+    await fs.writeFile(capsulesPath, JSON.stringify(output, null, 2), "utf-8");
+    console.log(`   📋 ${capsulesPath}`);
 
-    if (options.diagrams && wiki.mermaidDiagram) {
-        const diagramPath = path.join(outputPath, "diagram.mmd");
-        await fs.writeFile(diagramPath, wiki.mermaidDiagram, "utf-8");
-        console.log(`   📊 Diagram: ${diagramPath}`);
+    // Demo neighborhood query
+    if (allFiles.length > 0 && options.verbose) {
+        console.log("");
+        console.log("🔍 API Demo - getDependencyNeighborhood:");
+        const sampleFile = allFiles.find((f) => f.includes("Calculator")) || allFiles[0];
+        const neighbors = api.getDependencyNeighborhood(sampleFile, { radius: 2, cap: 5 });
+        console.log(`   File: ${path.basename(sampleFile)}`);
+        console.log(`   Neighborhood: ${neighbors.map((n) => path.basename(n)).join(", ") || "(none)"}`);
     }
 
-    // Write individual file summaries as JSON
-    const summariesPath = path.join(outputPath, "summaries.json");
-    const summariesObj: Record<string, string> = {};
-    for (const [filePath, summary] of wiki.fileSummaries) {
-        const relativePath = path.relative(targetPath, filePath);
-        summariesObj[relativePath] = summary;
-    }
-    await fs.writeFile(summariesPath, JSON.stringify(summariesObj, null, 2), "utf-8");
-    console.log(`   📋 Summaries: ${summariesPath}`);
-
     console.log("");
-    console.log("✅ Documentation generated successfully!");
-    console.log("");
-    console.log("📖 Open the wiki file to view your documentation:");
-    console.log(`   ${wikiPath}`);
+    console.log("✅ Done!");
 }
 
 main().catch((error) => {
@@ -137,3 +91,4 @@ main().catch((error) => {
     }
     process.exit(1);
 });
+

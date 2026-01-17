@@ -1,6 +1,6 @@
 # Codebase Documentation
 
-*Auto-generated wiki documentation*
+*Auto-generated using Upper Level Graph API*
 
 ## Overview
 
@@ -8,7 +8,7 @@
 |--------|-------|
 | Total Files | 19 |
 | Directories | 4 |
-| Internal Connections | 12 |
+| Internal Edges | 11 |
 | External Dependencies | 3 |
 
 ### Entry Points
@@ -23,7 +23,7 @@
 
 ```mermaid
 flowchart TB
-  subgraph _["📁 ."]
+  subgraph _["📁 Root"]
     _Users_brianliu_Documents_personal_coding_nexhacks_samples_calculator_README_md["📄 README.md"]
     _Users_brianliu_Documents_personal_coding_nexhacks_samples_calculator_next_env_d_ts["📄 next-env.d.ts"]
     _Users_brianliu_Documents_personal_coding_nexhacks_samples_calculator_next_config_ts["📄 next.config.ts"]
@@ -51,14 +51,14 @@ flowchart TB
     _Users_brianliu_Documents_personal_coding_nexhacks_samples_calculator_lib_calculator_ts["📄 calculator.ts"]
   end
   _Users_brianliu_Documents_personal_coding_nexhacks_samples_calculator_app_layout_tsx --> _Users_brianliu_Documents_personal_coding_nexhacks_samples_calculator_app_globals_css
-  _Users_brianliu_Documents_personal_coding_nexhacks_samples_calculator_app_page_tsx --> _Users_brianliu_Documents_personal_coding_nexhacks_samples_calculator_components_Calculator_tsx
+  _Users_brianliu_Documents_personal_coding_nexhacks_samples_calculator_app_page_tsx --> _Users_brianliu_Documents_personal_coding_nexhacks_samples_calculator_components_Calculator_module_css
   _Users_brianliu_Documents_personal_coding_nexhacks_samples_calculator_app_page_tsx --> _Users_brianliu_Documents_personal_coding_nexhacks_samples_calculator_app_page_module_css
   _Users_brianliu_Documents_personal_coding_nexhacks_samples_calculator_components_Button_tsx --> _Users_brianliu_Documents_personal_coding_nexhacks_samples_calculator_components_Button_module_css
-  _Users_brianliu_Documents_personal_coding_nexhacks_samples_calculator_components_ButtonGrid_tsx --> _Users_brianliu_Documents_personal_coding_nexhacks_samples_calculator_components_Button_tsx
+  _Users_brianliu_Documents_personal_coding_nexhacks_samples_calculator_components_ButtonGrid_tsx --> _Users_brianliu_Documents_personal_coding_nexhacks_samples_calculator_components_Button_module_css
   _Users_brianliu_Documents_personal_coding_nexhacks_samples_calculator_components_ButtonGrid_tsx --> _Users_brianliu_Documents_personal_coding_nexhacks_samples_calculator_components_ButtonGrid_module_css
   _Users_brianliu_Documents_personal_coding_nexhacks_samples_calculator_components_Calculator_tsx --> _Users_brianliu_Documents_personal_coding_nexhacks_samples_calculator_lib_calculator_ts
-  _Users_brianliu_Documents_personal_coding_nexhacks_samples_calculator_components_Calculator_tsx --> _Users_brianliu_Documents_personal_coding_nexhacks_samples_calculator_components_Display_tsx
-  _Users_brianliu_Documents_personal_coding_nexhacks_samples_calculator_components_Calculator_tsx --> _Users_brianliu_Documents_personal_coding_nexhacks_samples_calculator_components_ButtonGrid_tsx
+  _Users_brianliu_Documents_personal_coding_nexhacks_samples_calculator_components_Calculator_tsx --> _Users_brianliu_Documents_personal_coding_nexhacks_samples_calculator_components_Display_module_css
+  _Users_brianliu_Documents_personal_coding_nexhacks_samples_calculator_components_Calculator_tsx --> _Users_brianliu_Documents_personal_coding_nexhacks_samples_calculator_components_ButtonGrid_module_css
   _Users_brianliu_Documents_personal_coding_nexhacks_samples_calculator_components_Calculator_tsx --> _Users_brianliu_Documents_personal_coding_nexhacks_samples_calculator_components_Calculator_module_css
   _Users_brianliu_Documents_personal_coding_nexhacks_samples_calculator_components_Display_tsx --> _Users_brianliu_Documents_personal_coding_nexhacks_samples_calculator_components_Display_module_css
 
@@ -82,59 +82,53 @@ flowchart TB
 
 ## Files
 
-### 📁 .
+### 📁 (root)
 
 #### 📄 README.md
 
-**Type:** Module
+**Type:** markdown
 **Exports:** None
 **Dependencies:** None
-**Used By:** None
 
 ---
 
 #### 📄 next-env.d.ts
 
-**Type:** Module
+**Type:** typescript
 **Exports:** None
 **Dependencies:** routes.d.ts
-**Used By:** None
 
 ---
 
 #### 📄 next.config.ts
 
-**Type:** Module
+**Type:** typescript
 **Exports:** nextConfig
 **Dependencies:** None
-**Used By:** None
 
 ---
 
 #### 📄 package-lock.json
 
-**Type:** Configuration
+**Type:** json
 **Exports:** None
 **Dependencies:** None
-**Used By:** None
 
 ---
 
 #### 📄 package.json
 
-**Type:** Configuration
+**Type:** json
 **Exports:** None
 **Dependencies:** None
-**Used By:** None
 
 ---
 
 #### 📄 tsconfig.json
 
-**Type:** Configuration
+**Type:** json
 **Exports:** None
 **Dependencies:** None
-**Used By:** None
 
 ---
 
@@ -142,10 +136,9 @@ flowchart TB
 
 #### 📄 globals.css
 
-**Type:** Stylesheet
+**Type:** css
 **Exports:** None
 **Dependencies:** None
-**Used By:** layout.tsx
 
 ---
 
@@ -154,17 +147,15 @@ flowchart TB
 **Type:** React Component
 **Exports:** metadata, RootLayout
 **Dependencies:** globals.css
-**Used By:** None
-**Functions:** RootLayout
+**Top Symbols:** RootLayout (function), metadata (const)
 
 ---
 
 #### 📄 page.module.css
 
-**Type:** Stylesheet
+**Type:** css
 **Exports:** None
 **Dependencies:** None
-**Used By:** page.tsx
 
 ---
 
@@ -172,9 +163,8 @@ flowchart TB
 
 **Type:** React Component
 **Exports:** Home
-**Dependencies:** Calculator.tsx, page.module.css
-**Used By:** None
-**Functions:** Home
+**Dependencies:** Calculator, page.module.css
+**Top Symbols:** Home (function)
 
 ---
 
@@ -182,10 +172,9 @@ flowchart TB
 
 #### 📄 Button.module.css
 
-**Type:** Stylesheet
+**Type:** css
 **Exports:** None
 **Dependencies:** None
-**Used By:** Button.tsx
 
 ---
 
@@ -194,17 +183,15 @@ flowchart TB
 **Type:** React Component
 **Exports:** Button
 **Dependencies:** Button.module.css
-**Used By:** ButtonGrid.tsx
-**Functions:** Button
+**Top Symbols:** Button (function)
 
 ---
 
 #### 📄 ButtonGrid.module.css
 
-**Type:** Stylesheet
+**Type:** css
 **Exports:** None
 **Dependencies:** None
-**Used By:** ButtonGrid.tsx
 
 ---
 
@@ -212,18 +199,16 @@ flowchart TB
 
 **Type:** React Component
 **Exports:** ButtonGrid
-**Dependencies:** Button.tsx, ButtonGrid.module.css
-**Used By:** Calculator.tsx
-**Functions:** ButtonGrid
+**Dependencies:** Button, ButtonGrid.module.css
+**Top Symbols:** ButtonGrid (function)
 
 ---
 
 #### 📄 Calculator.module.css
 
-**Type:** Stylesheet
+**Type:** css
 **Exports:** None
 **Dependencies:** None
-**Used By:** Calculator.tsx
 
 ---
 
@@ -231,18 +216,16 @@ flowchart TB
 
 **Type:** React Component
 **Exports:** Calculator
-**Dependencies:** calculator.ts, Display.tsx, ButtonGrid.tsx, Calculator.module.css
-**Used By:** page.tsx
-**Functions:** Calculator
+**Dependencies:** calculator, Display, ButtonGrid, Calculator.module.css
+**Top Symbols:** Calculator (function)
 
 ---
 
 #### 📄 Display.module.css
 
-**Type:** Stylesheet
+**Type:** css
 **Exports:** None
 **Dependencies:** None
-**Used By:** Display.tsx
 
 ---
 
@@ -251,8 +234,7 @@ flowchart TB
 **Type:** React Component
 **Exports:** Display
 **Dependencies:** Display.module.css
-**Used By:** Calculator.tsx
-**Functions:** Display
+**Top Symbols:** Display (function)
 
 ---
 
@@ -260,10 +242,9 @@ flowchart TB
 
 #### 📄 calculator.ts
 
-**Type:** Module
+**Type:** typescript
 **Exports:** add, subtract, multiply, divide, Operation, calculate, parseInput, formatDisplay
 **Dependencies:** None
-**Used By:** Calculator.tsx
-**Functions:** add, subtract, multiply, divide, calculate, parseInput, formatDisplay
+**Top Symbols:** add (function), subtract (function), multiply (function), divide (function), calculate (function), parseInput (function), formatDisplay (function)
 
 ---

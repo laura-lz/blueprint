@@ -3,13 +3,15 @@
  * Re-exports all core functionality for easy importing
  */
 
+// Types
+export * from "./types";
+
 // Scanner
 export {
     scanDirectory,
     groupFilesByDirectory,
     readFileContent,
     type FileInfo,
-    type FileType,
     type ScanOptions,
 } from "./scanner";
 
@@ -23,7 +25,14 @@ export {
     type ExportInfo,
 } from "./parser";
 
-// Analyzer
+// Upper Level API (main entry point)
+export {
+    UpperLevelAPI,
+    buildUpperLevelGraph,
+    createUpperLevelAPI,
+} from "./api";
+
+// Analyzer (legacy, kept for backward compatibility)
 export {
     buildComponentGraph,
     getDependents,
@@ -32,7 +41,7 @@ export {
     findEntryPoints,
     calculateImportance,
     getGraphStats,
-    type FileNode,
+    type FileNode as LegacyFileNode,
     type DependencyEdge,
     type ComponentGraph,
 } from "./analyzer";

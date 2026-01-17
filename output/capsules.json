@@ -1,0 +1,637 @@
+{
+  "stats": {
+    "totalFiles": 19,
+    "totalDirectories": 4,
+    "totalEdges": 11,
+    "externalDependencies": [
+      "next",
+      "next/font/google",
+      "react"
+    ],
+    "entryPoints": [
+      "README.md",
+      "app/layout.tsx",
+      "app/page.tsx",
+      "next-env.d.ts",
+      "next.config.ts",
+      "package-lock.json",
+      "package.json",
+      "tsconfig.json"
+    ]
+  },
+  "files": {
+    "README.md": {
+      "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/README.md",
+      "relativePath": "README.md",
+      "name": "README.md",
+      "lang": "markdown",
+      "imports": [],
+      "exports": [],
+      "topSymbols": []
+    },
+    "app/globals.css": {
+      "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/app/globals.css",
+      "relativePath": "app/globals.css",
+      "name": "globals.css",
+      "lang": "css",
+      "imports": [],
+      "exports": [],
+      "topSymbols": []
+    },
+    "app/layout.tsx": {
+      "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/app/layout.tsx",
+      "relativePath": "app/layout.tsx",
+      "name": "layout.tsx",
+      "lang": "react-typescript",
+      "imports": [
+        {
+          "pathOrModule": "next",
+          "symbols": [
+            "Metadata"
+          ],
+          "isDefault": false,
+          "isLocal": false
+        },
+        {
+          "pathOrModule": "next/font/google",
+          "symbols": [
+            "Geist",
+            "Geist_Mono"
+          ],
+          "isDefault": false,
+          "isLocal": false
+        },
+        {
+          "pathOrModule": "./globals.css",
+          "symbols": [],
+          "isDefault": false,
+          "isLocal": true
+        }
+      ],
+      "exports": [
+        {
+          "name": "metadata",
+          "kind": "variable",
+          "isDefault": false
+        },
+        {
+          "name": "RootLayout",
+          "kind": "default",
+          "isDefault": true
+        }
+      ],
+      "topSymbols": [
+        {
+          "name": "RootLayout",
+          "kind": "function",
+          "location": {
+            "start": {
+              "line": 20,
+              "column": 0
+            },
+            "end": {
+              "line": 32,
+              "column": 0
+            }
+          },
+          "exported": true
+        },
+        {
+          "name": "metadata",
+          "kind": "const",
+          "location": {
+            "start": {
+              "line": 15,
+              "column": 0
+            },
+            "end": {
+              "line": 18,
+              "column": 0
+            }
+          },
+          "exported": true
+        }
+      ]
+    },
+    "app/page.module.css": {
+      "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/app/page.module.css",
+      "relativePath": "app/page.module.css",
+      "name": "page.module.css",
+      "lang": "css",
+      "imports": [],
+      "exports": [],
+      "topSymbols": []
+    },
+    "app/page.tsx": {
+      "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/app/page.tsx",
+      "relativePath": "app/page.tsx",
+      "name": "page.tsx",
+      "lang": "react-typescript",
+      "imports": [
+        {
+          "pathOrModule": "@/components/Calculator",
+          "symbols": [
+            "Calculator"
+          ],
+          "isDefault": true,
+          "isLocal": true
+        },
+        {
+          "pathOrModule": "./page.module.css",
+          "symbols": [
+            "styles"
+          ],
+          "isDefault": true,
+          "isLocal": true
+        }
+      ],
+      "exports": [
+        {
+          "name": "Home",
+          "kind": "default",
+          "isDefault": true
+        }
+      ],
+      "topSymbols": [
+        {
+          "name": "Home",
+          "kind": "function",
+          "location": {
+            "start": {
+              "line": 8,
+              "column": 0
+            },
+            "end": {
+              "line": 15,
+              "column": 0
+            }
+          },
+          "exported": true
+        }
+      ]
+    },
+    "components/Button.module.css": {
+      "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/components/Button.module.css",
+      "relativePath": "components/Button.module.css",
+      "name": "Button.module.css",
+      "lang": "css",
+      "imports": [],
+      "exports": [],
+      "topSymbols": []
+    },
+    "components/Button.tsx": {
+      "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/components/Button.tsx",
+      "relativePath": "components/Button.tsx",
+      "name": "Button.tsx",
+      "lang": "react-typescript",
+      "imports": [
+        {
+          "pathOrModule": "./Button.module.css",
+          "symbols": [
+            "styles"
+          ],
+          "isDefault": true,
+          "isLocal": true
+        }
+      ],
+      "exports": [
+        {
+          "name": "Button",
+          "kind": "default",
+          "isDefault": true
+        }
+      ],
+      "topSymbols": [
+        {
+          "name": "Button",
+          "kind": "function",
+          "location": {
+            "start": {
+              "line": 14,
+              "column": 0
+            },
+            "end": {
+              "line": 39,
+              "column": 0
+            }
+          },
+          "exported": true
+        }
+      ]
+    },
+    "components/ButtonGrid.module.css": {
+      "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/components/ButtonGrid.module.css",
+      "relativePath": "components/ButtonGrid.module.css",
+      "name": "ButtonGrid.module.css",
+      "lang": "css",
+      "imports": [],
+      "exports": [],
+      "topSymbols": []
+    },
+    "components/ButtonGrid.tsx": {
+      "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/components/ButtonGrid.tsx",
+      "relativePath": "components/ButtonGrid.tsx",
+      "name": "ButtonGrid.tsx",
+      "lang": "react-typescript",
+      "imports": [
+        {
+          "pathOrModule": "./Button",
+          "symbols": [
+            "Button"
+          ],
+          "isDefault": true,
+          "isLocal": true
+        },
+        {
+          "pathOrModule": "./ButtonGrid.module.css",
+          "symbols": [
+            "styles"
+          ],
+          "isDefault": true,
+          "isLocal": true
+        }
+      ],
+      "exports": [
+        {
+          "name": "ButtonGrid",
+          "kind": "default",
+          "isDefault": true
+        }
+      ],
+      "topSymbols": [
+        {
+          "name": "ButtonGrid",
+          "kind": "function",
+          "location": {
+            "start": {
+              "line": 12,
+              "column": 0
+            },
+            "end": {
+              "line": 48,
+              "column": 0
+            }
+          },
+          "exported": true
+        }
+      ]
+    },
+    "components/Calculator.module.css": {
+      "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/components/Calculator.module.css",
+      "relativePath": "components/Calculator.module.css",
+      "name": "Calculator.module.css",
+      "lang": "css",
+      "imports": [],
+      "exports": [],
+      "topSymbols": []
+    },
+    "components/Calculator.tsx": {
+      "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/components/Calculator.tsx",
+      "relativePath": "components/Calculator.tsx",
+      "name": "Calculator.tsx",
+      "lang": "react-typescript",
+      "imports": [
+        {
+          "pathOrModule": "react",
+          "symbols": [
+            "useState",
+            "useCallback"
+          ],
+          "isDefault": false,
+          "isLocal": false
+        },
+        {
+          "pathOrModule": "@/lib/calculator",
+          "symbols": [
+            "calculate",
+            "parseInput",
+            "formatDisplay",
+            "Operation"
+          ],
+          "isDefault": false,
+          "isLocal": true
+        },
+        {
+          "pathOrModule": "./Display",
+          "symbols": [
+            "Display"
+          ],
+          "isDefault": true,
+          "isLocal": true
+        },
+        {
+          "pathOrModule": "./ButtonGrid",
+          "symbols": [
+            "ButtonGrid"
+          ],
+          "isDefault": true,
+          "isLocal": true
+        },
+        {
+          "pathOrModule": "./Calculator.module.css",
+          "symbols": [
+            "styles"
+          ],
+          "isDefault": true,
+          "isLocal": true
+        }
+      ],
+      "exports": [
+        {
+          "name": "Calculator",
+          "kind": "default",
+          "isDefault": true
+        }
+      ],
+      "topSymbols": [
+        {
+          "name": "Calculator",
+          "kind": "function",
+          "location": {
+            "start": {
+              "line": 13,
+              "column": 0
+            },
+            "end": {
+              "line": 172,
+              "column": 0
+            }
+          },
+          "exported": true
+        }
+      ]
+    },
+    "components/Display.module.css": {
+      "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/components/Display.module.css",
+      "relativePath": "components/Display.module.css",
+      "name": "Display.module.css",
+      "lang": "css",
+      "imports": [],
+      "exports": [],
+      "topSymbols": []
+    },
+    "components/Display.tsx": {
+      "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/components/Display.tsx",
+      "relativePath": "components/Display.tsx",
+      "name": "Display.tsx",
+      "lang": "react-typescript",
+      "imports": [
+        {
+          "pathOrModule": "./Display.module.css",
+          "symbols": [
+            "styles"
+          ],
+          "isDefault": true,
+          "isLocal": true
+        }
+      ],
+      "exports": [
+        {
+          "name": "Display",
+          "kind": "default",
+          "isDefault": true
+        }
+      ],
+      "topSymbols": [
+        {
+          "name": "Display",
+          "kind": "function",
+          "location": {
+            "start": {
+              "line": 12,
+              "column": 0
+            },
+            "end": {
+              "line": 19,
+              "column": 0
+            }
+          },
+          "exported": true
+        }
+      ]
+    },
+    "lib/calculator.ts": {
+      "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/lib/calculator.ts",
+      "relativePath": "lib/calculator.ts",
+      "name": "calculator.ts",
+      "lang": "typescript",
+      "imports": [],
+      "exports": [
+        {
+          "name": "add",
+          "kind": "function",
+          "isDefault": false
+        },
+        {
+          "name": "subtract",
+          "kind": "function",
+          "isDefault": false
+        },
+        {
+          "name": "multiply",
+          "kind": "function",
+          "isDefault": false
+        },
+        {
+          "name": "divide",
+          "kind": "function",
+          "isDefault": false
+        },
+        {
+          "name": "Operation",
+          "kind": "type",
+          "isDefault": false
+        },
+        {
+          "name": "calculate",
+          "kind": "function",
+          "isDefault": false
+        },
+        {
+          "name": "parseInput",
+          "kind": "function",
+          "isDefault": false
+        },
+        {
+          "name": "formatDisplay",
+          "kind": "function",
+          "isDefault": false
+        }
+      ],
+      "topSymbols": [
+        {
+          "name": "add",
+          "kind": "function",
+          "location": {
+            "start": {
+              "line": 12,
+              "column": 0
+            },
+            "end": {
+              "line": 14,
+              "column": 0
+            }
+          },
+          "exported": true
+        },
+        {
+          "name": "subtract",
+          "kind": "function",
+          "location": {
+            "start": {
+              "line": 22,
+              "column": 0
+            },
+            "end": {
+              "line": 24,
+              "column": 0
+            }
+          },
+          "exported": true
+        },
+        {
+          "name": "multiply",
+          "kind": "function",
+          "location": {
+            "start": {
+              "line": 32,
+              "column": 0
+            },
+            "end": {
+              "line": 34,
+              "column": 0
+            }
+          },
+          "exported": true
+        },
+        {
+          "name": "divide",
+          "kind": "function",
+          "location": {
+            "start": {
+              "line": 43,
+              "column": 0
+            },
+            "end": {
+              "line": 48,
+              "column": 0
+            }
+          },
+          "exported": true
+        },
+        {
+          "name": "calculate",
+          "kind": "function",
+          "location": {
+            "start": {
+              "line": 62,
+              "column": 0
+            },
+            "end": {
+              "line": 75,
+              "column": 0
+            }
+          },
+          "exported": true
+        },
+        {
+          "name": "parseInput",
+          "kind": "function",
+          "location": {
+            "start": {
+              "line": 82,
+              "column": 0
+            },
+            "end": {
+              "line": 88,
+              "column": 0
+            }
+          },
+          "exported": true
+        },
+        {
+          "name": "formatDisplay",
+          "kind": "function",
+          "location": {
+            "start": {
+              "line": 95,
+              "column": 0
+            },
+            "end": {
+              "line": 108,
+              "column": 0
+            }
+          },
+          "exported": true
+        }
+      ]
+    },
+    "next-env.d.ts": {
+      "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/next-env.d.ts",
+      "relativePath": "next-env.d.ts",
+      "name": "next-env.d.ts",
+      "lang": "typescript",
+      "imports": [
+        {
+          "pathOrModule": "./.next/types/routes.d.ts",
+          "symbols": [],
+          "isDefault": false,
+          "isLocal": true
+        }
+      ],
+      "exports": [],
+      "topSymbols": []
+    },
+    "next.config.ts": {
+      "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/next.config.ts",
+      "relativePath": "next.config.ts",
+      "name": "next.config.ts",
+      "lang": "typescript",
+      "imports": [
+        {
+          "pathOrModule": "next",
+          "symbols": [
+            "NextConfig"
+          ],
+          "isDefault": false,
+          "isLocal": false
+        }
+      ],
+      "exports": [
+        {
+          "name": "nextConfig",
+          "kind": "default",
+          "isDefault": true
+        }
+      ],
+      "topSymbols": []
+    },
+    "package-lock.json": {
+      "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/package-lock.json",
+      "relativePath": "package-lock.json",
+      "name": "package-lock.json",
+      "lang": "json",
+      "imports": [],
+      "exports": [],
+      "topSymbols": []
+    },
+    "package.json": {
+      "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/package.json",
+      "relativePath": "package.json",
+      "name": "package.json",
+      "lang": "json",
+      "imports": [],
+      "exports": [],
+      "topSymbols": []
+    },
+    "tsconfig.json": {
+      "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/tsconfig.json",
+      "relativePath": "tsconfig.json",
+      "name": "tsconfig.json",
+      "lang": "json",
+      "imports": [],
+      "exports": [],
+      "topSymbols": []
+    }
+  }
+}

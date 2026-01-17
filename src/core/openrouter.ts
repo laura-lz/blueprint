@@ -76,7 +76,7 @@ export class OpenRouterClient {
             throw new Error(`OpenRouter API error: ${response.status} - ${error}`);
         }
 
-        const data: ChatCompletionResponse = await response.json();
+        const data = await response.json() as ChatCompletionResponse;
         return data.choices[0]?.message?.content || "";
     }
 
