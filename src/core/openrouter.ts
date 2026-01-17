@@ -156,6 +156,53 @@ Keep it concise and focused on the big picture.`;
     }
 
     /**
+     * Generates a concise 2-line summary from a FileCapsule's context
+     * Uses only extracted metadata, not full file content
+     */
+    async generateCapsuleSummary(
+        filePath: string,
+        context: {
+            fileDocstring?: string;
+            functionSignatures: { name: string; signature: string; jsdoc?: string }[];
+            firstNLines: string;
+            usedBy: string[];
+            dependsOn: string[];
+            exports: string[];
+        }
+    ): Promise<string> {
+        const prompt = `Generate a 2-sentence summary for this code file based on ONLY the following context.
+
+File: ${filePath}
+
+${context.fileDocstring ? `Docstring: ${context.fileDocstring}` : ""}
+
+Exports: ${context.exports.join(", ") || "None"}
+Used by: ${context.usedBy.join(", ") || "No dependents"}
+Depends on: ${context.dependsOn.join(", ") || "No local dependencies"}
+
+Function signatures:
+${context.functionSignatures.map(s => `- ${s.signature}${s.jsdoc ? ` // ${s.jsdoc}` : ""}`).join("\n") || "None"}
+
+First 15 lines preview:
+${context.firstNLines.split("\n").slice(0, 15).join("\n")}
+
+Respond with ONLY 2 sentences:
+1. What this file does (purpose)
+2. How it fits into the codebase (dependencies/usage)`;
+
+        return this.chat([
+            {
+                role: "system",
+                content: "You are a code documentation expert. Generate extremely concise 2-sentence file summaries. Do not include any prefixes, labels, or formatting - just 2 plain sentences.",
+            },
+            {
+                role: "user",
+                content: prompt,
+            },
+        ]);
+    }
+
+    /**
      * Check if the client is properly configured
      */
     isConfigured(): boolean {

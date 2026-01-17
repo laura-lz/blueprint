@@ -17,16 +17,18 @@ import type {
     ExportEntry,
     TopSymbol,
     Language,
+    SummaryContext,
 } from "./types";
 import { scanDirectory, readFileContent, type FileInfo } from "./scanner";
-import { parseFile, type ParsedFile } from "./parser";
+import { parseFileWithContext, getFirstNLines, type ParsedFile } from "./parser";
 
 /**
- * Build a FileCapsule from a FileInfo and ParsedFile
+ * Build a FileCapsule from a FileInfo, ParsedFile, and content
  */
 function buildFileCapsule(
     file: FileInfo,
     parsed: ParsedFile,
+    content: string,
     rootPath: string
 ): FileCapsule {
     // Convert imports to ImportEntry format
@@ -89,6 +91,22 @@ function buildFileCapsule(
         });
     }
 
+    // Build summary context for LLM-based summaries
+    const summaryContext: SummaryContext = {
+        fileDocstring: parsed.fileDocstring,
+        functionSignatures: parsed.functionSignatures.map((sig) => ({
+            name: sig.name,
+            signature: sig.signature,
+            jsdoc: sig.jsdoc,
+            exported: sig.exported,
+        })),
+        firstNLines: getFirstNLines(content, 30),
+        usedBy: [],  // Will be populated later
+        dependsOn: parsed.imports
+            .filter((imp) => imp.source.startsWith(".") || imp.source.startsWith("@/"))
+            .map((imp) => imp.source),
+    };
+
     return {
         path: file.path,
         relativePath: file.relativePath,
@@ -97,6 +115,7 @@ function buildFileCapsule(
         imports,
         exports,
         topSymbols,
+        summaryContext,
     };
 }
 
@@ -292,8 +311,8 @@ export async function buildUpperLevelGraph(rootDir: string): Promise<UpperLevelG
     for (const file of files) {
         try {
             const content = await readFileContent(file.path);
-            const parsed = parseFile(content, file.type);
-            const capsule = buildFileCapsule(file, parsed, absoluteRoot);
+            const parsed = parseFileWithContext(content, file.type);
+            const capsule = buildFileCapsule(file, parsed, content, absoluteRoot);
 
             nodes.set(file.path, { id: file.path, capsule });
 
@@ -322,6 +341,16 @@ export async function buildUpperLevelGraph(rootDir: string): Promise<UpperLevelG
                     });
                 }
             }
+        }
+    }
+
+    // Populate usedBy in summaryContext (reverse dependency)
+    for (const edge of edges) {
+        const targetNode = nodes.get(edge.to);
+        if (targetNode?.capsule.summaryContext) {
+            targetNode.capsule.summaryContext.usedBy.push(
+                nodes.get(edge.from)?.capsule.relativePath || edge.from
+            );
         }
     }
 

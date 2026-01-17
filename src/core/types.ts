@@ -53,6 +53,46 @@ export interface FileCapsule {
 
     /** Optional metrics */
     metrics?: FileMetrics;
+
+    /** Summary context for LLM-based summaries */
+    summaryContext?: SummaryContext;
+
+    /** Generated 2-line summary */
+    summary?: string;
+}
+
+/**
+ * Context for generating file summaries with limited content
+ */
+export interface SummaryContext {
+    /** File-level docstring (first comment block) */
+    fileDocstring?: string;
+
+    /** Function signatures without bodies */
+    functionSignatures: FunctionSignatureInfo[];
+
+    /** First N lines of the file */
+    firstNLines: string;
+
+    /** Files that import this one (dependents) */
+    usedBy: string[];
+
+    /** Local files this one imports (dependencies) */
+    dependsOn: string[];
+}
+
+export interface FunctionSignatureInfo {
+    /** Function name */
+    name: string;
+
+    /** Signature string, e.g. "function add(a: number, b: number): number" */
+    signature: string;
+
+    /** JSDoc comment if present */
+    jsdoc?: string;
+
+    /** Whether exported */
+    exported: boolean;
 }
 
 export interface ImportEntry {
