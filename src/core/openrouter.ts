@@ -1,83 +1,97 @@
 /**
- * OpenRouter API client for LLM integration
- * Compatible with OpenAI-style API format
+ * Gemini API client for LLM integration
+ * Uses Google's Gemini API for generating summaries
  */
 
-export interface OpenRouterConfig {
+export interface GeminiConfig {
     apiKey: string;
-    baseUrl?: string;
     model?: string;
-    siteUrl?: string;
-    siteName?: string;
 }
 
 export interface Message {
-    role: "system" | "user" | "assistant";
+    role: "system" | "user" | "assistant" | "model";
     content: string;
 }
 
-export interface ChatCompletionResponse {
-    id: string;
-    choices: {
-        message: {
+interface GeminiContent {
+    role: "user" | "model";
+    parts: { text: string }[];
+}
+
+interface GeminiResponse {
+    candidates: {
+        content: {
+            parts: { text: string }[];
             role: string;
-            content: string;
         };
-        finish_reason: string;
+        finishReason: string;
     }[];
-    usage?: {
-        prompt_tokens: number;
-        completion_tokens: number;
-        total_tokens: number;
+    usageMetadata?: {
+        promptTokenCount: number;
+        candidatesTokenCount: number;
+        totalTokenCount: number;
     };
 }
 
-const DEFAULT_MODEL = "z-ai/glm-4.7";
-const DEFAULT_BASE_URL = "https://openrouter.ai/api/v1";
+const DEFAULT_MODEL = "gemini-3-flash-preview";
+const GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models";
 
 /**
- * OpenRouter client for generating AI-powered summaries
+ * Gemini client for generating AI-powered summaries
  */
-export class OpenRouterClient {
+export class GeminiClient {
     private apiKey: string;
-    private baseUrl: string;
     private model: string;
-    private siteUrl: string;
-    private siteName: string;
 
-    constructor(config: OpenRouterConfig) {
+    constructor(config: GeminiConfig) {
         this.apiKey = config.apiKey;
-        this.baseUrl = config.baseUrl || DEFAULT_BASE_URL;
         this.model = config.model || DEFAULT_MODEL;
-        this.siteUrl = config.siteUrl || "http://localhost";
-        this.siteName = config.siteName || "Nexhacks Agent";
     }
 
     /**
-     * Sends a chat completion request to OpenRouter
+     * Sends a chat request to Gemini
      */
     async chat(messages: Message[]): Promise<string> {
-        const response = await fetch(`${this.baseUrl}/chat/completions`, {
+        // Convert OpenAI-style messages to Gemini format
+        const systemInstruction = messages.find(m => m.role === "system")?.content;
+        const contents: GeminiContent[] = messages
+            .filter(m => m.role !== "system")
+            .map(m => ({
+                role: m.role === "assistant" ? "model" : "user",
+                parts: [{ text: m.content }]
+            }));
+
+        const requestBody: Record<string, unknown> = {
+            contents,
+            generationConfig: {
+                temperature: 0.7,
+                maxOutputTokens: 1024,
+            }
+        };
+
+        if (systemInstruction) {
+            requestBody.systemInstruction = {
+                parts: [{ text: systemInstruction }]
+            };
+        }
+
+        const url = `${GEMINI_BASE_URL}/${this.model}:generateContent?key=${this.apiKey}`;
+
+        const response = await fetch(url, {
             method: "POST",
             headers: {
-                "Authorization": `Bearer ${this.apiKey}`,
                 "Content-Type": "application/json",
-                "HTTP-Referer": this.siteUrl,
-                "X-Title": this.siteName,
             },
-            body: JSON.stringify({
-                model: this.model,
-                messages,
-            }),
+            body: JSON.stringify(requestBody),
         });
 
         if (!response.ok) {
             const error = await response.text();
-            throw new Error(`OpenRouter API error: ${response.status} - ${error}`);
+            throw new Error(`Gemini API error: ${response.status} - ${error}`);
         }
 
-        const data = await response.json() as ChatCompletionResponse;
-        return data.choices[0]?.message?.content || "";
+        const data = await response.json() as GeminiResponse;
+        return data.candidates[0]?.content?.parts[0]?.text || "";
     }
 
     /**
@@ -213,30 +227,36 @@ Respond with ONLY 2 sentences:
 /**
  * Create a mock client for testing without API key
  */
-export function createMockClient(): OpenRouterClient {
+export function createMockClient(): GeminiClient {
     return {
         chat: async () => "Mock response - No API key configured",
         generateFileSummary: async (filePath: string) =>
-            `**Purpose**: This file (${filePath.split("/").pop()}) contains code that needs an OpenRouter API key for detailed analysis.\n\n**Key Components**: See exports list.\n\n**Dependencies**: See imports list.\n\n**Usage**: Configure OPENROUTER_API_KEY for AI-powered summaries.`,
+            `**Purpose**: This file (${filePath.split("/").pop()}) contains code that needs a Gemini API key for detailed analysis.\n\n**Key Components**: See exports list.\n\n**Dependencies**: See imports list.\n\n**Usage**: Configure GEMINI_API_KEY for AI-powered summaries.`,
         generateArchitectureOverview: async () =>
-            "Architecture overview requires an OpenRouter API key. Configure OPENROUTER_API_KEY environment variable.",
+            "Architecture overview requires a Gemini API key. Configure GEMINI_API_KEY environment variable.",
+        generateCapsuleSummary: async () =>
+            "Summary generation requires a Gemini API key. Configure GEMINI_API_KEY environment variable.",
         isConfigured: () => false,
-    } as unknown as OpenRouterClient;
+    } as unknown as GeminiClient;
 }
 
 /**
- * Factory function to create OpenRouter client
+ * Factory function to create Gemini client
  */
-export function createOpenRouterClient(apiKey?: string): OpenRouterClient {
-    const key = apiKey || process.env.OPENROUTER_API_KEY;
+export function createGeminiClient(apiKey?: string): GeminiClient {
+    const key = apiKey || process.env.GEMINI_API_KEY;
 
     if (!key) {
-        console.warn("No OpenRouter API key found. Using mock client.");
+        console.warn("No Gemini API key found. Using mock client.");
         return createMockClient();
     }
 
-    return new OpenRouterClient({
+    return new GeminiClient({
         apiKey: key,
-        model: process.env.OPENROUTER_MODEL || DEFAULT_MODEL,
+        model: process.env.GEMINI_MODEL || DEFAULT_MODEL,
     });
 }
+
+// Re-export with OpenRouter-compatible names for backward compatibility
+export { GeminiClient as OpenRouterClient };
+export { createGeminiClient as createOpenRouterClient };
