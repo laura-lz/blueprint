@@ -9,13 +9,20 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onCommand:nexhacks.helloWorld",
+    "onCommand:nexhacks.readCodebase"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
         "command": "nexhacks.helloWorld",
         "title": "Hello World"
+      },
+      {
+        "command": "nexhacks.readCodebase",
+        "title": "Read Codebase"
       }
     ]
   },
