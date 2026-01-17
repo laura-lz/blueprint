@@ -1,71 +1,94 @@
-# nexhacks README
+# Nexhacks - Codebase Documentation Agent
 
-This is the README for your extension "nexhacks". After writing up a brief description, we recommend including the following sections.
+A VS Code extension and CLI tool that scans your codebase and generates:
+- **Wiki-style markdown documentation** for each file
+- **Mermaid diagrams** showing component relationships
+- **AI-powered summaries** (with OpenRouter integration)
+
+## VS Code Extension
+
+This extension provides code visualization and documentation features directly in VS Code.
+
+### Features
+- Code visualization and analysis
+- Interactive codebase exploration
+- Real-time code relationship mapping
+
+## CLI Agent
+
+Run the agent from the command line to generate documentation for your codebase.
+
+### Quick Start
+
+```bash
+# Install dependencies
+pnpm install
+
+# Run the agent on the sample calculator
+pnpm run agent:sample
+
+# Run on your own codebase
+pnpm run agent -- --target /path/to/your/codebase --output ./docs
+```
+
+### CLI Options
+
+```bash
+npx tsx cli/index.ts --help
+
+Options:
+  -t, --target <path>   Target directory to scan (required)
+  -o, --output <path>   Output directory (default: ./output)
+  -m, --model <model>   OpenRouter model (default: claude-3.5-sonnet)
+  --no-ai               Disable AI summaries
+  --no-diagrams         Disable Mermaid diagrams
+  -v, --verbose         Verbose logging
+```
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+- 🔍 **File Scanner** - Recursively scans codebase, filters code files
+- 🌳 **AST Parser** - Extracts imports/exports without feeding full context
+- 🔗 **Relationship Analyzer** - Builds dependency graph between components
+- 📝 **Wiki Generator** - Creates wiki-style markdown summaries
+- 📊 **Mermaid Diagrams** - Upper-level component relationship diagrams
+- 🤖 **AI Summaries** - Optional OpenRouter integration for intelligent summaries
 
-For example if there is an image subfolder under your extension project workspace:
+## Project Structure
 
-\!\[feature X\]\(images/feature-x.png\)
+```
+nexhacks/
+├── samples/calculator/    # Sample Next.js app for testing
+├── src/                    # VS Code extension + core logic
+│   ├── extension.ts        # Extension entry point
+│   └── core/               # Core agent logic (shared)
+│       ├── openrouter.ts   # OpenRouter API client
+│       ├── scanner.ts      # File system scanner
+│       ├── parser.ts       # AST parser (Babel)
+│       ├── analyzer.ts     # Dependency graph builder
+│       └── generator.ts     # Wiki/Mermaid generator
+├── cli/                    # CLI interface
+└── output/                 # Generated documentation
+```
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+## AI-Powered Summaries
 
-## Requirements
+To enable AI-powered summaries, add your OpenRouter API key:
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+```bash
+# In .env file
+OPENROUTER_API_KEY=your_key_here
+```
 
-## Extension Settings
+Get your key at [https://openrouter.ai/keys](https://openrouter.ai/keys)
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+## Output Example
 
-For example:
+Running the agent generates:
+- `output/wiki.md` - Complete wiki documentation
+- `output/diagram.mmd` - Mermaid diagram file
+- `output/summaries.json` - JSON export of file summaries
 
-This extension contributes the following settings:
+## License
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+MIT

@@ -1,10 +1,16 @@
 {
   "name": "nexhacks",
   "displayName": "nexhacks",
-  "description": "",
+  "description": "Codebase documentation agent - generates wiki summaries and Mermaid diagrams",
   "version": "0.0.1",
+  "type": "module",
+  "main": "./out/extension.js",
+  "bin": {
+    "nexhacks-agent": "./cli/index.ts"
+  },
   "engines": {
-    "vscode": "^1.105.1"
+    "vscode": "^1.105.1",
+    "node": ">=18.0.0"
   },
   "categories": [
     "Other"
@@ -13,7 +19,6 @@
     "onCommand:nexhacks.helloWorld",
     "onCommand:nexhacks.readCodebase"
   ],
-  "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
@@ -32,15 +37,42 @@
     "watch": "tsc -watch -p ./",
     "pretest": "pnpm run compile && pnpm run lint",
     "lint": "eslint src",
-    "test": "vscode-test"
+    "test": "vscode-test",
+    "dev": "npm run dev --prefix samples/calculator",
+    "build": "npm run build --prefix samples/calculator",
+    "agent": "npx tsx cli/index.ts",
+    "agent:sample": "npx tsx cli/index.ts --target ./samples/calculator --output ./output",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "codebase",
+    "documentation",
+    "wiki",
+    "mermaid",
+    "agent",
+    "openrouter"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@babel/parser": "^7.23.0",
+    "@babel/traverse": "^7.23.0",
+    "@babel/types": "^7.23.0",
+    "commander": "^12.0.0",
+    "dotenv": "^17.2.3",
+    "dagre": "^0.8.5",
+    "reactflow": "^11.11.4"
   },
   "devDependencies": {
     "@types/vscode": "^1.108.1",
     "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
+    "@types/babel__traverse": "^7.20.0",
+    "@types/dagre": "^0.7.53",
     "typescript-eslint": "^8.52.0",
     "eslint": "^9.39.2",
     "typescript": "^5.9.3",
+    "tsx": "^4.7.0",
     "@vscode/test-cli": "^0.0.12",
     "@vscode/test-electron": "^2.5.2"
   }
