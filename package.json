@@ -12,7 +12,7 @@
         "build": "next build",
         "start": "next start",
         "agent": "npx tsx cli/index.ts",
-        "agent:sample": "npx tsx cli/index.ts --target ./samples/calculator --output ./output",
+        "agent:sample": "npx tsx cli/index.ts --target ./samples/calculator --output ./public",
         "typecheck": "tsc --noEmit",
         "calculator": "npm run dev --prefix samples/calculator"
     },

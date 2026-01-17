@@ -55,11 +55,13 @@ export {
     type GeneratedWiki,
 } from "./generator";
 
-// OpenRouter
+// Gemini (formerly OpenRouter)
 export {
-    OpenRouterClient,
-    createOpenRouterClient,
+    GeminiClient,
+    GeminiClient as OpenRouterClient,
+    createGeminiClient,
+    createGeminiClient as createOpenRouterClient,
     createMockClient,
-    type OpenRouterConfig,
+    type GeminiConfig,
     type Message,
 } from "./openrouter";
