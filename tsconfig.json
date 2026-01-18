@@ -7,7 +7,6 @@
 			"ES2022"
 		],
 		"sourceMap": true,
-		"rootDir": "src",
 		"strict": true,
 		"esModuleInterop": true,
 		"skipLibCheck": true,
@@ -21,6 +20,7 @@
 		"node_modules",
 		"dist",
 		"samples",
-		"out"
+		"out",
+		"webview-ui"
 	]
 }

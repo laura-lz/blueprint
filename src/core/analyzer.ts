@@ -3,8 +3,8 @@
  * Builds dependency graphs and identifies component hierarchies
  */
 
-import type { FileInfo } from "./scanner";
-import type { ParsedFile } from "./parser";
+import type { FileInfo } from "./scanner.js";
+import type { ParsedFile } from "./parser.js";
 import * as path from "path";
 
 export interface FileNode {

@@ -4,3 +4,10 @@ node_modules
 .vscode-test/
 *.vsix
 .env
+*.js.map
+output/
+visualizer/public/capsules.json
+
+cli/*.js
+samples/**/*.js
+visualizer/**/*.js

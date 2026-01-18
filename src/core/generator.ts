@@ -3,9 +3,10 @@
  * Creates documentation from analyzed codebase
  */
 
-import type { ComponentGraph, FileNode } from "./analyzer";
-import { getDependencies, getDependents, getGraphStats, calculateImportance } from "./analyzer";
-import { OpenRouterClient } from "./openrouter";
+import type { ComponentGraph, FileNode } from "./analyzer.js";
+import { getDependencies, getDependents, getGraphStats, calculateImportance } from "./analyzer.js";
+import { OpenRouterClient } from "./openrouter.js";
+import type { ExportInfo, ImportInfo } from "./parser.js";
 import * as path from "path";
 
 export interface WikiOptions {
@@ -92,8 +93,8 @@ export function generateMermaidDiagram(graph: ComponentGraph): string {
  * Generates a simple text-based summary for a file (no AI)
  */
 function generateBasicSummary(node: FileNode, graph: ComponentGraph): string {
-    const exports = node.parsed.exports.map((e) => e.name).join(", ") || "None";
-    const imports = node.parsed.imports.map((i) => i.source).join(", ") || "None";
+    const exports = node.parsed.exports.map((e: ExportInfo) => e.name).join(", ") || "None";
+    const imports = node.parsed.imports.map((i: ImportInfo) => i.source).join(", ") || "None";
     const deps = getDependencies(graph, node.file.path);
     const dependents = getDependents(graph, node.file.path);
 
@@ -116,11 +117,11 @@ function generateBasicSummary(node: FileNode, graph: ComponentGraph): string {
     ];
 
     if (node.parsed.functions.length > 0) {
-        parts.push(`**Functions:** ${node.parsed.functions.join(", ")}`);
+        parts.push(`**Functions:** ${node.parsed.functions.map((d: { name: string }) => d.name).join(", ")}`);
     }
 
     if (node.parsed.classes.length > 0) {
-        parts.push(`**Classes:** ${node.parsed.classes.join(", ")}`);
+        parts.push(`**Classes:** ${node.parsed.classes.map((d: { name: string }) => d.name).join(", ")}`);
     }
 
     return parts.join("\n");
@@ -144,17 +145,17 @@ export async function generateWiki(
 
     // Sort files by importance for AI processing
     const sortedFiles = Array.from(graph.nodes.entries())
-        .map(([path, node]) => ({
-            path,
+        .map(([filePath, node]: [string, FileNode]) => ({
+            path: filePath,
             node,
-            importance: calculateImportance(graph, path),
+            importance: calculateImportance(graph, filePath),
         }))
-        .sort((a, b) => b.importance - a.importance);
+        .sort((a: { importance: number }, b: { importance: number }) => b.importance - a.importance);
 
     // Generate summaries
     let aiProcessed = 0;
 
-    for (const { path: filePath, node } of sortedFiles) {
+    for (const { path: filePath, node } of sortedFiles as { path: string; node: FileNode; importance: number }[]) {
         let summary: string;
 
         if (useAI && client?.isConfigured() && aiProcessed < maxAIFiles) {
@@ -163,8 +164,8 @@ export async function generateWiki(
                 summary = await client.generateFileSummary(
                     node.file.relativePath,
                     "// File content would be passed here",
-                    node.parsed.exports.map((e) => e.name),
-                    node.parsed.imports.map((i) => i.source)
+                    node.parsed.exports.map((e: ExportInfo) => e.name),
+                    node.parsed.imports.map((i: ImportInfo) => i.source)
                 );
                 aiProcessed++;
             } catch (error) {

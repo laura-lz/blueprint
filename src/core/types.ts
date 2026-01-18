@@ -19,7 +19,11 @@ export interface LocationRange {
 
 export type SymbolKind = "function" | "class" | "type" | "const" | "variable" | "interface";
 
-export type Language = "typescript" | "javascript" | "react-typescript" | "react-javascript" | "css" | "json" | "markdown" | "other";
+export type Language =
+    | "typescript" | "javascript" | "react-typescript" | "react-javascript"
+    | "python" | "go" | "rust" | "java" | "kotlin"
+    | "c" | "cpp" | "csharp" | "ruby" | "php" | "swift" | "shell"
+    | "css" | "scss" | "html" | "vue" | "json" | "yaml" | "markdown" | "other";
 
 // ============================================================
 // FILE CAPSULE (Upper Level Data Contract)

@@ -20,18 +20,88 @@ export type FileType =
     | "javascript"
     | "react-typescript"
     | "react-javascript"
+    | "python"
+    | "go"
+    | "rust"
+    | "java"
+    | "kotlin"
+    | "c"
+    | "cpp"
+    | "csharp"
+    | "ruby"
+    | "php"
+    | "swift"
+    | "shell"
     | "css"
+    | "scss"
+    | "html"
+    | "vue"
     | "json"
+    | "yaml"
     | "markdown"
     | "other";
 
 const CODE_EXTENSIONS: Record<string, FileType> = {
+    // JavaScript/TypeScript
     ".ts": "typescript",
     ".tsx": "react-typescript",
     ".js": "javascript",
     ".jsx": "react-javascript",
+    ".mjs": "javascript",
+    ".cjs": "javascript",
+
+    // Python
+    ".py": "python",
+    ".pyw": "python",
+
+    // Go
+    ".go": "go",
+
+    // Rust
+    ".rs": "rust",
+
+    // Java/Kotlin
+    ".java": "java",
+    ".kt": "kotlin",
+    ".kts": "kotlin",
+
+    // C/C++/C#
+    ".c": "c",
+    ".h": "c",
+    ".cpp": "cpp",
+    ".cc": "cpp",
+    ".cxx": "cpp",
+    ".hpp": "cpp",
+    ".cs": "csharp",
+
+    // Ruby
+    ".rb": "ruby",
+    ".rake": "ruby",
+
+    // PHP
+    ".php": "php",
+
+    // Swift
+    ".swift": "swift",
+
+    // Shell
+    ".sh": "shell",
+    ".bash": "shell",
+    ".zsh": "shell",
+
+    // Web
     ".css": "css",
+    ".scss": "scss",
+    ".sass": "scss",
+    ".html": "html",
+    ".htm": "html",
+    ".vue": "vue",
+    ".svelte": "html",
+
+    // Config/Data
     ".json": "json",
+    ".yaml": "yaml",
+    ".yml": "yaml",
     ".md": "markdown",
 };
 

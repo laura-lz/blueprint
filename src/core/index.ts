@@ -4,7 +4,7 @@
  */
 
 // Types
-export * from "./types";
+export * from "./types.js";
 
 // Scanner
 export {
@@ -13,7 +13,7 @@ export {
     readFileContent,
     type FileInfo,
     type ScanOptions,
-} from "./scanner";
+} from "./scanner.js";
 
 // Parser
 export {
@@ -23,14 +23,14 @@ export {
     type ParsedFile,
     type ImportInfo,
     type ExportInfo,
-} from "./parser";
+} from "./parser.js";
 
 // Upper Level API (main entry point)
 export {
     UpperLevelAPI,
     buildUpperLevelGraph,
     createUpperLevelAPI,
-} from "./api";
+} from "./api.js";
 
 // Analyzer (legacy, kept for backward compatibility)
 export {
@@ -44,7 +44,7 @@ export {
     type FileNode as LegacyFileNode,
     type DependencyEdge,
     type ComponentGraph,
-} from "./analyzer";
+} from "./analyzer.js";
 
 // Generator
 export {
@@ -53,7 +53,7 @@ export {
     wikiToFile,
     type WikiOptions,
     type GeneratedWiki,
-} from "./generator";
+} from "./generator.js";
 
 // OpenRouter
 export {
@@ -62,4 +62,4 @@ export {
     createMockClient,
     type OpenRouterConfig,
     type Message,
-} from "./openrouter";
+} from "./openrouter.js";

@@ -14,7 +14,8 @@ import {
     createUpperLevelAPI,
     createOpenRouterClient,
     type FileCapsule,
-} from "../src/core";
+    type ExportEntry,
+} from "../src/core/index.js";
 
 const program = new Command();
 
@@ -89,7 +90,7 @@ async function main() {
                             firstNLines: capsule.summaryContext.firstNLines,
                             usedBy: capsule.summaryContext.usedBy,
                             dependsOn: capsule.summaryContext.dependsOn,
-                            exports: capsule.exports.map(e => e.name),
+                            exports: capsule.exports.map((e: ExportEntry) => e.name),
                         }
                     );
 
@@ -124,10 +125,10 @@ async function main() {
     if (allFiles.length > 0 && options.verbose) {
         console.log("");
         console.log("🔍 API Demo - getDependencyNeighborhood:");
-        const sampleFile = allFiles.find((f) => f.includes("Calculator")) || allFiles[0];
+        const sampleFile = allFiles.find((f: string) => f.includes("Calculator")) || allFiles[0];
         const neighbors = api.getDependencyNeighborhood(sampleFile, { radius: 2, cap: 5 });
         console.log(`   File: ${path.basename(sampleFile)}`);
-        console.log(`   Neighborhood: ${neighbors.map((n) => path.basename(n)).join(", ") || "(none)"}`);
+        console.log(`   Neighborhood: ${neighbors.map((n: string) => path.basename(n)).join(", ") || "(none)"}`);
     }
 
     console.log("");

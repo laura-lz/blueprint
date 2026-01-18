@@ -4,10 +4,15 @@
  */
 
 import * as parser from "@babel/parser";
-import traverse from "@babel/traverse";
-import type { NodePath } from "@babel/traverse";
+import _traverse from "@babel/traverse";
+import type { NodePath, TraverseOptions } from "@babel/traverse";
 import * as t from "@babel/types";
-import type { FileType } from "./scanner";
+import type { File } from "@babel/types";
+import type { FileType } from "./scanner.js";
+
+// Handle ESM/CJS interop for @babel/traverse
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const traverse = ((_traverse as any).default ?? _traverse) as (ast: File, opts: TraverseOptions) => void;
 
 export interface SymbolLocation {
     startLine: number;
@@ -95,14 +100,16 @@ export function parseFile(content: string, fileType: FileType): ParsedFile {
 
     let ast;
     try {
+        const plugins = getParserPlugins(fileType);
         ast = parser.parse(content, {
             sourceType: "module",
-            plugins: getParserPlugins(fileType),
+            plugins: plugins,
             errorRecovery: true,
             attachComment: true,  // Attach comments for docstring extraction
         });
     } catch (error) {
-        console.warn("Failed to parse file:", error);
+        // Error is logged at the API level with file path
+        // Just return empty result here
         return result;
     }
 
@@ -115,10 +122,7 @@ export function parseFile(content: string, fileType: FileType): ParsedFile {
         }
     }
 
-    // Type assertion for traverse
-    const traverseFn = (typeof traverse === "function" ? traverse : (traverse as { default: typeof traverse }).default);
-
-    traverseFn(ast, {
+    traverse(ast, {
         // Track imports
         ImportDeclaration(path: NodePath<t.ImportDeclaration>) {
             const source = path.node.source.value;
@@ -316,20 +320,20 @@ export function parseFileWithContext(content: string, fileType: FileType): Parse
 
     let ast;
     try {
+        const plugins = getParserPlugins(fileType);
         ast = parser.parse(content, {
             sourceType: "module",
-            plugins: getParserPlugins(fileType),
+            plugins: plugins,
             errorRecovery: true,
             attachComment: true,
         });
     } catch {
+        // Error is logged at the API level with file path
         return result;
     }
 
-    const traverseFn = (typeof traverse === "function" ? traverse : (traverse as { default: typeof traverse }).default);
-
     // Second pass: extract function signatures
-    traverseFn(ast, {
+    traverse(ast, {
         FunctionDeclaration(path: NodePath<t.FunctionDeclaration>) {
             if (path.node.id) {
                 const name = path.node.id.name;

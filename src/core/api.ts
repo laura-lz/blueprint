@@ -18,9 +18,9 @@ import type {
     TopSymbol,
     Language,
     SummaryContext,
-} from "./types";
-import { scanDirectory, readFileContent, type FileInfo } from "./scanner";
-import { parseFileWithContext, getFirstNLines, type ParsedFile } from "./parser";
+} from "./types.js";
+import { scanDirectory, readFileContent, type FileInfo } from "./scanner.js";
+import { parseFileWithContext, getFirstNLines, type ParsedFile, type ImportInfo, type ExportInfo as ParserExportInfo } from "./parser.js";
 
 /**
  * Build a FileCapsule from a FileInfo, ParsedFile, and content
@@ -32,7 +32,7 @@ function buildFileCapsule(
     rootPath: string
 ): FileCapsule {
     // Convert imports to ImportEntry format
-    const imports: ImportEntry[] = parsed.imports.map((imp) => ({
+    const imports: ImportEntry[] = parsed.imports.map((imp: ImportInfo) => ({
         pathOrModule: imp.source,
         symbols: imp.specifiers,
         isDefault: imp.isDefault,
@@ -40,7 +40,7 @@ function buildFileCapsule(
     }));
 
     // Convert exports to ExportEntry format
-    const exports: ExportEntry[] = parsed.exports.map((exp) => ({
+    const exports: ExportEntry[] = parsed.exports.map((exp: ParserExportInfo) => ({
         name: exp.name,
         kind: exp.type === "default" ? "default" : exp.type,
         isDefault: exp.isDefault,
@@ -51,7 +51,7 @@ function buildFileCapsule(
 
     // Add functions
     for (const fn of parsed.functions) {
-        const isExported = parsed.exports.some((e) => e.name === fn.name);
+        const isExported = parsed.exports.some((e: ParserExportInfo) => e.name === fn.name);
         topSymbols.push({
             name: fn.name,
             kind: "function",
@@ -65,7 +65,7 @@ function buildFileCapsule(
 
     // Add classes
     for (const cls of parsed.classes) {
-        const isExported = parsed.exports.some((e) => e.name === cls.name);
+        const isExported = parsed.exports.some((e: ParserExportInfo) => e.name === cls.name);
         topSymbols.push({
             name: cls.name,
             kind: "class",
@@ -79,7 +79,7 @@ function buildFileCapsule(
 
     // Add constants
     for (const cst of parsed.constants) {
-        const isExported = parsed.exports.some((e) => e.name === cst.name);
+        const isExported = parsed.exports.some((e: ParserExportInfo) => e.name === cst.name);
         topSymbols.push({
             name: cst.name,
             kind: "const",
@@ -94,7 +94,7 @@ function buildFileCapsule(
     // Build summary context for LLM-based summaries
     const summaryContext: SummaryContext = {
         fileDocstring: parsed.fileDocstring,
-        functionSignatures: parsed.functionSignatures.map((sig) => ({
+        functionSignatures: parsed.functionSignatures.map((sig: { name: string; signature: string; jsdoc?: string; exported: boolean }) => ({
             name: sig.name,
             signature: sig.signature,
             jsdoc: sig.jsdoc,
@@ -103,8 +103,8 @@ function buildFileCapsule(
         firstNLines: getFirstNLines(content, 30),
         usedBy: [],  // Will be populated later
         dependsOn: parsed.imports
-            .filter((imp) => imp.source.startsWith(".") || imp.source.startsWith("@/"))
-            .map((imp) => imp.source),
+            .filter((imp: ImportInfo) => imp.source.startsWith(".") || imp.source.startsWith("@/"))
+            .map((imp: ImportInfo) => imp.source),
     };
 
     return {
@@ -277,7 +277,7 @@ export class UpperLevelAPI implements IUpperLevelAPI {
 
         // Find entry points (files with no dependents)
         const hasDependent = new Set(
-            this.graph.edges.map((e) => e.to)
+            this.graph.edges.map((e: FileEdge) => e.to)
         );
         const entryPoints = Array.from(this.graph.nodes.keys())
             .filter((p) => !hasDependent.has(p))
@@ -312,6 +312,14 @@ export async function buildUpperLevelGraph(rootDir: string): Promise<UpperLevelG
         try {
             const content = await readFileContent(file.path);
             const parsed = parseFileWithContext(content, file.type);
+
+            // Check if parsing failed (empty result for parseable files)
+            if (["typescript", "javascript", "react-typescript", "react-javascript"].includes(file.type) &&
+                parsed.imports.length === 0 && parsed.exports.length === 0 && content.length > 100) {
+                // Likely a parse error - log it
+                console.warn(`⚠️  Failed to parse ${file.relativePath} (type: ${file.type}) - skipping detailed analysis`);
+            }
+
             const capsule = buildFileCapsule(file, parsed, content, absoluteRoot);
 
             nodes.set(file.path, { id: file.path, capsule });

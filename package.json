@@ -4,12 +4,12 @@
   "description": "Codebase documentation agent - generates wiki summaries and Mermaid diagrams",
   "version": "0.0.1",
   "type": "module",
-  "main": "./out/extension.js",
+  "main": "./out/src/extension.js",
   "bin": {
     "nexhacks-agent": "./cli/index.ts"
   },
   "engines": {
-    "vscode": "^1.105.1",
+    "vscode": "^1.104.0",
     "node": ">=18.0.0"
   },
   "categories": [
@@ -17,7 +17,8 @@
   ],
   "activationEvents": [
     "onCommand:nexhacks.helloWorld",
-    "onCommand:nexhacks.readCodebase"
+    "onCommand:nexhacks.readCodebase",
+    "onCommand:nexhacks.openCanvas"
   ],
   "contributes": {
     "commands": [
@@ -28,13 +29,45 @@
       {
         "command": "nexhacks.readCodebase",
         "title": "Read Codebase"
+      },
+      {
+        "command": "nexhacks.openCanvas",
+        "title": "Open Visualizer"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Nexhacks",
+      "properties": {
+        "nexhacks.llmProvider": {
+          "type": "string",
+          "enum": [
+            "openrouter",
+            "openai"
+          ],
+          "default": "openrouter",
+          "description": "LLM provider for AI summaries.",
+          "scope": "application"
+        },
+        "nexhacks.llmApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "API key for the selected LLM provider.",
+          "scope": "application"
+        },
+        "nexhacks.llmModel": {
+          "type": "string",
+          "default": "google/gemini-2.0-flash-001",
+          "description": "Model to use for AI summaries (e.g., gpt-4o-mini for OpenAI, google/gemini-2.0-flash-001 for OpenRouter).",
+          "scope": "application"
+        }
+      }
+    }
   },
   "scripts": {
-    "vscode:prepublish": "pnpm run compile",
+    "vscode:prepublish": "pnpm run compile && pnpm run build:webview",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
+    "build:webview": "cd webview-ui && pnpm install && pnpm build",
     "pretest": "pnpm run compile && pnpm run lint",
     "lint": "eslint src",
     "test": "vscode-test",
@@ -61,7 +94,8 @@
     "commander": "^12.0.0",
     "dotenv": "^17.2.3",
     "dagre": "^0.8.5",
-    "reactflow": "^11.11.4"
+    "reactflow": "^11.11.4",
+    "openai": "^6.16.0"
   },
   "devDependencies": {
     "@types/vscode": "^1.108.1",
