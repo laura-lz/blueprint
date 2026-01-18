@@ -52,4 +52,6 @@ export {
     createGeminiClient,
     type GeminiConfig,
     type Message,
+    OpenRouterClient,
+    createOpenRouterClient,
 } from "./gemini.js";

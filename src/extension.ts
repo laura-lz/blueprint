@@ -140,16 +140,35 @@ export function activate(context: vscode.ExtensionContext) {
 				return;
 			}
 			if (message?.type === 'setApiKey') {
-				const value = await vscode.window.showInputBox({
+				const geminiKey = await vscode.window.showInputBox({
 					prompt: 'Enter your Gemini API key',
-					placeHolder: 'Your Gemini API key',
+					placeHolder: 'Gemini API key (starts with AIza...)',
 					password: true,
 					ignoreFocusOut: true
 				});
-				if (value) {
+
+				const ttcKey = await vscode.window.showInputBox({
+					prompt: 'Enter your TTC API key (Optional)',
+					placeHolder: 'The Token Company API key',
+					password: true,
+					ignoreFocusOut: true
+				});
+
+				if (geminiKey !== undefined) {
 					const config = vscode.workspace.getConfiguration('nexhacks');
-					await config.update('llmApiKey', value, vscode.ConfigurationTarget.Global);
-					vscode.window.showInformationMessage('Gemini API key saved.');
+					await config.update('geminiApiKey', geminiKey, vscode.ConfigurationTarget.Global);
+				}
+
+				if (ttcKey !== undefined) {
+					const config = vscode.workspace.getConfiguration('nexhacks');
+					await config.update('ttcApiKey', ttcKey, vscode.ConfigurationTarget.Global);
+				}
+
+				if (geminiKey || ttcKey) {
+					vscode.window.showInformationMessage('API keys saved. Reloading...');
+					// Trigger a cache clear/reload
+					capsulesCache = null;
+					sendCapsulesDataToWebview(canvasPanel.webview);
 				}
 				return;
 			}
@@ -362,8 +381,106 @@ async function sendCapsulesDataToWebview(webview: vscode.Webview) {
 			});
 			console.log('[Nexhacks] Sent initial capsules to webview');
 
-			// PHASE 2: Generate AI summaries using helper function
-			await generateAndSaveSummaries(files, directories, rootPath, webview);
+			// PHASE 2: Generate AI summaries in background if API key is configured
+			const config = vscode.workspace.getConfiguration('nexhacks');
+			const apiKey = config.get<string>('geminiApiKey');
+
+			const ttcApiKey = config.get<string>('ttcApiKey');
+
+			if (apiKey && apiKey.length > 0) {
+				console.log('[Nexhacks] 🤖 Generating AI summaries using Gemini...');
+				if (ttcApiKey) {
+					console.log('[Nexhacks] 🐻 TTC Compression enabled');
+				}
+
+				const client = new GeminiClient({ apiKey, ttcApiKey });
+
+				let summarized = 0;
+
+				// Generate AI summaries in background and stream updates
+				for (const [relativePath, capsule] of Object.entries(files)) {
+					// Skip if summary already exists (e.g. from partial run) or non-code
+					if (capsule.upperLevelSummary ||
+						!capsule.metadata ||
+						['json', 'css', 'markdown', 'yaml'].includes(capsule.lang)) {
+						continue;
+					}
+
+					try {
+						
+						const summary = await client.generateCapsuleSummary(
+							relativePath,
+							{
+								fileDocstring: capsule.metadata.fileDocstring,
+								functionSignatures: capsule.metadata.functionSignatures,
+								firstNLines: capsule.metadata.firstNLines,
+								usedBy: capsule.metadata.usedBy,
+								dependsOn: capsule.metadata.dependsOn,
+								exports: capsule.exports.map((e: ExportEntry) => e.name),
+							}
+						);
+
+						capsule.upperLevelSummary = summary;
+						summarized++;
+
+						// Send incremental update to webview
+						webview.postMessage({
+							type: 'updateFileSummary',
+							data: { relativePath, summary }
+						});
+
+						if (summarized % 5 === 0) {
+							console.log(`[Nexhacks] Summarized ${summarized} files...`);
+						}
+					} catch (error) {
+						console.warn(`[Nexhacks] Failed to summarize ${relativePath}:`, error);
+					}
+				}
+
+				console.log(`[Nexhacks] ✅ Generated ${summarized} AI summaries`);
+
+				// Build Directory Summaries
+				console.log('[Nexhacks] 📂 Generating Directory summaries...');
+				for (const [dirRelPath, dirCapsule] of Object.entries(directories)) {
+					// Prepare simple file list for context
+					const fileContexts = dirCapsule.files.map(fPath => ({
+						name: path.basename(fPath),
+						summary: files[fPath]?.upperLevelSummary || "No summary"
+					}));
+
+					try {
+						const summary = await client.generateDirectorySummary(
+							dirRelPath,
+							fileContexts,
+							dirCapsule.subdirectories
+						);
+						dirCapsule.upperLevelSummary = summary;
+
+						// Optional: Send update for directory (if UI handles it)
+						// webview.postMessage({ type: 'updateDirectorySummary', ... });
+					} catch (error) {
+						console.warn(`[Nexhacks] Failed to summarize directory ${dirRelPath}`);
+					}
+				}
+
+				// Update cache with summaries
+				capsulesCache = { stats, files, directories };
+			} else {
+				console.log('[Nexhacks] No API key configured, skipping AI summaries');
+			}
+
+			// Save capsules to file in workspace
+			const outputDir = path.join(rootPath, '.nexhacks');
+			const outputPath = path.join(outputDir, 'capsules.json');
+			try {
+				if (!fs.existsSync(outputDir)) {
+					fs.mkdirSync(outputDir, { recursive: true });
+				}
+				fs.writeFileSync(outputPath, JSON.stringify(capsulesCache, null, 2), 'utf-8');
+				console.log(`[Nexhacks] Capsules saved to: ${outputPath}`);
+			} catch (writeError) {
+				console.warn('[Nexhacks] Failed to save capsules file:', writeError);
+			}
 		} else {
 			console.log('[Nexhacks] Using cached capsules data');
 			webview.postMessage({

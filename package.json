@@ -38,16 +38,16 @@
     "configuration": {
       "title": "Nexhacks",
       "properties": {
-        "nexhacks.llmApiKey": {
+        "nexhacks.geminiApiKey": {
           "type": "string",
           "default": "",
           "description": "Gemini API key for AI summaries.",
           "scope": "application"
         },
-        "nexhacks.llmModel": {
+        "nexhacks.ttcApiKey": {
           "type": "string",
-          "default": "gemini-3-flash-preview",
-          "description": "Gemini model to use for AI summaries (e.g., gemini-2.0-flash, gemini-1.5-pro).",
+          "default": "",
+          "description": "API key for The Token Company (TTC) compression.",
           "scope": "application"
         }
       }
