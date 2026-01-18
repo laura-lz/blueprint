@@ -13,6 +13,7 @@ import * as path from "path";
 import {
     createUpperLevelAPI,
     createGeminiClient,
+    readFileContent,
     type FileCapsule,
     type ExportEntry,
 } from "../src/core/index.js";
@@ -26,6 +27,7 @@ program
     .requiredOption("-t, --target <path>", "Target directory to scan")
     .option("-o, --output <path>", "Output directory for capsules.json", "./output")
     .option("--no-summarize", "Disable AI summary generation")
+    .option("--deep-all", "Generate deep analysis (lowerLevelSummary + structure) for all code files")
     .option("-v, --verbose", "Enable verbose logging")
     .parse(process.argv);
 
@@ -103,6 +105,48 @@ async function main() {
             console.log(`   ✅ Generated ${count} summaries`);
         } else {
             console.log("⚠️ GEMINI_API_KEY not set, skipping AI summaries");
+        }
+    }
+
+    // Generate deep analysis if requested
+    if (options.deepAll) {
+        const client = createGeminiClient();
+
+        if (client.isConfigured()) {
+            console.log("🔬 Generating deep analysis for all files...");
+            let deepCount = 0;
+
+            for (const [filePath, capsule] of capsules) {
+                // Skip non-code files
+                if (["json", "css", "markdown", "yaml"].includes(capsule.lang)) {
+                    continue;
+                }
+
+                try {
+                    deepCount++;
+                    if (options.verbose) {
+                        console.log(`   [deep ${deepCount}] ${capsule.relativePath}`);
+                    }
+
+                    const fileContent = await readFileContent(filePath);
+                    const analysis = await client.generateDeepAnalysis(
+                        capsule.relativePath,
+                        fileContent
+                    );
+
+                    capsule.lowerLevelSummary = analysis.lowerLevelSummary;
+                    capsule.structure = analysis.structure;
+                } catch (error) {
+                    console.warn(`   ⚠️ Failed deep analysis for ${capsule.relativePath}`);
+                    if (options.verbose) {
+                        console.warn(`      ${error}`);
+                    }
+                }
+            }
+
+            console.log(`   ✅ Deep analysis complete for ${deepCount} files`);
+        } else {
+            console.log("⚠️ GEMINI_API_KEY not set, skipping deep analysis");
         }
     }
 
