@@ -751,7 +751,7 @@ const StickyNode: React.FC<NodeProps<StickyNodeData>> = ({ data }) => {
       <Handle type="target" position={Position.Top} style={{ opacity: 0 }} />
       <Handle type="source" position={Position.Bottom} style={{ opacity: 0 }} />
 
-      <div style={{ fontSize: '12px', fontWeight: 'bold', opacity: 0.6 }}>
+      <div style={{ fontSize: '14px', fontWeight: 'bold', opacity: 0.6 }}>
         📝 Note
       </div>
       {isEditing ? (
@@ -774,7 +774,7 @@ const StickyNode: React.FC<NodeProps<StickyNodeData>> = ({ data }) => {
           }}
         />
       ) : (
-        <div style={{ fontSize: '14px', lineHeight: '1.4', flex: 1 }}>
+        <div style={{ fontSize: '24px', lineHeight: '1.4', flex: 1 }}>
           {text || 'Double-click to edit...'}
         </div>
       )}
@@ -1009,6 +1009,7 @@ export default function App() {
   // Risk analysis cache: Map<relativePath, Map<functionName, RiskAnalysis>>
   const [riskAnalyses, setRiskAnalyses] = useState<Map<string, Map<string, RiskAnalysis>>>(new Map());
   const [stickyCounter, setStickyCounter] = useState(1);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   const nodeTypes = useMemo(() => ({ capsule: CapsuleNode, sticky: StickyNode }), []);
 
@@ -1226,6 +1227,12 @@ export default function App() {
   };
 
   const handleClickResult = (nodeId: string) => {
+    // Find the node and set it as selected to open the popup
+    const targetNode = nodes.find(n => n.id === nodeId);
+    if (targetNode) {
+      setSelectedNodeData(targetNode.data as FileNodeData);
+    }
+
     setNodes(nds => nds.map(n => ({
       ...n,
       data: { ...n.data as FileNodeData, isHighlight: n.id === nodeId }
@@ -1374,6 +1381,8 @@ export default function App() {
         onAddSticky={handleAddSticky}
         onRefresh={handleRefresh}
         onSettings={handleSettings}
+        isCollapsed={isSidebarCollapsed}
+        onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
       />
       <div style={{ flex: 1, position: 'relative' }}>
         <ReactFlowProvider>
