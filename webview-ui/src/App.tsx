@@ -363,6 +363,19 @@ const NodeDetailsOverlay: React.FC<{
   const [activeTab, setActiveTab] = useState<'summary' | 'diagram'>('summary');
   const colors = langColors[data.lang] || langColors.other;
 
+  const isUnsupported = useMemo(() => {
+    const unsupportedFormats = ['json', 'markdown', 'yaml', 'txt'];
+    const isUnsupportedFormat = unsupportedFormats.includes(data.lang) || 
+      data.relativePath?.endsWith('.json') ||
+      data.relativePath?.endsWith('.md') ||
+      data.relativePath?.endsWith('.yaml') ||
+      data.relativePath?.endsWith('.yml') ||
+      data.relativePath?.endsWith('.txt');
+      
+    console.log(`[Webview] Checking support for ${data.relativePath}: lang=${data.lang}, isUnsupported=${isUnsupportedFormat}`);
+    return isUnsupportedFormat;
+  }, [data.lang, data.relativePath]);
+
   const handleScroll = (e: React.WheelEvent) => {
     e.stopPropagation();
   };
@@ -562,36 +575,46 @@ const NodeDetailsOverlay: React.FC<{
                         })}
                       </div>
                     ) : (
-                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#151515', borderRadius: '16px', border: `1px solid ${colors.border}`, padding: '40px' }}>
-                        <div style={{ fontSize: '64px', marginBottom: '20px' }}>🔮</div>
-                        <div style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '8px', color: '#eee' }}>Analyze Code Structure</div>
-                        <div style={{ color: '#888', textAlign: 'center', marginBottom: '32px', maxWidth: '300px' }}>
-                          Generate a deep analysis to see block-level summaries of functions, classes, and code blocks.
+                      isUnsupported ? (
+                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#151515', borderRadius: '16px', border: `1px solid ${colors.border}`, padding: '40px' }}>
+                          <div style={{ fontSize: '64px', marginBottom: '20px' }}>📄</div>
+                          <div style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '8px', color: '#eee' }}>File Type Not Supported</div>
+                          <div style={{ color: '#888', textAlign: 'center', marginBottom: '32px', maxWidth: '300px' }}>
+                            Deep analysis is not available for this file type.
+                          </div>
                         </div>
+                      ) : (
+                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#151515', borderRadius: '16px', border: `1px solid ${colors.border}`, padding: '40px' }}>
+                          <div style={{ fontSize: '64px', marginBottom: '20px' }}>🔮</div>
+                          <div style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '8px', color: '#eee' }}>Analyze Code Structure</div>
+                          <div style={{ color: '#888', textAlign: 'center', marginBottom: '32px', maxWidth: '300px' }}>
+                            Generate a deep analysis to see block-level summaries of functions, classes, and code blocks.
+                          </div>
 
-                        <button
-                          onClick={() => {
-                            vscode.postMessage({ type: 'analyzeFile', relativePath: data.relativePath });
-                          }}
-                          style={{
-                            padding: '16px 32px',
-                            background: 'transparent',
-                            border: `2px dashed ${colors.border}`,
-                            color: colors.border,
-                            borderRadius: '12px',
-                            cursor: 'pointer',
-                            fontSize: '16px',
-                            fontWeight: '600',
-                            transition: 'all 0.2s',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px'
-                          }}
-                          onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-                          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                        >
-                          <span>✨</span>
-                          Generate Deep Analysis
-                        </button>
-                      </div>
+                          <button
+                            onClick={() => {
+                              vscode.postMessage({ type: 'analyzeFile', relativePath: data.relativePath });
+                            }}
+                            style={{
+                              padding: '16px 32px',
+                              background: 'transparent',
+                              border: `2px dashed ${colors.border}`,
+                              color: colors.border,
+                              borderRadius: '12px',
+                              cursor: 'pointer',
+                              fontSize: '16px',
+                              fontWeight: '600',
+                              transition: 'all 0.2s',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px'
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                          >
+                            <span>✨</span>
+                            Generate Deep Analysis
+                          </button>
+                        </div>
+                      )
                     )}
                   </div>
 
@@ -979,11 +1002,22 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-  const [selectedNodeData, setSelectedNodeData] = useState<FileNodeData | null>(null);
+
+  // Refactored to store ID only, so data is always fresh from nodes state
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+
+  const selectedNodeData = useMemo(() => {
+    if (!selectedNodeId) return null;
+    const node = nodes.find(n => n.id === selectedNodeId);
+    return node ? (node.data as FileNodeData) : null;
+  }, [nodes, selectedNodeId]);
+
   const [showStructure, setShowStructure] = useState(true);
   const [fileTypes, setFileTypes] = useState<Record<string, boolean>>({
-    'react-typescript': true, 'typescript': true, 'javascript': true, 'css': true,
-    'json': true, 'markdown': true, 'directory': true, 'sticky': true
+    typescript: true,
+    javascript: true,
+    python: false, // Default off to reduce noise if needed
+    other: true
   });
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   // Risk analysis cache: Map<relativePath, Map<functionName, RiskAnalysis>>
@@ -1038,6 +1072,7 @@ export default function App() {
       }
       if (message.type === 'updateFileStructure') {
         const { relativePath, structure, lowerLevelSummary } = message.data;
+        console.log(`[Webview] 📨 Received updateFileStructure for ${relativePath}`, { structureLength: structure?.length });
 
         // Update nodes to reflect change immediately (No capsules state anymore)
 
@@ -1062,33 +1097,7 @@ export default function App() {
           return node;
         }));
 
-        // IMPORTANT: Update selectedNodeData separately using functional update 
-        // to avoid stale closure issues
-        setSelectedNodeData(prev => {
-          if (prev && prev.relativePath === relativePath) {
-            const updatedCapsule = prev.fullCapsule ? {
-              ...prev.fullCapsule,
-              structure,
-              lowerLevelSummary,
-              edges: message.data.edges
-            } : {
-              relativePath,
-              name: prev.label,
-              lang: prev.lang,
-              exports: [],
-              imports: [],
-              structure,
-              lowerLevelSummary,
-              edges: message.data.edges
-            } as any;
-
-            return {
-              ...prev,
-              fullCapsule: updatedCapsule
-            };
-          }
-          return prev;
-        });
+        // No need to manually update selectedNodeData anymore as it is derived from nodes!
       }
       if (message.type === 'updateDirectorySummary') {
         const { relativePath, summary } = message.data;
@@ -1148,7 +1157,7 @@ export default function App() {
   };
 
   const handleNodeClick = (_event: React.MouseEvent, node: FileNode) => {
-    setSelectedNodeData(node.data);
+    setSelectedNodeId(node.id);
   };
 
   const handleSearch = (term: string) => {
@@ -1339,7 +1348,7 @@ export default function App() {
         {selectedNodeData && (
           <NodeDetailsOverlay
             data={selectedNodeData}
-            onClose={() => setSelectedNodeData(null)}
+            onClose={() => setSelectedNodeId(null)}
             riskAnalyses={riskAnalyses}
           />
         )}
