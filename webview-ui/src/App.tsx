@@ -156,18 +156,18 @@ interface StickyNodeData {
 
 
 // --- CODE BLOCK CARD COLORS ---
-const blockTypeColors: Record<string, { bg: string; border: string; icon: string }> = {
-  'function': { bg: '#1a3d1a', border: '#48bb78', icon: '🔧' },
-  'class': { bg: '#1a365d', border: '#4299e1', icon: '📦' },
-  'block': { bg: '#3d3d00', border: '#f7df1e', icon: '📄' },
+const blockTypeColors: Record<string, { bg: string; border: string; text: string; icon: string }> = {
+  'function': { bg: 'hsl(var(--block-function-bg))', border: 'hsl(var(--block-function-border))', text: 'hsl(var(--block-function-text))', icon: '🔧' },
+  'class': { bg: 'hsl(var(--block-class-bg))', border: 'hsl(var(--block-class-border))', text: 'hsl(var(--block-class-text))', icon: '📦' },
+  'block': { bg: 'hsl(var(--block-generic-bg))', border: 'hsl(var(--block-generic-border))', text: 'hsl(var(--block-generic-text))', icon: '📄' },
 };
 
 // --- RISK LEVEL COLORS ---
 const riskLevelColors: Record<string, { bg: string; border: string; text: string; icon: string }> = {
-  'low': { bg: '#1a3d1a', border: '#48bb78', text: '#48bb78', icon: '✅' },
-  'medium': { bg: '#3d3d1a', border: '#ecc94b', text: '#ecc94b', icon: '⚠️' },
-  'high': { bg: '#3d1a1a', border: '#f56565', text: '#f56565', icon: '🔴' },
-  'critical': { bg: '#4a1a1a', border: '#e53e3e', text: '#e53e3e', icon: '🚨' },
+  'low': { bg: 'hsl(var(--risk-low-bg))', border: 'hsl(var(--risk-low-border))', text: 'hsl(var(--risk-low-text))', icon: '✅' },
+  'medium': { bg: 'hsl(var(--risk-medium-bg))', border: 'hsl(var(--risk-medium-border))', text: 'hsl(var(--risk-medium-text))', icon: '⚠️' },
+  'high': { bg: 'hsl(var(--risk-high-bg))', border: 'hsl(var(--risk-high-border))', text: 'hsl(var(--risk-high-text))', icon: '🔴' },
+  'critical': { bg: 'hsl(var(--risk-critical-bg))', border: 'hsl(var(--risk-critical-border))', text: 'hsl(var(--risk-critical-text))', icon: '🚨' },
 };
 
 const riskTypeIcons: Record<string, string> = {
@@ -200,7 +200,7 @@ const CodeBlockCard: React.FC<{
         borderColor: riskColors ? riskColors.border : colors.border,
       }}
     >
-      <CardContent className="space-y-3 p-4" onClick={onClick}>
+      <CardContent className="space-y-3 p-4" onClick={onClick} style={{ color: colors.text }}>
         <div className="flex items-start gap-3">
           <span className="text-2xl">{colors.icon}</span>
           <div className="flex-1 space-y-2">
@@ -394,14 +394,14 @@ const NodeDetailsOverlay: React.FC<{
             </TabsContent>
 
             <TabsContent value="diagram" className="h-full">
-              <div className="flex h-full w-full">
+              <div className="flex h-[68vh] w-full gap-4">
                 {!data.isDirectory && !data.isRoot ? (
                   <>
-                    <Card className="flex w-[220px] flex-col border-border/70 bg-card/90">
+                    <Card className="flex w-[220px] min-h-0 flex-col border-border/70 bg-card/90">
                       <CardHeader className="pb-2">
                         <CardTitle className="text-xs uppercase text-muted-foreground">Imports</CardTitle>
                       </CardHeader>
-                      <CardContent className="flex-1">
+                      <CardContent className="flex-1 min-h-0">
                         <ScrollArea className="h-full pr-2">
                           <div className="space-y-2 text-xs">
                             {data.fullCapsule?.imports.map((imp, i) => (
@@ -422,13 +422,13 @@ const NodeDetailsOverlay: React.FC<{
 
                     <div className="flex items-center text-muted-foreground">→</div>
 
-                    <Card className="flex flex-1 flex-col border-border/70 bg-card/90">
+                    <Card className="flex min-h-0 flex-1 flex-col border-border/70 bg-card/90">
                       <CardHeader className="pb-2">
                         <CardTitle className="text-xs uppercase text-muted-foreground">
                           Code Structure ({data.fullCapsule?.structure?.length || 0} blocks)
                         </CardTitle>
                       </CardHeader>
-                      <CardContent className="flex-1">
+                      <CardContent className="flex-1 min-h-0">
                         {data.fullCapsule?.structure && data.fullCapsule.structure.length > 0 ? (
                           <ScrollArea className="h-full pr-4">
                             <div className="space-y-3">
@@ -473,11 +473,11 @@ const NodeDetailsOverlay: React.FC<{
 
                     <div className="flex items-center text-muted-foreground">→</div>
 
-                    <Card className="flex w-[220px] flex-col border-border/70 bg-card/90">
+                    <Card className="flex w-[220px] min-h-0 flex-col border-border/70 bg-card/90">
                       <CardHeader className="pb-2">
                         <CardTitle className="text-xs uppercase text-muted-foreground">Exports</CardTitle>
                       </CardHeader>
-                      <CardContent className="flex-1">
+                      <CardContent className="flex-1 min-h-0">
                         <ScrollArea className="h-full pr-2">
                           <div className="space-y-2 text-xs">
                             {data.fullCapsule?.exports.map((exp, i) => (
@@ -916,20 +916,25 @@ const applyTreeLayout = (nodes: FileNode[], edges: Edge[]) => {
       .parentId((d: any) => d.parentId)
       (cleanData);
 
-    const treeLayout = tree().nodeSize([250, 150]); // Width, Height spacing (flipped for Horizontal, or Standard)
+    const treeLayout = tree()
+      .nodeSize([420, 220])
+      .separation((a, b) => (a.parent === b.parent ? 1.6 : 2.2));
 
     treeLayout(root);
+
+    const descendants = root.descendants() as any[];
+    const minX = Math.min(...descendants.map((d) => d.x));
+    const maxX = Math.max(...descendants.map((d) => d.x));
+    const xOffset = (minX + maxX) / 2;
 
     const newNodes = nodes.map(n => {
       // Find matching hierarchy node
       // d3 tree assigns coordinates x, y
-      const hNode = root.descendants().find((d: any) => d.id === n.id) as any;
+      const hNode = descendants.find((d: any) => d.id === n.id) as any;
       if (hNode) {
-        // Adjust position. d3 tree centers at 0? No, usually starts 0,0 top-left relative to root
-        // We can center it.
         return {
           ...n,
-          position: { x: hNode.x, y: hNode.y }
+          position: { x: hNode.x - xOffset, y: hNode.y }
         };
       }
       return n;
@@ -1421,7 +1426,7 @@ export default function App() {
             className="bg-background/80 backdrop-blur shadow-lg border-border/50"
             onClick={toggleLayout}
           >
-            {layoutMode === 'force' ? '🕸️ Force' : '🌲 Tree'}
+            {layoutMode === 'force' ? 'Switch to Tree' : 'Switch to Concentric'}
           </Button>
           <Button
             variant="outline"
@@ -1446,7 +1451,7 @@ export default function App() {
             maxZoom={4}
             proOptions={{ hideAttribution: true }}
           >
-            <Background color="#1a1a1a" gap={50} />
+            <Background color="hsl(var(--border))" gap={50} />
             <Controls />
           </ReactFlow>
         </ReactFlowProvider>
