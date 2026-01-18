@@ -3,6 +3,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
+
 import { createUpperLevelAPI, GeminiClient, type FileCapsule, type DirectoryCapsule, type ExportEntry } from './core/index.js';
 
 let canvasPanel: vscode.WebviewPanel | undefined;
@@ -140,16 +141,35 @@ export function activate(context: vscode.ExtensionContext) {
 				return;
 			}
 			if (message?.type === 'setApiKey') {
-				const value = await vscode.window.showInputBox({
+				const geminiKey = await vscode.window.showInputBox({
 					prompt: 'Enter your Gemini API key',
-					placeHolder: 'Your Gemini API key',
+					placeHolder: 'Gemini API key (starts with AIza...)',
 					password: true,
 					ignoreFocusOut: true
 				});
-				if (value) {
+
+				const ttcKey = await vscode.window.showInputBox({
+					prompt: 'Enter your TTC API key (Optional)',
+					placeHolder: 'The Token Company API key',
+					password: true,
+					ignoreFocusOut: true
+				});
+
+				if (geminiKey !== undefined) {
 					const config = vscode.workspace.getConfiguration('nexhacks');
-					await config.update('llmApiKey', value, vscode.ConfigurationTarget.Global);
-					vscode.window.showInformationMessage('Gemini API key saved.');
+					await config.update('geminiApiKey', geminiKey, vscode.ConfigurationTarget.Global);
+				}
+
+				if (ttcKey !== undefined) {
+					const config = vscode.workspace.getConfiguration('nexhacks');
+					await config.update('ttcApiKey', ttcKey, vscode.ConfigurationTarget.Global);
+				}
+
+				if (geminiKey || ttcKey) {
+					vscode.window.showInformationMessage('API keys saved. Reloading...');
+					// Trigger a cache clear/reload
+					capsulesCache = null;
+					sendCapsulesDataToWebview(canvasPanel.webview);
 				}
 				return;
 			}
@@ -278,13 +298,17 @@ async function sendCapsulesDataToWebview(webview: vscode.Webview) {
 
 			// PHASE 2: Generate AI summaries in background if API key is configured
 			const config = vscode.workspace.getConfiguration('nexhacks');
-			const apiKey = config.get<string>('llmApiKey');
-			const model = config.get<string>('llmModel') || 'gemini-3-flash-preview';
+			const apiKey = config.get<string>('geminiApiKey');
+
+			const ttcApiKey = config.get<string>('ttcApiKey');
 
 			if (apiKey && apiKey.length > 0) {
 				console.log('[Nexhacks] 🤖 Generating AI summaries using Gemini...');
+				if (ttcApiKey) {
+					console.log('[Nexhacks] 🐻 TTC Compression enabled');
+				}
 
-				const client = new GeminiClient({ apiKey, model });
+				const client = new GeminiClient({ apiKey, ttcApiKey });
 
 				let summarized = 0;
 
@@ -298,6 +322,7 @@ async function sendCapsulesDataToWebview(webview: vscode.Webview) {
 					}
 
 					try {
+						
 						const summary = await client.generateCapsuleSummary(
 							relativePath,
 							{

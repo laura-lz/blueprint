@@ -1,37 +1,28 @@
 /**
- * Native Gemini API client for LLM integration
- * Uses Google's generativelanguage.googleapis.com REST API
+ * Gemini API client for LLM integration
+ * Uses Google's Gemini API for generating summaries
  */
 
 export interface GeminiConfig {
     apiKey: string;
     model?: string;
+    ttcApiKey?: string;
 }
 
 export interface Message {
-    role: "system" | "user" | "assistant";
+    role: "system" | "user" | "assistant" | "model";
     content: string;
-}
-
-// Gemini API types
-interface GeminiPart {
-    text: string;
 }
 
 interface GeminiContent {
     role: "user" | "model";
-    parts: GeminiPart[];
-}
-
-interface GeminiRequest {
-    systemInstruction?: { parts: GeminiPart[] };
-    contents: GeminiContent[];
+    parts: { text: string }[];
 }
 
 interface GeminiResponse {
-    candidates?: {
+    candidates: {
         content: {
-            parts: GeminiPart[];
+            parts: { text: string }[];
             role: string;
         };
         finishReason: string;
@@ -44,59 +35,112 @@ interface GeminiResponse {
 }
 
 const DEFAULT_MODEL = "gemini-3-flash-preview";
-const API_BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
+const GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models";
+const TTC_COMPRESS_URL = "https://api.thetokencompany.com/v1/compress";
+
+interface TTCResponse {
+    output?: string;
+    output_tokens?: number;
+    original_input_tokens?: number;
+    compression_time?: number;
+}
 
 /**
- * Native Gemini client for generating AI-powered summaries
+ * Gemini client for generating AI-powered summaries
  */
 export class GeminiClient {
     private apiKey: string;
     private model: string;
+    private ttcApiKey?: string;
 
     constructor(config: GeminiConfig) {
         this.apiKey = config.apiKey;
         this.model = config.model || DEFAULT_MODEL;
+        this.ttcApiKey = config.ttcApiKey;
     }
 
     /**
-     * Converts OpenAI-style messages to Gemini format
+     * Compresses content using The Token Company's Bear-1 model
      */
-    private convertMessages(messages: Message[]): GeminiRequest {
-        const request: GeminiRequest = {
-            contents: [],
-        };
-
-        for (const msg of messages) {
-            if (msg.role === "system") {
-                // System messages become systemInstruction
-                request.systemInstruction = {
-                    parts: [{ text: msg.content }],
-                };
-            } else {
-                // Map user/assistant to user/model
-                request.contents.push({
-                    role: msg.role === "assistant" ? "model" : "user",
-                    parts: [{ text: msg.content }],
-                });
-            }
+    async compressContent(text: string): Promise<string> {
+        if (!this.ttcApiKey) {
+            return text; // Pass through if no key configured
         }
 
-        return request;
+        console.log("Using TTC to compress content...");
+
+        try {
+            const start = Date.now();
+            const response = await fetch(TTC_COMPRESS_URL, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${this.ttcApiKey}`
+                },
+                body: JSON.stringify({
+                    model: "bear-1",
+                    input: text,
+                    compression_settings: {
+                        aggressiveness: 0.6, // Balanced compression
+                    }
+                })
+            });
+            if (!response.ok) {
+                console.warn(`⚠️ Compression failed: ${response.statusText}. Using original content.`);
+                return text;
+            }
+
+            const data = await response.json() as TTCResponse;
+            const compressedText = data.output || text;
+
+            // Log savings calculation if available
+            if (data.original_input_tokens && data.output_tokens) {
+                const savings = Math.round((1 - (data.output_tokens / data.original_input_tokens)) * 100);
+                console.log(`   🐻 Compressed: ${savings}% smaller (${data.original_input_tokens} -> ${data.output_tokens} tokens) in ${Date.now() - start}ms`);
+            }
+
+            return compressedText;
+        } catch (error) {
+            console.warn("⚠️ Compression error:", error);
+            return text; // Fallback to original
+        }
     }
 
     /**
-     * Sends a chat completion request to Gemini
+     * Sends a chat request to Gemini
      */
     async chat(messages: Message[]): Promise<string> {
-        const endpoint = `${API_BASE_URL}/models/${this.model}:generateContent`;
-        const body = this.convertMessages(messages);
+        // Convert OpenAI-style messages to Gemini format
+        const systemInstruction = messages.find(m => m.role === "system")?.content;
+        const contents: GeminiContent[] = messages
+            .filter(m => m.role !== "system")
+            .map(m => ({
+                role: m.role === "assistant" ? "model" : "user",
+                parts: [{ text: m.content }]
+            }));
 
-        const response = await fetch(`${endpoint}?key=${this.apiKey}`, {
+        const requestBody: Record<string, unknown> = {
+            contents,
+            generationConfig: {
+                temperature: 0.7,
+                maxOutputTokens: 8192,
+            }
+        };
+
+        if (systemInstruction) {
+            requestBody.systemInstruction = {
+                parts: [{ text: systemInstruction }]
+            };
+        }
+
+        const url = `${GEMINI_BASE_URL}/${this.model}:generateContent?key=${this.apiKey}`;
+
+        const response = await fetch(url, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify(body),
+            body: JSON.stringify(requestBody),
         });
 
         if (!response.ok) {
@@ -104,8 +148,8 @@ export class GeminiClient {
             throw new Error(`Gemini API error: ${response.status} - ${error}`);
         }
 
-        const data = (await response.json()) as GeminiResponse;
-        return data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+        const data = await response.json() as GeminiResponse;
+        return data.candidates[0]?.content?.parts[0]?.text || "";
     }
 
     /**
@@ -117,6 +161,9 @@ export class GeminiClient {
         exports: string[],
         imports: string[]
     ): Promise<string> {
+        // Compress content before analysis
+        const contentToAnalyze = await this.compressContent(fileContent);
+
         const prompt = `Analyze this code file and provide a concise wiki-style summary.
 
 File: ${filePath}
@@ -126,7 +173,7 @@ Imports: ${imports.join(", ") || "None"}
 
 Code:
 \`\`\`
-${fileContent.slice(0, 3000)}${fileContent.length > 3000 ? "\n... (truncated)" : ""}
+${contentToAnalyze.slice(0, 3000)}${contentToAnalyze.length > 3000 ? "\n... (truncated)" : ""}
 \`\`\`
 
 Provide a summary in the following format:
@@ -140,8 +187,7 @@ Keep it concise (max 150 words).`;
         return this.chat([
             {
                 role: "system",
-                content:
-                    "You are a technical documentation writer. Generate concise, accurate summaries of code files in wiki format.",
+                content: "You are a technical documentation writer. Generate concise, accurate summaries of code files in wiki format.",
             },
             {
                 role: "user",
@@ -156,7 +202,9 @@ Keep it concise (max 150 words).`;
     async generateArchitectureOverview(
         files: { path: string; summary: string; exports: string[]; imports: string[] }[]
     ): Promise<string> {
-        const fileList = files.map((f) => `- ${f.path}: ${f.summary.split("\n")[0]}`).join("\n");
+        const fileList = files
+            .map((f) => `- ${f.path}: ${f.summary.split("\n")[0]}`)
+            .join("\n");
 
         const prompt = `Given these file summaries from a codebase, generate a high-level architecture overview.
 
@@ -208,7 +256,7 @@ Used by: ${context.usedBy.join(", ") || "No dependents"}
 Depends on: ${context.dependsOn.join(", ") || "No local dependencies"}
 
 Function signatures:
-${context.functionSignatures.map((s) => `- ${s.signature}${s.jsdoc ? ` // ${s.jsdoc}` : ""}`).join("\n") || "None"}
+${context.functionSignatures.map(s => `- ${s.signature}${s.jsdoc ? ` // ${s.jsdoc}` : ""}`).join("\n") || "None"}
 
 First 15 lines preview:
 ${context.firstNLines.split("\n").slice(0, 15).join("\n")}
@@ -218,16 +266,16 @@ Respond with ONLY 2 sentences:
 2. How it fits into the codebase (dependencies/usage)
 
 Write for optimal readability and understanding; the output does not have to be full sentences.`;
+        const compressedPrompt = await this.compressContent(prompt);
 
         return this.chat([
             {
                 role: "system",
-                content:
-                    "You are a code documentation expert. Generate extremely concise 2-sentence file summaries. Do not include any prefixes, labels, or formatting - just 2 plain sentences.",
+                content: "You are a code documentation expert. Generate extremely concise 2-sentence file summaries. Do not include any prefixes, labels, or formatting - just 2 plain sentences.",
             },
             {
                 role: "user",
-                content: prompt,
+                content: compressedPrompt,
             },
         ]);
     }
@@ -240,7 +288,9 @@ Write for optimal readability and understanding; the output does not have to be 
         files: { name: string; summary: string }[],
         subdirectories: string[]
     ): Promise<string> {
-        const fileList = files.map((f) => `- ${f.name}: ${f.summary}`).join("\n");
+        const fileList = files
+            .map(f => `- ${f.name}: ${f.summary}`)
+            .join("\n");
 
         const prompt = `Generate a concise summary for this directory based on its contents.
 
@@ -258,8 +308,7 @@ Respond with a 2-sentence summary:
         return this.chat([
             {
                 role: "system",
-                content:
-                    "You are a code documentation expert. Generate extremely concise 2-sentence directory summaries.",
+                content: "You are a code documentation expert. Generate extremely concise 2-sentence directory summaries.",
             },
             {
                 role: "user",
@@ -275,13 +324,16 @@ Respond with a 2-sentence summary:
         filePath: string,
         fileContent: string
     ): Promise<{ lowerLevelSummary: string; structure: any[] }> {
+        // Compress content before analysis
+        const contentToAnalyze = await this.compressContent(fileContent);
+
         const prompt = `Analyze this code file in detail.
 
 File: ${filePath}
 
 Code:
 \`\`\`
-${fileContent.slice(0, 8000)}${fileContent.length > 8000 ? "\n... (truncated)" : ""}
+${contentToAnalyze.slice(0, 8000)}${contentToAnalyze.length > 8000 ? "\n... (truncated)" : ""}
 \`\`\`
 
 Provide a JSON response with the following structure:
@@ -320,7 +372,7 @@ Respond ONLY with the JSON object.`;
             console.error("Failed to parse deep analysis JSON:", e);
             return {
                 lowerLevelSummary: "Failed to generate deep analysis.",
-                structure: [],
+                structure: []
             };
         }
     }
@@ -339,8 +391,14 @@ Respond ONLY with the JSON object.`;
 export function createGeminiClient(apiKey?: string): GeminiClient {
     const key = apiKey || process.env.GEMINI_API_KEY || "";
 
+
     return new GeminiClient({
         apiKey: key,
         model: process.env.GEMINI_MODEL || DEFAULT_MODEL,
+        ttcApiKey: process.env.TTC_API_KEY,
     });
 }
+
+// Re-export with OpenRouter-compatible names for backward compatibility
+export { GeminiClient as OpenRouterClient };
+export { createGeminiClient as createOpenRouterClient };
