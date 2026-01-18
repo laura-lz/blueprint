@@ -4,7 +4,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 
-import { createUpperLevelAPI, GeminiClient, type FileCapsule, type DirectoryCapsule, type ExportEntry } from './core/index.js';
+import { createUpperLevelAPI, GeminiClient, RiskAnalysisAgent, type FileCapsule, type DirectoryCapsule, type ExportEntry, type RiskAnalysis } from './core/index.js';
 
 let canvasPanel: vscode.WebviewPanel | undefined;
 
@@ -41,6 +41,25 @@ const deepAnalysisQueue: DeepAnalysisQueue = {
 };
 
 const DEEP_ANALYSIS_CONCURRENCY = 3;
+const RISK_ANALYSIS_CONCURRENCY = 2;
+
+// Background risk analysis queue manager
+interface RiskAnalysisQueue {
+	pending: Map<string, string[]>;  // Map of relativePath -> function names to analyze
+	inProgress: Set<string>;          // Functions currently being analyzed
+	isRunning: boolean;
+	webview: vscode.Webview | null;
+}
+
+const riskAnalysisQueue: RiskAnalysisQueue = {
+	pending: new Map(),
+	inProgress: new Set(),
+	isRunning: false,
+	webview: null
+};
+
+// Cache for risk analysis results
+const riskAnalysisCache: Map<string, Map<string, RiskAnalysis>> = new Map();
 
 /**
  * Start or continue background deep analysis for all files
@@ -140,6 +159,100 @@ async function runBackgroundDeepAnalysis() {
 
 	deepAnalysisQueue.isRunning = false;
 	console.log('[Nexhacks] 🔬 Background deep analysis complete');
+
+	// Start risk analysis after deep analysis
+	runBackgroundRiskAnalysis();
+}
+
+/**
+ * Start or continue background risk analysis for all analyzed functions
+ */
+async function runBackgroundRiskAnalysis() {
+	if (riskAnalysisQueue.isRunning || !riskAnalysisQueue.webview) {
+		return;
+	}
+
+	const config = vscode.workspace.getConfiguration('nexhacks');
+	const apiKey = config.get<string>('geminiApiKey');
+	const ttcApiKey = config.get<string>('ttcApiKey');
+
+	if (!apiKey || !capsulesCache) {
+		return;
+	}
+
+	riskAnalysisQueue.isRunning = true;
+	console.log(`[Nexhacks] 🔍 Starting background risk analysis...`);
+
+	const agent = new RiskAnalysisAgent({ apiKey, ttcApiKey });
+	const workspaceFolders = vscode.workspace.workspaceFolders;
+	if (!workspaceFolders?.length) {
+		riskAnalysisQueue.isRunning = false;
+		return;
+	}
+	const rootPath = workspaceFolders[0].uri.fsPath;
+
+	// Collect all functions from analyzed files
+	const functionsToAnalyze: { relativePath: string; block: { name: string; startLine: number; endLine: number }; lang: string }[] = [];
+
+	for (const [relativePath, capsule] of Object.entries(capsulesCache.files)) {
+		if (!capsule.structure?.length) continue;
+
+		// Check if already analyzed
+		if (riskAnalysisCache.has(relativePath)) continue;
+
+		for (const block of capsule.structure) {
+			functionsToAnalyze.push({
+				relativePath,
+				block: { name: block.name, startLine: block.startLine, endLine: block.endLine },
+				lang: capsule.lang
+			});
+		}
+	}
+
+	console.log(`[Nexhacks] 🔍 Found ${functionsToAnalyze.length} functions to analyze for risks`);
+
+	// Process in batches
+	for (let i = 0; i < functionsToAnalyze.length; i += RISK_ANALYSIS_CONCURRENCY) {
+		const batch = functionsToAnalyze.slice(i, i + RISK_ANALYSIS_CONCURRENCY);
+
+		await Promise.all(batch.map(async ({ relativePath, block, lang }) => {
+			const key = `${relativePath}:${block.name}`;
+			if (riskAnalysisQueue.inProgress.has(key)) return;
+
+			riskAnalysisQueue.inProgress.add(key);
+
+			try {
+				const filePath = path.join(rootPath, relativePath);
+				const code = agent.extractFunctionCode(filePath, block.startLine, block.endLine);
+				const analysis = await agent.analyzeFunction(code, lang as any, block.name, { filePath: relativePath });
+
+				// Store in cache
+				if (!riskAnalysisCache.has(relativePath)) {
+					riskAnalysisCache.set(relativePath, new Map());
+				}
+				riskAnalysisCache.get(relativePath)!.set(block.name, analysis);
+
+				// Send update to webview
+				riskAnalysisQueue.webview?.postMessage({
+					type: 'updateFunctionRisk',
+					data: {
+						relativePath,
+						functionName: block.name,
+						analysis
+					}
+				});
+
+				console.log(`[Nexhacks] ✅ Risk analysis complete: ${relativePath}:${block.name} (${analysis.riskLevel})`);
+			} catch (error) {
+				console.warn(`[Nexhacks] Failed risk analysis for ${key}:`, error);
+			} finally {
+				riskAnalysisQueue.inProgress.delete(key);
+			}
+		}));
+	}
+
+	riskAnalysisQueue.isRunning = false;
+	console.log('[Nexhacks] 🔍 Background risk analysis complete');
 }
 
 /**
@@ -601,6 +714,7 @@ async function sendCapsulesDataToWebview(webview: vscode.Webview) {
 				console.log('[Nexhacks] 🔬 Queuing files for background deep analysis...');
 				deepAnalysisQueue.webview = webview;
 				deepAnalysisQueue.pending.clear();
+				riskAnalysisQueue.webview = webview;
 
 				// Queue all code files for deep analysis
 				for (const [relativePath, capsule] of Object.entries(files)) {
