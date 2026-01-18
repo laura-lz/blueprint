@@ -91,7 +91,9 @@ interface CapsuleFile {
   };
   summary?: string;
   upperLevelSummary?: string;
+  upperLevelSummaryVersion?: string;
   lowerLevelSummary?: string;
+  lowerLevelSummaryVersion?: string;
   structure?: CodeBlockSummary[];
   edges?: FunctionCallEdge[];
 }
@@ -132,6 +134,8 @@ interface FileNodeData {
   depth?: number;
   // Full capsule access for diagram
   fullCapsule?: CapsuleFile;
+  upperLevelSummaryVersion?: string;
+  lowerLevelSummaryVersion?: string;
 }
 
 type FileNode = Node<FileNodeData>;
@@ -353,6 +357,103 @@ const CodeBlockCard: React.FC<{
     </div>
   );
 };
+// --- FEEDBACK WIDGET ---
+const FeedbackWidget: React.FC<{
+  category: "capsuleSummary" | "deepAnalysis";
+  versionId?: string;
+  onFeedback: (rating: 1 | -1, reason?: string) => void;
+}> = ({ category, versionId, onFeedback }) => {
+  const [showReasons, setShowReasons] = useState(false);
+
+  if (!versionId) return null;
+
+  const reasons = [
+    { id: 'verbosity', label: 'Too Verbose/Long' },
+    { id: 'accuracy', label: 'Inaccurate' },
+    { id: 'clarity', label: 'Unclear' },
+    { id: 'completeness', label: 'Missing Info' }
+  ];
+
+  return (
+    <div style={{
+      marginTop: '24px',
+      padding: '16px',
+      background: 'rgba(255,255,255,0.03)',
+      borderRadius: '12px',
+      border: '1px solid rgba(255,255,255,0.1)',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '12px'
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ fontSize: '14px', color: '#888' }}>
+          Was this {category === 'capsuleSummary' ? 'summary' : 'analysis'} helpful?
+        </div>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button
+            onClick={() => onFeedback(1)}
+            style={{
+              background: 'rgba(72, 187, 120, 0.1)',
+              border: '1px solid #48bb78',
+              color: '#48bb78',
+              padding: '4px 12px',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '16px'
+            }}
+            title="Helpful"
+          >
+            👍
+          </button>
+          <button
+            onClick={() => setShowReasons(!showReasons)}
+            style={{
+              background: 'rgba(245, 101, 101, 0.1)',
+              border: '1px solid #f56565',
+              color: '#f56565',
+              padding: '4px 12px',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '16px'
+            }}
+            title="Not Helpful"
+          >
+            👎
+          </button>
+        </div>
+      </div>
+
+      {showReasons && (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', animation: 'fadeIn 0.2s' }}>
+          {reasons.map(reason => (
+            <button
+              key={reason.id}
+              onClick={() => {
+                onFeedback(-1, reason.id);
+                setShowReasons(false);
+              }}
+              style={{
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                color: '#ccc',
+                padding: '6px',
+                borderRadius: '4px',
+                fontSize: '11px',
+                cursor: 'pointer',
+                textAlign: 'left'
+              }}
+            >
+              {reason.label}
+            </button>
+          ))}
+        </div>
+      )}
+      <div style={{ fontSize: '10px', color: '#555', fontFamily: 'monospace' }}>
+        Model Config: {versionId}
+      </div>
+    </div>
+  );
+};
 
 // --- NODE DETAILS OVERLAY COMPONENT ---
 const NodeDetailsOverlay: React.FC<{
@@ -463,9 +564,43 @@ const NodeDetailsOverlay: React.FC<{
             <div style={{ animation: 'fadeIn 0.2s', maxWidth: '800px', margin: '0 auto' }}>
               <div style={{ fontSize: '20px', lineHeight: '1.7', color: '#ddd', marginBottom: '32px' }}>
                 {data.summary || "No summary available."}
+
+                <FeedbackWidget
+                  category={data.fullCapsule?.lowerLevelSummary === data.summary ? "deepAnalysis" : "capsuleSummary"}
+                  versionId={data.fullCapsule?.lowerLevelSummary === data.summary
+                    ? data.lowerLevelSummaryVersion || data.fullCapsule?.lowerLevelSummaryVersion
+                    : data.upperLevelSummaryVersion || data.fullCapsule?.upperLevelSummaryVersion}
+                  onFeedback={(rating, reason) => {
+                    vscode.postMessage({
+                      type: 'submitFeedback',
+                      category: data.fullCapsule?.lowerLevelSummary === data.summary ? "deepAnalysis" : "capsuleSummary",
+                      versionId: data.fullCapsule?.lowerLevelSummary === data.summary
+                        ? data.lowerLevelSummaryVersion || data.fullCapsule?.lowerLevelSummaryVersion
+                        : data.upperLevelSummaryVersion || data.fullCapsule?.upperLevelSummaryVersion,
+                      rating,
+                      reason
+                    });
+                  }}
+                />
+
                 {data.fullCapsule?.upperLevelSummary && data.summary !== data.fullCapsule.upperLevelSummary && (
                   <div style={{ marginTop: '24px', padding: '16px', background: '#151515', borderRadius: '8px', fontStyle: 'italic', color: '#aaa', borderLeft: '4px solid #333' }}>
+                    <div style={{ marginBottom: '8px', fontSize: '12px', color: '#666' }}>High-level Summary:</div>
                     {data.fullCapsule.upperLevelSummary}
+
+                    <FeedbackWidget
+                      category="capsuleSummary"
+                      versionId={data.fullCapsule.upperLevelSummaryVersion}
+                      onFeedback={(rating, reason) => {
+                        vscode.postMessage({
+                          type: 'submitFeedback',
+                          category: 'capsuleSummary',
+                          versionId: data.fullCapsule?.upperLevelSummaryVersion,
+                          rating,
+                          reason
+                        });
+                      }}
+                    />
                   </div>
                 )}
               </div>
@@ -841,6 +976,8 @@ const prepareGraphData = (data: CapsulesData) => {
           topSymbols: file.topSymbols,
           previewCode: file.metadata?.firstNLines,
           fullCapsule: file,
+          upperLevelSummaryVersion: file.upperLevelSummaryVersion,
+          lowerLevelSummaryVersion: file.lowerLevelSummaryVersion
         },
         position: { x: 0, y: 0 }
       });
@@ -1018,9 +1155,7 @@ export default function App() {
       }
 
       if (message.type === 'updateFileSummary') {
-        const { relativePath, summary } = message.data;
-
-        // Update nodes state (No capsules state anymore)
+        const { relativePath, summary, version } = message.data;
 
         // Update nodes state
         setNodes((prev: FileNode[]) => prev.map((node: FileNode) => {
@@ -1029,7 +1164,13 @@ export default function App() {
               ...node,
               data: {
                 ...node.data,
-                summary
+                summary,
+                upperLevelSummaryVersion: version,
+                fullCapsule: node.data.fullCapsule ? {
+                  ...node.data.fullCapsule,
+                  upperLevelSummary: summary,
+                  upperLevelSummaryVersion: version
+                } : undefined
               }
             };
           }
@@ -1037,9 +1178,7 @@ export default function App() {
         }));
       }
       if (message.type === 'updateFileStructure') {
-        const { relativePath, structure, lowerLevelSummary } = message.data;
-
-        // Update nodes to reflect change immediately (No capsules state anymore)
+        const { relativePath, structure, lowerLevelSummary, version } = message.data;
 
         // Update nodes to reflect change immediately
         setNodes((nds: FileNode[]) => nds.map((node: FileNode) => {
@@ -1049,11 +1188,14 @@ export default function App() {
               data: {
                 ...node.data,
                 structure,
+                summary: lowerLevelSummary || node.data.summary,
                 lowerLevelSummary,
+                lowerLevelSummaryVersion: version,
                 fullCapsule: node.data.fullCapsule ? {
                   ...node.data.fullCapsule,
                   structure,
                   lowerLevelSummary,
+                  lowerLevelSummaryVersion: version,
                   edges: message.data.edges
                 } : undefined
               }
@@ -1063,13 +1205,13 @@ export default function App() {
         }));
 
         // IMPORTANT: Update selectedNodeData separately using functional update 
-        // to avoid stale closure issues
         setSelectedNodeData(prev => {
           if (prev && prev.relativePath === relativePath) {
             const updatedCapsule = prev.fullCapsule ? {
               ...prev.fullCapsule,
               structure,
               lowerLevelSummary,
+              lowerLevelSummaryVersion: version,
               edges: message.data.edges
             } : {
               relativePath,
@@ -1079,12 +1221,15 @@ export default function App() {
               imports: [],
               structure,
               lowerLevelSummary,
+              lowerLevelSummaryVersion: version,
               edges: message.data.edges
             } as any;
 
             return {
               ...prev,
-              fullCapsule: updatedCapsule
+              summary: lowerLevelSummary || prev.summary,
+              fullCapsule: updatedCapsule,
+              lowerLevelSummaryVersion: version
             };
           }
           return prev;

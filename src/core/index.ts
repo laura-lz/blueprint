@@ -69,3 +69,7 @@ export {
     type RiskAnalysisConfig,
 } from "./risk-agent.js";
 
+// RLHF Feedback Loop
+export { FeedbackManager } from "./feedback-manager.js";
+export * from "./prompts.js";
+

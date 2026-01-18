@@ -3,10 +3,14 @@
  * Uses Google's Gemini API for generating summaries
  */
 
+import { CAPSULE_SUMMARY_VARIANTS, DEEP_ANALYSIS_VARIANTS } from './prompts.js';
+import { FeedbackManager } from './feedback-manager.js';
+
 export interface GeminiConfig {
     apiKey: string;
     model?: string;
     ttcApiKey?: string;
+    feedbackManager?: FeedbackManager;
 }
 
 export interface Message {
@@ -52,11 +56,13 @@ export class GeminiClient {
     private apiKey: string;
     private model: string;
     private ttcApiKey?: string;
+    private feedbackManager?: FeedbackManager;
 
     constructor(config: GeminiConfig) {
         this.apiKey = config.apiKey;
         this.model = config.model || DEFAULT_MODEL;
         this.ttcApiKey = config.ttcApiKey;
+        this.feedbackManager = config.feedbackManager;
     }
 
     /**
@@ -217,14 +223,12 @@ Keep it concise (max 150 words).`;
 Files:
 ${fileList}
 
-Generate a concise overview adhering to these strict rules:
-1. **Total Length**: Maximum 200 words.
-2. **Structure**:
-   - **Puppose**: A brief description of the codebase's function and purpose (2-3 sentences).
-   - **Data Flow**: Explain the core data flow (how data moves through the system, start to finish).
-   - **Architecture**: Identify the architectural pattern (e.g., Client-Server, Extension-Webview) and key tech stack components.
+Generate:
+1. A brief description of what this codebase does (2-3 sentences)
+2. The main components/modules and their responsibilities
+3. How the components relate to each other
 
-Do not include generic fluff. Focus on the technical design and flow.`;
+Keep it concise and focused on the big picture.`;
 
         return this.chat([
             {
@@ -252,40 +256,41 @@ Do not include generic fluff. Focus on the technical design and flow.`;
             dependsOn: string[];
             exports: string[];
         }
-    ): Promise<string> {
-        const prompt = `Generate a 1-sentence summary for this code file based on ONLY the following context.
+    ): Promise<{ summary: string; version: string }> {
+        // Select prompt version
+        const versionId = this.feedbackManager
+            ? this.feedbackManager.getActiveVersion("capsuleSummary")
+            : "v1_balanced";
 
-File: ${filePath}
+        const variant = CAPSULE_SUMMARY_VARIANTS[versionId] || CAPSULE_SUMMARY_VARIANTS["v1_balanced"];
 
-${context.fileDocstring ? `Docstring: ${context.fileDocstring}` : ""}
+        const docstring = context.fileDocstring ? `Docstring: ${context.fileDocstring}` : "";
+        const signatures = context.functionSignatures.map(s => `- ${s.signature}${s.jsdoc ? ` // ${s.jsdoc}` : ""}`).join("\n") || "None";
+        const firstLines = context.firstNLines.split("\n").slice(0, 15).join("\n");
 
-Exports: ${context.exports.join(", ") || "None"}
-Used by: ${context.usedBy.join(", ") || "No dependents"}
-Depends on: ${context.dependsOn.join(", ") || "No local dependencies"}
+        const prompt = variant.template
+            .replace("{{filePath}}", filePath)
+            .replace("{{docstring}}", docstring)
+            .replace("{{exports}}", context.exports.join(", ") || "None")
+            .replace("{{usedBy}}", context.usedBy.join(", ") || "No dependents")
+            .replace("{{dependsOn}}", context.dependsOn.join(", ") || "No local dependencies")
+            .replace("{{signatures}}", signatures)
+            .replace("{{firstLines}}", firstLines);
 
-Function signatures:
-${context.functionSignatures.map(s => `- ${s.signature}${s.jsdoc ? ` // ${s.jsdoc}` : ""}`).join("\n") || "None"}
-
-First 15 lines preview:
-${context.firstNLines.split("\n").slice(0, 15).join("\n")}
-
-Respond with ONLY 1 sentences:
-1. What this file does (purpose)
-2. How it fits into the codebase (dependencies/usage)
-
-Write for optimal readability and understanding; the output does not have to be full sentences.`;
         const compressedPrompt = await this.compressContent(prompt);
 
-        return this.chat([
+        const summary = await this.chat([
             {
                 role: "system",
-                content: "You are a code documentation expert. Generate extremely concise 1-sentence file summaries. Do not include any prefixes, labels, or formatting - just 1 plain sentences.",
+                content: variant.systemInstruction,
             },
             {
                 role: "user",
                 content: compressedPrompt,
             },
         ]);
+
+        return { summary: summary.trim(), version: versionId };
     }
 
     /**
@@ -333,63 +338,28 @@ Respond with a short 1-sentence summary:
     async generateDeepAnalysis(
         filePath: string,
         fileContent: string
-    ): Promise<{ lowerLevelSummary: string; structure: any[] }> {
-        // Use ORIGINAL content for structure analysis to ensure line numbers are accurate.
-        // TTC Compression destroys line number mapping.
+    ): Promise<{ lowerLevelSummary: string; structure: any[]; version: string }> {
+        // Select prompt version
+        const versionId = this.feedbackManager
+            ? this.feedbackManager.getActiveVersion("deepAnalysis")
+            : "v1_structured";
+
+        const variant = DEEP_ANALYSIS_VARIANTS[versionId] || DEEP_ANALYSIS_VARIANTS["v1_structured"];
 
         // OPTIMIZATION: Strip comments but preserve newlines to keep line numbers accurate.
-        // This reduces input tokens significantly without breaking highlighting.
         const contentToAnalyze = fileContent
             .replace(/\/\/[^\n]*/g, '') // Remove single line comments
             .replace(/\/\*[\s\S]*?\*\//g, (match) => '\n'.repeat(match.split('\n').length - 1)); // Replace block comments with newlines
 
-        const prompt = `Analyze this code file.
-CRITICAL: You must provide ACCURATE startLine and endLine for each block. These line numbers will be used to highlight code in the editor, so they must match the provided code exactly.
-
-File: ${filePath}
-
-Code:
-\`\`\`
-${contentToAnalyze}
-\`\`\`
-
-Provide a JSON response with the following structure:
-{
-  "lowerLevelSummary": "A concise paragraph (2-3 sentences) summarizing the file's purpose.",
-  "structure": [
-    {
-      "name": "Function/Class Name",
-      "type": "function" | "class" | "block",
-      "startLine": <number>,
-      "endLine": <number>,
-      "summary": "Brief 1-sentence summary."
-    }
-  ]
-}
-
-Identify all main functions, classes, and logical blocks.
-
-IMPORTANT: Verify line numbers against the provided code. 'startLine' is where the function/class definition begins, 'endLine' is the closing brace.
-IMPORTANT JSON RULES:
-1. Output MUST be valid JSON.
-2. Escape all double quotes within strings.
-3. Do NOT use unescaped newlines in strings.
-Respond ONLY with the RAW JSON object.
-
-Example:
-{
-  "lowerLevelSummary": "Handles config setup.",
-  "structure": [
-    { "name": "init", "type": "function", "startLine": 1, "endLine": 10, "summary": "Initializes app." },
-    { "name": "loadConfig", "type": "function", "startLine": 12, "endLine": 25, "summary": "Loads config file." }
-  ]
-}`;
+        const prompt = variant.template
+            .replace("{{filePath}}", filePath)
+            .replace("{{content}}", contentToAnalyze);
 
         // Enable output as JSON for robustness
         const response = await this.chat([
             {
                 role: "system",
-                content: "You are a code analyst. Output strict JSON. Be concise.",
+                content: variant.systemInstruction,
             },
             {
                 role: "user",
@@ -399,16 +369,18 @@ Example:
 
         try {
             // Strip markdown code fences if present and trim whitespace
-            // Gemini JSON mode might still return markdown fences sometimes, or just raw JSON.
             let cleanResponse = response.replace(/```json/g, "").replace(/```/g, "").trim();
-
-            return JSON.parse(cleanResponse);
+            const result = JSON.parse(cleanResponse);
+            return {
+                ...result,
+                version: versionId
+            };
         } catch (e) {
             console.error("Failed to parse deep analysis JSON:", e);
-            console.error("Raw Response:", response); // Log raw response for debugging
             return {
                 lowerLevelSummary: "Failed to generate deep analysis due to invalid JSON response. Please try again.",
-                structure: []
+                structure: [],
+                version: versionId
             };
         }
     }
@@ -424,7 +396,7 @@ Example:
 /**
  * Factory function to create Gemini client
  */
-export function createGeminiClient(apiKey?: string): GeminiClient {
+export function createGeminiClient(apiKey?: string, feedbackManager?: FeedbackManager): GeminiClient {
     const key = apiKey || process.env.GEMINI_API_KEY || "";
 
 
@@ -432,6 +404,7 @@ export function createGeminiClient(apiKey?: string): GeminiClient {
         apiKey: key,
         model: process.env.GEMINI_MODEL || DEFAULT_MODEL,
         ttcApiKey: process.env.TTC_API_KEY,
+        feedbackManager
     });
 }
 

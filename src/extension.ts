@@ -4,7 +4,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 
-import { createUpperLevelAPI, GeminiClient, RiskAnalysisAgent, type FileCapsule, type DirectoryCapsule, type ExportEntry, type RiskAnalysis } from './core/index.js';
+import { createUpperLevelAPI, GeminiClient, RiskAnalysisAgent, FeedbackManager, type FileCapsule, type DirectoryCapsule, type ExportEntry, type RiskAnalysis } from './core/index.js';
 
 let canvasPanel: vscode.WebviewPanel | undefined;
 
@@ -59,8 +59,16 @@ const riskAnalysisQueue: RiskAnalysisQueue = {
 	webview: null
 };
 
-// Cache for risk analysis results
 const riskAnalysisCache: Map<string, Map<string, RiskAnalysis>> = new Map();
+
+let feedbackManager: FeedbackManager | undefined;
+
+function getFeedbackManager(rootPath: string): FeedbackManager {
+	if (!feedbackManager) {
+		feedbackManager = new FeedbackManager(rootPath);
+	}
+	return feedbackManager;
+}
 
 /**
  * Start or continue background deep analysis for all files
@@ -81,13 +89,18 @@ async function runBackgroundDeepAnalysis() {
 	deepAnalysisQueue.isRunning = true;
 	console.log(`[Nexhacks] 🔬 Starting background deep analysis (${deepAnalysisQueue.pending.size} files pending)...`);
 
-	const client = new GeminiClient({ apiKey, ttcApiKey });
 	const workspaceFolders = vscode.workspace.workspaceFolders;
 	if (!workspaceFolders?.length) {
 		deepAnalysisQueue.isRunning = false;
 		return;
 	}
 	const rootPath = workspaceFolders[0].uri.fsPath;
+
+	const client = new GeminiClient({
+		apiKey,
+		ttcApiKey,
+		feedbackManager: getFeedbackManager(rootPath)
+	});
 
 	const analyzeFile = async (relativePath: string): Promise<void> => {
 		if (!capsulesCache?.files[relativePath] || !deepAnalysisQueue.webview) {
@@ -112,6 +125,7 @@ async function runBackgroundDeepAnalysis() {
 			// Update cache
 			capsule.structure = analysis.structure;
 			capsule.lowerLevelSummary = analysis.lowerLevelSummary;
+			capsule.lowerLevelSummaryVersion = analysis.version;
 
 			// Send update to webview
 			deepAnalysisQueue.webview?.postMessage({
@@ -119,7 +133,8 @@ async function runBackgroundDeepAnalysis() {
 				data: {
 					relativePath,
 					structure: analysis.structure,
-					lowerLevelSummary: analysis.lowerLevelSummary
+					lowerLevelSummary: analysis.lowerLevelSummary,
+					version: analysis.version
 				}
 			});
 
@@ -502,6 +517,20 @@ export function activate(context: vscode.ExtensionContext) {
 				console.log(`[Nexhacks] 🚀 Prioritizing deep analysis for ${relativePath}`);
 				prioritizeDeepAnalysis(relativePath);
 			}
+			if (message?.type === 'submitFeedback' && message.category && message.versionId && message.rating) {
+				const workspaceFolders = vscode.workspace.workspaceFolders;
+				if (workspaceFolders?.length) {
+					const fm = getFeedbackManager(workspaceFolders[0].uri.fsPath);
+					fm.submitFeedback(message.category, message.versionId, message.rating, message.reason);
+					vscode.window.showInformationMessage(`Feedback received context: ${message.versionId}. Next generations will be adjusted.`);
+
+					// Send updated feedback state to webview
+					canvasPanel?.webview.postMessage({
+						type: 'updateFeedbackState',
+						data: fm.getState()
+					});
+				}
+			}
 		});
 	});
 
@@ -647,7 +676,11 @@ async function sendCapsulesDataToWebview(webview: vscode.Webview) {
 					console.log('[Nexhacks] 🐻 TTC Compression enabled');
 				}
 
-				const client = new GeminiClient({ apiKey, ttcApiKey });
+				const client = new GeminiClient({
+					apiKey,
+					ttcApiKey,
+					feedbackManager: getFeedbackManager(rootPath)
+				});
 
 				let summarized = 0;
 
@@ -664,7 +697,7 @@ async function sendCapsulesDataToWebview(webview: vscode.Webview) {
 					}
 
 					try {
-						const summary = await client.generateCapsuleSummary(
+						const result = await client.generateCapsuleSummary(
 							relativePath,
 							{
 								fileDocstring: capsule.metadata.fileDocstring,
@@ -676,14 +709,15 @@ async function sendCapsulesDataToWebview(webview: vscode.Webview) {
 							}
 						);
 
-						capsule.upperLevelSummary = summary;
+						capsule.upperLevelSummary = result.summary;
+						capsule.upperLevelSummaryVersion = result.version;
 						processedCount++;
 						summarized++;
 
 						// Send incremental update to webview
 						webview.postMessage({
 							type: 'updateFileSummary',
-							data: { relativePath, summary }
+							data: { relativePath, summary: result.summary, version: result.version }
 						});
 					} catch (error) {
 						console.warn(`[Nexhacks] Failed to summarize ${relativePath}:`, error);

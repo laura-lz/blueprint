@@ -234,14 +234,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                             transition: 'max-height 0.3s ease-out'
                         }}>
                             <Markdown components={{
-                                p: (props) => <p style={{ marginBottom: '8px', lineHeight: '1.5' }} {...props} />,
-                                strong: (props) => <strong style={{ color: '#fff', fontWeight: '600' }} {...props} />,
-                                ul: (props) => <ul style={{ paddingLeft: '16px', marginBottom: '8px' }} {...props} />,
-                                ol: (props) => <ol style={{ paddingLeft: '16px', marginBottom: '8px' }} {...props} />,
-                                li: (props) => <li style={{ marginBottom: '4px' }} {...props} />,
-                                h1: (props) => <h1 style={{ fontSize: '14px', fontWeight: 'bold', marginTop: '12px', marginBottom: '8px', color: '#fff' }} {...props} />,
-                                h2: (props) => <h2 style={{ fontSize: '13px', fontWeight: 'bold', marginTop: '10px', marginBottom: '6px', color: '#eee' }} {...props} />,
-                                h3: (props) => <h3 style={{ fontSize: '12px', fontWeight: 'bold', marginTop: '8px', marginBottom: '4px', color: '#ddd' }} {...props} />,
+                                p: (props: any) => <p style={{ marginBottom: '8px', lineHeight: '1.5' }} {...props} />,
+                                strong: (props: any) => <strong style={{ color: '#fff', fontWeight: '600' }} {...props} />,
+                                ul: (props: any) => <ul style={{ paddingLeft: '16px', marginBottom: '8px' }} {...props} />,
+                                ol: (props: any) => <ol style={{ paddingLeft: '16px', marginBottom: '8px' }} {...props} />,
+                                li: (props: any) => <li style={{ marginBottom: '4px' }} {...props} />,
+                                h1: (props: any) => <h1 style={{ fontSize: '14px', fontWeight: 'bold', marginTop: '12px', marginBottom: '8px', color: '#fff' }} {...props} />,
+                                h2: (props: any) => <h2 style={{ fontSize: '13px', fontWeight: 'bold', marginTop: '10px', marginBottom: '6px', color: '#eee' }} {...props} />,
+                                h3: (props: any) => <h3 style={{ fontSize: '12px', fontWeight: 'bold', marginTop: '8px', marginBottom: '4px', color: '#ddd' }} {...props} />,
                             }}>
                                 {capsules.stats.projectOverview}
                             </Markdown>
