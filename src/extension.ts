@@ -40,7 +40,7 @@ const deepAnalysisQueue: DeepAnalysisQueue = {
 	webview: null
 };
 
-const DEEP_ANALYSIS_CONCURRENCY = 3;
+const DEEP_ANALYSIS_CONCURRENCY = 300;
 const RISK_ANALYSIS_CONCURRENCY = 2;
 
 // Background risk analysis queue manager
@@ -159,6 +159,25 @@ async function runBackgroundDeepAnalysis() {
 
 	deepAnalysisQueue.isRunning = false;
 	console.log('[Nexhacks] 🔬 Background deep analysis complete');
+
+	// Save updated capsules with deep analysis data
+	if (capsulesCache) {
+		const workspaceFolders = vscode.workspace.workspaceFolders;
+		if (workspaceFolders?.length) {
+			const rootPath = workspaceFolders[0].uri.fsPath;
+			const outputDir = path.join(rootPath, '.nexhacks');
+			const outputPath = path.join(outputDir, 'capsules.json');
+			try {
+				if (!fs.existsSync(outputDir)) {
+					fs.mkdirSync(outputDir, { recursive: true });
+				}
+				fs.writeFileSync(outputPath, JSON.stringify(capsulesCache, null, 2), 'utf-8');
+				console.log(`[Nexhacks] 💾 Deep analysis saved to: ${outputPath}`);
+			} catch (writeError) {
+				console.warn('[Nexhacks] Failed to save capsules file after deep analysis:', writeError);
+			}
+		}
+	}
 
 	// Start risk analysis after deep analysis
 	runBackgroundRiskAnalysis();
