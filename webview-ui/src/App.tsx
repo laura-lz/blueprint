@@ -561,10 +561,10 @@ const CapsuleNode: React.FC<NodeProps<FileNodeData>> = ({ data }) => {
       )}
 
       {/* FOOTER: Icon + Label */}
-      <div className="flex items-center gap-3 border-t border-white/10 pt-3">
+      <div className={cn("flex items-center gap-3 pt-3", !data.isRoot && "border-t border-white/10")}>
         <div className="text-base">{colors.icon}</div>
         <div className="flex-1 overflow-hidden">
-          <div className="truncate text-xs font-semibold">{data.label}</div>
+          <div className={cn("truncate font-semibold", data.isRoot ? "text-lg" : "text-xs")}>{data.label}</div>
           {(data.isDirectory || data.isRoot) && (
             <div className="text-[11px] text-foreground/70">{data.fileCount} items</div>
           )}
