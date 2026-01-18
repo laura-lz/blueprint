@@ -141,7 +141,7 @@
           "./globals.css"
         ]
       },
-      "summary": "This file defines the root layout and global metadata while configuring custom Geist fonts for the application. It acts as the primary structural wrapper for all pages and incorporates the global CSS file."
+      "summary": "Defines the root layout and global metadata while configuring the application's primary typography.\nServes as the top-level entry point for the UI structure and integrates the global stylesheet."
     },
     "app/page.module.css": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/app/page.module.css",
@@ -223,7 +223,7 @@
           "./page.module.css"
         ]
       },
-      "summary": "This file renders the home page component containing a calculator in a centered layout. It functions as a top-level entry point that integrates the Calculator component and local styles."
+      "summary": "Renders the application home page featuring a calculator in a centered layout.\nActs as a primary entry point utilizing the Calculator component and local CSS modules."
     },
     "components/Button.module.css": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/components/Button.module.css",
@@ -302,7 +302,7 @@
           "./Button.module.css"
         ]
       },
-      "summary": "This file defines a customizable calculator button component that supports multiple visual variants for different input types. It is utilized by the ButtonGrid component and relies on a local CSS module for its styling."
+      "summary": "This file defines a reusable calculator button component that supports various visual variants and click interactions. It is utilized by the ButtonGrid component and depends on an internal CSS module for styling."
     },
     "components/ButtonGrid.module.css": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/components/ButtonGrid.module.css",
@@ -385,7 +385,7 @@
           "./ButtonGrid.module.css"
         ]
       },
-      "summary": "This component renders a 4x5 grid of calculator buttons and manages user interactions through a click callback. It utilizes the Button component and local styles to provide the layout for the main Calculator component."
+      "summary": "This component organizes calculator buttons into a 4x5 grid layout and handles user click interactions. It is used by the Calculator component and depends on the local Button component and CSS modules."
     },
     "components/Calculator.module.css": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/components/Calculator.module.css",
@@ -498,7 +498,7 @@
           "./Calculator.module.css"
         ]
       },
-      "summary": "This component manages the state and logic for the calculator interface, handling user input and display updates. It is used by the main application page and depends on local sub-components, CSS modules, and shared calculation utilities."
+      "summary": "This component manages the calculator's state and core logic, coordinating input processing and display formatting. It is used by the main application page and relies on external calculation utilities, UI sub-components, and modular styling."
     },
     "components/Display.module.css": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/components/Display.module.css",
@@ -572,7 +572,7 @@
           "./Display.module.css"
         ]
       },
-      "summary": "This component renders a calculator display that visualizes the current input value and calculation history. It is utilized within the Calculator component and depends on an associated CSS module for styling."
+      "summary": "This component renders a calculator display interface to visualize current input values and calculation history. It is utilized by the Calculator component and depends on local CSS modules for its styling."
     },
     "lib/calculator.ts": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/lib/calculator.ts",
@@ -774,7 +774,7 @@
         ],
         "dependsOn": []
       },
-      "summary": "This module provides pure mathematical functions and utility logic for performing arithmetic operations, parsing inputs, and formatting display values. It functions as a standalone utility with no local dependencies and is consumed by the Calculator component."
+      "summary": "Provides core mathematical operations, input parsing, and display formatting logic. Functions as a standalone utility module utilized by the Calculator component."
     },
     "next-env.d.ts": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/next-env.d.ts",
@@ -800,7 +800,7 @@
           "./.next/dev/types/routes.d.ts"
         ]
       },
-      "summary": "This file provides global TypeScript type definitions for Next.js core features and image types. It integrates internal route types from the build directory and ensures the TypeScript compiler correctly recognizes the Next.js environment."
+      "summary": "This file provides TypeScript type definitions and global references required for Next.js environment compatibility. It imports generated route types from the build directory and should not be manually edited."
     },
     "next.config.ts": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/next.config.ts",
@@ -832,7 +832,7 @@
         "usedBy": [],
         "dependsOn": []
       },
-      "summary": "This file defines the configuration settings for the Next.js application. It exports the configuration object as a default export and operates independently of other local files."
+      "summary": "This file defines the global configuration settings for the Next.js application framework. It exports a standalone configuration object with no local dependencies or internal project dependents."
     },
     "package-lock.json": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/package-lock.json",
@@ -914,7 +914,7 @@
         "lib",
         "public"
       ],
-      "summary": "This directory serves as the root of a Next.js web application configured with TypeScript and the App Router architecture. It contains core environment configurations, reusable UI components, utility libraries, and the application's primary routing and layout logic."
+      "summary": "This root directory serves as the foundation for a TypeScript-based Next.js application, containing essential build and environment configurations. It organizes the core source code into subdirectories for routing, reusable UI components, and shared utility logic."
     },
     "app": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/app",
@@ -927,7 +927,7 @@
         "app/page.tsx"
       ],
       "subdirectories": [],
-      "summary": "This directory serves as the application's root entry point and defines its global layout structure. It manages core styling, font configurations, and the main home page featuring a centralized calculator component."
+      "summary": "This directory serves as the root entry point for the application's routing and layout structure. It defines global styles and metadata while rendering the main landing page containing a calculator component."
     },
     "components": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/components",
@@ -944,7 +944,7 @@
         "components/Display.tsx"
       ],
       "subdirectories": [],
-      "summary": "This directory houses the modular UI components and styling required to build a functional calculator interface. Key functionalities include state-managed calculation logic, a responsive button grid, and a specialized display for tracking inputs and history."
+      "summary": "This directory contains the modular React components used to construct the calculator's user interface. Key functionalities include state management for calculation logic, input handling via an interactive button grid, and visual rendering of the numeric display."
     },
     "lib": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/lib",
@@ -954,7 +954,7 @@
         "lib/calculator.ts"
       ],
       "subdirectories": [],
-      "summary": "This directory provides a centralized repository for pure mathematical utilities and core application logic. Key functionalities include arithmetic computation, input parsing, and display formatting for the calculator module."
+      "summary": "This directory serves as a central utility library for core application logic and mathematical processing. It provides essential functionality for executing mathematical operations, parsing user input, and formatting display data."
     },
     "public": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/public",
@@ -964,7 +964,7 @@
         "public/capsules.json"
       ],
       "subdirectories": [],
-      "summary": "This directory serves as the storage location for static assets and data files intended for direct public access. It currently hosts a JSON data source used to provide structured information about capsules to the application."
+      "summary": "This directory serves as the storage location for static assets and publicly accessible data files. It specifically hosts a JSON data source containing structured information about capsules."
     }
   }
 }
