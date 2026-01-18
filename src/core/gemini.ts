@@ -211,12 +211,14 @@ Keep it concise (max 150 words).`;
 Files:
 ${fileList}
 
-Generate:
-1. A brief description of what this codebase does (2-3 sentences)
-2. The main components/modules and their responsibilities
-3. How the components relate to each other
+Generate a concise overview adhering to these strict rules:
+1. **Total Length**: Maximum 200 words.
+2. **Structure**:
+   - **Puppose**: A brief description of the codebase's function and purpose (2-3 sentences).
+   - **Data Flow**: Explain the core data flow (how data moves through the system, start to finish).
+   - **Architecture**: Identify the architectural pattern (e.g., Client-Server, Extension-Webview) and key tech stack components.
 
-Keep it concise and focused on the big picture.`;
+Do not include generic fluff. Focus on the technical design and flow.`;
 
         return this.chat([
             {

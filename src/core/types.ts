@@ -306,4 +306,5 @@ export interface GraphStats {
     totalEdges: number;
     externalDependencies: string[];
     entryPoints: string[];
+    projectOverview?: string;
 }

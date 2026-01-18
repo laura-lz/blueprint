@@ -16,6 +16,7 @@ interface CapsulesData {
 		totalEdges: number;
 		externalDependencies: string[];
 		entryPoints: string[];
+		projectOverview?: string;
 	};
 	files: Record<string, FileCapsule>;
 	directories: Record<string, DirectoryCapsule>;
@@ -322,7 +323,7 @@ async function sendCapsulesDataToWebview(webview: vscode.Webview) {
 					}
 
 					try {
-						
+
 						const summary = await client.generateCapsuleSummary(
 							relativePath,
 							{
@@ -380,6 +381,35 @@ async function sendCapsulesDataToWebview(webview: vscode.Webview) {
 
 				// Update cache with summaries
 				capsulesCache = { stats, files, directories };
+
+				// Generate Global Project Overview
+				console.log('[Nexhacks] 🌍 Generating Project Architecture Overview...');
+				const fileSummaries = Object.values(files)
+					.filter(f => f.upperLevelSummary && f.upperLevelSummary.length > 0)
+					.map(f => ({
+						path: f.relativePath,
+						summary: f.upperLevelSummary!,
+						exports: f.exports.map(e => e.name),
+						imports: f.imports.map(i => i.pathOrModule)
+					}));
+
+				if (fileSummaries.length > 0) {
+					try {
+						const overview = await client.generateArchitectureOverview(fileSummaries);
+						if (capsulesCache) {
+							capsulesCache.stats.projectOverview = overview;
+
+							// Send updated stats/capsules to webview
+							webview.postMessage({
+								type: 'setCapsules',
+								data: capsulesCache
+							});
+						}
+						console.log('[Nexhacks] ✅ Generated Project Overview');
+					} catch (error) {
+						console.warn('[Nexhacks] Failed to generate project overview:', error);
+					}
+				}
 			} else {
 				console.log('[Nexhacks] No API key configured, skipping AI summaries');
 			}
