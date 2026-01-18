@@ -12,7 +12,7 @@ import * as fs from "fs/promises";
 import * as path from "path";
 import {
     createUpperLevelAPI,
-    createOpenRouterClient,
+    createGeminiClient,
     type FileCapsule,
 } from "../src/core";
 
@@ -61,7 +61,7 @@ async function main() {
 
     // Generate AI summaries if requested
     if (options.summarize) {
-        const client = createOpenRouterClient();
+        const client = createGeminiClient();
 
         if (client.isConfigured()) {
             console.log("🤖 Generating AI summaries...");
@@ -100,14 +100,68 @@ async function main() {
             }
 
             console.log(`   ✅ Generated ${count} summaries`);
+
+            // Generate Directory Summaries
+            console.log("📂 Generating Directory summaries...");
+            let dirCount = 0;
+            const directories = api.getAllDirectories();
+
+            for (const dirPath of directories) {
+                const dirCapsule = api.getDirectoryCapsule(dirPath);
+                if (!dirCapsule) continue;
+
+                // Collect file summaries for context
+                const fileContexts = dirCapsule.files.map(relPath => {
+                    // find the capsule for this file
+                    // we need to look up by relative path
+                    let fileCap: FileCapsule | undefined;
+                    for (const [, cap] of capsules) {
+                        if (cap.relativePath === relPath) {
+                            fileCap = cap;
+                            break;
+                        }
+                    }
+                    return {
+                        name: path.basename(relPath),
+                        summary: fileCap?.summary || "No summary available"
+                    };
+                });
+
+                try {
+                    dirCount++;
+                    if (options.verbose) {
+                        console.log(`   [DIR] ${dirCapsule.relativePath}`);
+                    }
+
+                    const summary = await client.generateDirectorySummary(
+                        dirCapsule.relativePath,
+                        fileContexts,
+                        dirCapsule.subdirectories
+                    );
+
+                    dirCapsule.summary = summary;
+                } catch (error) {
+                    console.warn(`   ⚠️ Failed to summarize directory ${dirCapsule.relativePath}`);
+                }
+            }
+            console.log(`   ✅ Generated ${dirCount} directory summaries`);
         } else {
-            console.log("⚠️ OPENROUTER_API_KEY not set, skipping AI summaries");
+            console.log("⚠️ GEMINI_API_KEY not set, skipping AI summaries");
         }
     }
 
     // Write output
     console.log("💾 Writing output...");
     await fs.mkdir(outputPath, { recursive: true });
+
+    // Generate directory map for output
+    const directoriesMap: Record<string, any> = {};
+    for (const dirPath of api.getAllDirectories()) {
+        const caps = api.getDirectoryCapsule(dirPath);
+        if (caps) {
+            directoriesMap[caps.relativePath] = caps;
+        }
+    }
 
     // Output capsules JSON with stats
     const capsulesPath = path.join(outputPath, "capsules.json");
@@ -116,6 +170,7 @@ async function main() {
         files: Object.fromEntries(
             Array.from(capsules.entries()).map(([, v]) => [v.relativePath, v])
         ),
+        directories: directoriesMap,
     };
     await fs.writeFile(capsulesPath, JSON.stringify(output, null, 2), "utf-8");
     console.log(`   📋 ${capsulesPath}`);

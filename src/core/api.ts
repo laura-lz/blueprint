@@ -18,6 +18,7 @@ import type {
     TopSymbol,
     Language,
     SummaryContext,
+    DirectoryCapsule,
 } from "./types";
 import { scanDirectory, readFileContent, type FileInfo } from "./scanner";
 import { parseFileWithContext, getFirstNLines, type ParsedFile } from "./parser";
@@ -262,6 +263,36 @@ export class UpperLevelAPI implements IUpperLevelAPI {
     }
 
     /**
+     * Get capsule for a directory
+     */
+    getDirectoryCapsule(dirPath: string): DirectoryCapsule | undefined {
+        // Try exact match
+        if (this.graph.directoryCapsules && this.graph.directoryCapsules.has(dirPath)) {
+            return this.graph.directoryCapsules.get(dirPath);
+        }
+
+        // Try relative match
+        if (this.graph.directoryCapsules) {
+            for (const [absPath, capsule] of this.graph.directoryCapsules) {
+                if (capsule.relativePath === dirPath || absPath.endsWith(dirPath)) {
+                    return capsule;
+                }
+            }
+        }
+
+        return undefined;
+    }
+
+    /**
+     * Get all directories in the graph
+     */
+    getAllDirectories(): string[] {
+        return this.graph.directoryCapsules
+            ? Array.from(this.graph.directoryCapsules.keys())
+            : [];
+    }
+
+    /**
      * Get statistics about the graph
      */
     getStats(): GraphStats {
@@ -317,7 +348,7 @@ export async function buildUpperLevelGraph(rootDir: string): Promise<UpperLevelG
             nodes.set(file.path, { id: file.path, capsule });
 
             // Group by directory
-            const dir = path.dirname(file.relativePath);
+            const dir = path.dirname(file.path);
             const dirFiles = directories.get(dir) || [];
             dirFiles.push(file.path);
             directories.set(dir, dirFiles);
@@ -354,10 +385,37 @@ export async function buildUpperLevelGraph(rootDir: string): Promise<UpperLevelG
         }
     }
 
+    // Build directory capsules
+    const directoryCapsules = new Map<string, DirectoryCapsule>();
+
+    for (const [dirPath, filePaths] of directories) {
+        // Calculate relative path for directory
+        const relativePath = path.relative(absoluteRoot, dirPath) || ".";
+        const dirName = path.basename(dirPath);
+
+        // Find subdirectories
+        const subdirectories: string[] = [];
+        for (const [otherDir] of directories) {
+            const rel = path.relative(dirPath, otherDir);
+            if (rel && !rel.startsWith('..') && !rel.includes(path.sep)) {
+                subdirectories.push(otherDir);
+            }
+        }
+
+        directoryCapsules.set(dirPath, {
+            path: dirPath,
+            relativePath,
+            name: dirName,
+            files: filePaths.map(p => nodes.get(p)!.capsule.relativePath),
+            subdirectories: subdirectories.map(d => path.relative(absoluteRoot, d) || "."),
+        });
+    }
+
     return {
         nodes,
         edges,
         directories,
+        directoryCapsules,
         rootPath: absoluteRoot,
     };
 }

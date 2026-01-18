@@ -42,6 +42,7 @@ interface CapsulesData {
         totalEdges: number;
     };
     files: Record<string, CapsuleFile>;
+    directories?: Record<string, { summary?: string }>;
 }
 
 interface FileNodeData {
@@ -153,22 +154,13 @@ const createHierarchicalLayout = (data: CapsulesData) => {
     const nodes: FileNode[] = [];
     const edges: Edge[] = [];
 
-    // Group files by directory
-    const filesByDir: Record<string, CapsuleFile[]> = { '.': [] };
-
-    Object.values(data.files).forEach(file => {
-        const parts = file.relativePath.split('/');
-        if (parts.length === 1) {
-            filesByDir['.'].push(file);
-        } else {
-            const dir = parts[0];
-            if (!filesByDir[dir]) filesByDir[dir] = [];
-            filesByDir[dir].push(file);
-        }
-    });
+    // Helper to track created directories to avoid duplicates
+    const createdDirs = new Set<string>();
 
     // Create root node
     const rootId = 'root';
+    const rootSummary = data.directories ? data.directories['.']?.summary : undefined;
+
     nodes.push({
         id: rootId,
         type: 'capsule',
@@ -178,71 +170,80 @@ const createHierarchicalLayout = (data: CapsulesData) => {
             isRoot: true,
             fileCount: Object.keys(data.files).length,
             exports: [],
+            summary: rootSummary,
         },
         position: { x: 0, y: 0 }
     });
 
-    // Process each directory
-    const dirNames = Object.keys(filesByDir).sort((a, b) => {
-        if (a === '.') return -1;
-        if (b === '.') return 1;
-        return a.localeCompare(b);
-    });
+    Object.values(data.files).forEach(file => {
+        const parts = file.relativePath.split('/');
+        const fileName = parts.pop()!;
+        const fileId = file.relativePath;
 
-    dirNames.forEach(dir => {
-        const files = filesByDir[dir];
-        const dirId = dir === '.' ? 'root-files' : `dir-${dir}`;
+        // 1. Create directory path nodes
+        let currentPath = '';
+        let parentId = rootId;
 
-        // Create directory node (except for root files which connect directly)
-        if (dir !== '.') {
-            nodes.push({
-                id: dirId,
-                type: 'capsule',
-                data: {
-                    label: dir + '/',
-                    lang: 'directory',
-                    isDirectory: true,
-                    fileCount: files.length,
-                    exports: [],
-                },
-                position: { x: 0, y: 0 }
-            });
+        parts.forEach((part, index) => {
+            currentPath = currentPath ? `${currentPath}/${part}` : part;
+            const dirId = `dir-${currentPath}`;
 
-            // Edge from root to directory
-            edges.push({
-                id: `${rootId}->${dirId}`,
-                source: rootId,
-                target: dirId,
-                type: 'smoothstep',
-                style: { stroke: '#48bb78', strokeWidth: 2 },
-            });
-        }
+            if (!createdDirs.has(currentPath)) {
+                // Lookup summary if we have it (either from exact match or from stored directories)
+                const dirCapsule = data.directories ? data.directories[currentPath] : undefined;
 
-        // Create file nodes
-        files.forEach(file => {
-            const fileId = file.relativePath;
+                nodes.push({
+                    id: dirId,
+                    type: 'capsule',
+                    data: {
+                        label: part + '/',
+                        lang: 'directory',
+                        isDirectory: true,
+                        // We can't easily calculate recursive file count here without more logic, 
+                        // effectively simplified to "files in this specific structure"
+                        fileCount: 0,
+                        exports: [],
+                        summary: dirCapsule?.summary,
+                        depth: index + 1
+                    },
+                    position: { x: 0, y: 0 }
+                });
 
-            nodes.push({
-                id: fileId,
-                type: 'capsule',
-                data: {
-                    label: file.name,
-                    lang: file.lang,
-                    summary: file.summary || file.summaryContext?.fileDocstring?.slice(0, 100),
-                    exports: file.exports.map(e => e.name),
-                },
-                position: { x: 0, y: 0 }
-            });
+                edges.push({
+                    id: `${parentId}->${dirId}`,
+                    source: parentId,
+                    target: dirId,
+                    type: 'smoothstep',
+                    style: { stroke: '#48bb78', strokeWidth: 2 },
+                });
 
-            // Edge from directory/root to file
-            const parentId = dir === '.' ? rootId : dirId;
-            edges.push({
-                id: `${parentId}->${fileId}`,
-                source: parentId,
-                target: fileId,
-                type: 'smoothstep',
-                style: { stroke: '#555', strokeWidth: 1 },
-            });
+                createdDirs.add(currentPath);
+            }
+
+            parentId = dirId;
+        });
+
+        // 2. Create file node
+        nodes.push({
+            id: fileId,
+            type: 'capsule',
+            data: {
+                label: file.name,
+                lang: file.lang,
+                summary: file.summary || file.summaryContext?.fileDocstring?.slice(0, 100),
+                exports: file.exports.map(e => e.name),
+                depth: parts.length + 1
+            },
+            position: { x: 0, y: 0 }
+        });
+
+        // 3. Connect file to its immediate parent
+        edges.push({
+            id: `${parentId}->${fileId}`,
+            source: parentId,
+            target: fileId,
+            type: 'smoothstep',
+            style: { stroke: '#555', strokeWidth: 1 },
         });
     });
 
@@ -324,9 +325,9 @@ export default function Visualizer() {
         fetch('/capsules.json')
             .then(res => {
                 if (!res.ok) throw new Error('Failed to load capsules.json');
-                return res.json();
+                return res.json() as Promise<CapsulesData>;
             })
-            .then((data: CapsulesData) => {
+            .then((data) => {
                 setCapsules(data);
                 const { nodes: rawNodes, edges: rawEdges } = createHierarchicalLayout(data);
                 const { nodes: layoutedNodes, edges: layoutedEdges } = applyDagreLayout(rawNodes, rawEdges);

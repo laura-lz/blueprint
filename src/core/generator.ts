@@ -5,7 +5,7 @@
 
 import type { ComponentGraph, FileNode } from "./analyzer";
 import { getDependencies, getDependents, getGraphStats, calculateImportance } from "./analyzer";
-import { OpenRouterClient } from "./openrouter";
+import { GeminiClient } from "./gemini";
 import * as path from "path";
 
 export interface WikiOptions {
@@ -131,7 +131,7 @@ function generateBasicSummary(node: FileNode, graph: ComponentGraph): string {
  */
 export async function generateWiki(
     graph: ComponentGraph,
-    client?: OpenRouterClient,
+    client?: GeminiClient,
     options: WikiOptions = {}
 ): Promise<GeneratedWiki> {
     const { includeDiagrams = true, useAI = false, maxAIFiles = 20 } = options;

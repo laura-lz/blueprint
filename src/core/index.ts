@@ -64,4 +64,4 @@ export {
     createMockClient,
     type GeminiConfig,
     type Message,
-} from "./openrouter";
+} from "./gemini";

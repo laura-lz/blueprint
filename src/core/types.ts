@@ -62,6 +62,29 @@ export interface FileCapsule {
 }
 
 /**
+ * DirectoryCapsule - Metadata and summary for a directory
+ */
+export interface DirectoryCapsule {
+    /** Absolute path */
+    path: string;
+
+    /** Path relative to project root */
+    relativePath: string;
+
+    /** Directory name */
+    name: string;
+
+    /** Files in this directory (relative paths) */
+    files: string[];
+
+    /** Subdirectories (relative paths) */
+    subdirectories: string[];
+
+    /** Generated summary */
+    summary?: string;
+}
+
+/**
  * Context for generating file summaries with limited content
  */
 export interface SummaryContext {
@@ -187,6 +210,9 @@ export interface UpperLevelGraph {
     /** Files grouped by directory */
     directories: Map<string, string[]>;
 
+    /** Directory capsules */
+    directoryCapsules: Map<string, DirectoryCapsule>;
+
     /** Project root path */
     rootPath: string;
 }
@@ -250,7 +276,20 @@ export interface IUpperLevelAPI {
     /**
      * Get statistics about the graph
      */
+    /**
+     * Get statistics about the graph
+     */
     getStats(): GraphStats;
+
+    /**
+     * Get capsule for a directory
+     */
+    getDirectoryCapsule(dirPath: string): DirectoryCapsule | undefined;
+
+    /**
+     * Get all directories in the graph
+     */
+    getAllDirectories(): string[];
 }
 
 export interface GraphStats {
