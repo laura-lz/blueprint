@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import ReactFlow, {
   ReactFlowProvider,
   useNodesState,
@@ -11,7 +11,7 @@ import ReactFlow, {
   Node,
   Edge,
   NodeProps,
-  addEdge
+  Panel
 } from 'reactflow';
 import {
   forceSimulation,
@@ -21,7 +21,6 @@ import {
   forceRadial
 } from 'd3-force';
 import 'reactflow/dist/style.css';
-import { Sidebar, langColors, SearchResult } from './Sidebar';
 
 // VS Code API
 declare function acquireVsCodeApi(): {
@@ -33,20 +32,24 @@ declare function acquireVsCodeApi(): {
 const vscode = acquireVsCodeApi();
 
 // --- TYPES ---
+interface CodeBlockSummary {
+  name: string;
+  type: "function" | "class" | "block";
+  startLine: number;
+  endLine: number;
+  summary: string;
+}
+
 interface SymbolData {
   name: string;
   kind: string;
   location?: { start: { line: number } };
+  exported?: boolean;
 }
-
-interface CodeBlock {
-  name: string;
-  type: 'function' | 'class' | 'block';
-  startLine: number;
-  endLine: number;
-  summary: string;
-  calls?: string[];
-  calledBy?: string[];
+interface FunctionCallEdge {
+  source: string;
+  target: string;
+  type: string;
 }
 
 interface CapsuleFile {
@@ -56,25 +59,19 @@ interface CapsuleFile {
   exports: { name: string; kind: string }[];
   imports: { pathOrModule: string; isLocal: boolean }[];
   topSymbols?: SymbolData[];
+  // Renamed from summaryContext to metadata to match backend
   metadata?: {
-    usedBy?: string[];
-    dependsOn?: string[];
-    fileDocstring?: string;
-    firstNLines?: string;
-    functionSignatures?: { name: string; signature: string }[];
-  };
-  summaryContext?: {
     usedBy: string[];
     dependsOn: string[];
     fileDocstring?: string;
     firstNLines?: string;
-    functionSignatures?: { name: string; signature: string }[];
+    functionSignatures?: { name: string; signature: string; exported: boolean }[];
   };
   summary?: string;
   upperLevelSummary?: string;
   lowerLevelSummary?: string;
-  structure?: CodeBlock[];
-  isAnalyzing?: boolean;
+  structure?: CodeBlockSummary[];
+  edges?: FunctionCallEdge[];
 }
 
 interface DirectoryCapsule {
@@ -102,7 +99,6 @@ interface FileNodeData {
   lang: string;
   relativePath?: string;
   summary?: string;
-  lowerLevelSummary?: string;
   exports: string[];
   imports: string[];
   topSymbols?: SymbolData[];
@@ -111,555 +107,391 @@ interface FileNodeData {
   isRoot?: boolean;
   fileCount?: number;
   depth?: number;
-  structure?: CodeBlock[];
-  isAnalyzing?: boolean;
-  trafficScore?: number;
-  // New: For highlighting/dimming
-  isDimmed?: boolean;
-  isHighlight?: boolean;
-  isGlobalConnecting?: boolean;
-}
-
-interface StickyNodeData {
-  content: string;
-  color: string;
-  onChange: (text: string) => void;
-  onDelete: () => void;
-  isConnecting: boolean;
-  onToggleConnect: () => void;
+  // Full capsule access for diagram
+  fullCapsule?: CapsuleFile;
 }
 
 type FileNode = Node<FileNodeData>;
-type StickyNode = Node<StickyNodeData>;
-// --- STICKY NOTE NODE ---
-const StickyNoteNode: React.FC<NodeProps<StickyNodeData>> = ({ data }) => {
+
+// --- LANG COLORS ---
+const langColors: Record<string, { bg: string; border: string; icon: string }> = {
+  'react-typescript': { bg: '#1a365d', border: '#4299e1', icon: '⚛️' },
+  'typescript': { bg: '#1e3a5f', border: '#3178c6', icon: '📘' },
+  'javascript': { bg: '#3d3d00', border: '#f7df1e', icon: '📒' },
+  'css': { bg: '#1a1a4e', border: '#264de4', icon: '🎨' },
+  'json': { bg: '#1a1a1a', border: '#555', icon: '📄' },
+  'markdown': { bg: '#1a2a1a', border: '#083fa1', icon: '📝' },
+  'directory': { bg: '#2d1f3d', border: '#9f7aea', icon: '📁' },
+  'root': { bg: '#1a3d1a', border: '#48bb78', icon: '🏠' },
+  'other': { bg: '#1a1a1a', border: '#555', icon: '📄' },
+};
+
+// --- CODE BLOCK CARD COLORS ---
+const blockTypeColors: Record<string, { bg: string; border: string; icon: string }> = {
+  'function': { bg: '#1a3d1a', border: '#48bb78', icon: '🔧' },
+  'class': { bg: '#1a365d', border: '#4299e1', icon: '📦' },
+  'block': { bg: '#3d3d00', border: '#f7df1e', icon: '📄' },
+};
+
+// --- CODE BLOCK CARD COMPONENT ---
+const CodeBlockCard: React.FC<{
+  block: CodeBlockSummary;
+  onClick: () => void;
+}> = ({ block, onClick }) => {
+  const colors = blockTypeColors[block.type] || blockTypeColors.block;
+
   return (
-    <div style={{
-      background: data.color || '#fefcbf',
-      borderRadius: '8px',
-      width: '240px',
-      boxShadow: data.isConnecting
-        ? '0 0 0 4px #4299e1, 0 10px 20px rgba(0,0,0,0.2)'
-        : '0 4px 6px rgba(0,0,0,0.3), 0 10px 20px rgba(0,0,0,0.1)',
-      border: '1px solid rgba(0,0,0,0.1)',
-      display: 'flex',
-      flexDirection: 'column',
-      fontFamily: 'system-ui, -apple-system, sans-serif'
-    }}>
-      <Handle type="target" position={Position.Top} style={{ top: '50%', left: '50%', opacity: 0 }} />
-      <Handle type="source" position={Position.Bottom} style={{ top: '50%', left: '50%', opacity: 0 }} />
-
-      <div style={{
-        height: '32px',
-        background: 'rgba(0,0,0,0.05)',
-        borderBottom: '1px solid rgba(0,0,0,0.05)',
-        display: 'flex',
-        justifyContent: 'space-between',
-        padding: '0 8px',
-        alignItems: 'center',
-        borderTopLeftRadius: '8px',
-        borderTopRightRadius: '8px',
-        cursor: 'grab'
-      }}>
-        <button
-          className="nodrag"
-          onClick={(e) => { e.stopPropagation(); data.onToggleConnect(); }}
-          style={{
-            background: data.isConnecting ? '#4299e1' : 'rgba(0,0,0,0.1)',
-            color: data.isConnecting ? '#fff' : '#555',
-            border: 'none',
-            borderRadius: '4px',
-            padding: '2px 8px',
-            fontSize: '11px',
-            fontWeight: 'bold',
-            cursor: 'pointer'
-          }}
-        >
-          {data.isConnecting ? 'Done' : '🔗 Connect'}
-        </button>
-
-        <button
-          className="nodrag"
-          onClick={data.onDelete}
-          style={{ background: 'transparent', border: 'none', color: '#555', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px' }}
-        >
-          ✕
-        </button>
+    <div
+      onClick={onClick}
+      style={{
+        padding: '16px 20px',
+        borderRadius: '12px',
+        background: colors.bg,
+        color: '#fff',
+        border: `2px solid ${colors.border}`,
+        cursor: 'pointer',
+        transition: 'transform 0.2s, box-shadow 0.2s',
+        marginBottom: '12px',
+      }}
+      onMouseEnter={e => {
+        e.currentTarget.style.transform = 'translateY(-2px)';
+        e.currentTarget.style.boxShadow = `0 8px 20px rgba(0,0,0,0.4)`;
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.boxShadow = 'none';
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+        <span style={{ fontSize: '24px' }}>{colors.icon}</span>
+        <div style={{ flex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+            <span style={{ fontWeight: '700', fontSize: '16px' }}>{block.name}</span>
+            <span style={{
+              fontSize: '10px',
+              padding: '2px 6px',
+              background: 'rgba(255,255,255,0.1)',
+              borderRadius: '4px',
+              textTransform: 'uppercase'
+            }}>
+              {block.type}
+            </span>
+          </div>
+          <div style={{ fontSize: '11px', color: '#888', marginBottom: '8px', fontFamily: 'monospace' }}>
+            Lines {block.startLine} - {block.endLine}
+          </div>
+          <div style={{ fontSize: '14px', color: '#ccc', lineHeight: '1.5' }}>
+            {block.summary}
+          </div>
+        </div>
       </div>
-
-      <textarea
-        className="nodrag"
-        value={data.content}
-        onChange={(e) => data.onChange(e.target.value)}
-        placeholder="Type here..."
-        style={{
-          background: 'transparent',
-          border: 'none',
-          width: '100%',
-          minHeight: '140px',
-          padding: '16px',
-          fontSize: '14px',
-          lineHeight: '1.5',
-          color: '#333',
-          outline: 'none',
-          resize: 'none',
-          fontFamily: 'inherit'
-        }}
-      />
     </div>
   );
 };
 
-// --- CAPSULE NODE ---
-const CapsuleNode: React.FC<NodeProps<FileNodeData>> = ({ data }) => {
-  const [expanded, setExpanded] = useState(false);
-  const [activeTab, setActiveTab] = useState<'summary' | 'structure'>('summary');
-
-  const colors = useMemo(() => {
-    if (data.isRoot) return langColors.root;
-    if (data.isDirectory) return langColors.directory;
-    return langColors[data.lang] || langColors.other;
-  }, [data.isRoot, data.isDirectory, data.lang]);
-
-  const toggleExpand = (e: React.MouseEvent) => {
-    if (data.isGlobalConnecting) return;
-    e.stopPropagation();
-    const wasExpanded = expanded;
-    setExpanded(!expanded);
-
-    // Auto-trigger deep analysis when expanding a file node that doesn't have structure yet
-    if (!wasExpanded && !data.isDirectory && !data.isRoot && data.relativePath && !data.structure && !data.isAnalyzing) {
-      vscode.postMessage({ type: 'requestDeepAnalysis', relativePath: data.relativePath });
-    }
-  };
+// --- NODE DETAILS OVERLAY COMPONENT ---
+const NodeDetailsOverlay: React.FC<{ data: FileNodeData; onClose: () => void }> = ({ data, onClose }) => {
+  const [activeTab, setActiveTab] = useState<'summary' | 'diagram'>('summary');
+  const colors = langColors[data.lang] || langColors.other;
 
   const handleScroll = (e: React.WheelEvent) => {
     e.stopPropagation();
   };
 
-  const opacity = data.isDimmed ? 0.15 : 1;
-  const borderStyle = data.isHighlight
-    ? '3px solid #f6e05e'
-    : `3px solid ${expanded ? '#fff' : colors.border}`;
+  return (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      width: '100vw',
+      height: '100vh',
+      background: 'rgba(0,0,0,0.85)',
+      backdropFilter: 'blur(8px)',
+      zIndex: 99999,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      animation: 'fadeIn 0.2s'
+    }}
+      onClick={onClose}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: '90%',
+          maxWidth: '1200px',
+          height: '85vh',
+          background: '#0a0a0a',
+          borderRadius: '24px',
+          border: `2px solid ${colors.border}`,
+          display: 'flex',
+          flexDirection: 'column',
+          boxShadow: '0 50px 100px rgba(0,0,0,0.5)',
+          overflow: 'hidden',
+          animation: 'scaleIn 0.2s'
+        }}
+      >
+        {/* HEADER */}
+        <div
+          style={{
+            padding: '24px',
+            background: 'rgba(255,255,255,0.03)',
+            borderBottom: '1px solid rgba(255,255,255,0.1)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+            <span style={{ fontSize: '42px' }}>{colors.icon}</span>
+            <div>
+              <span style={{ fontWeight: '800', fontSize: '32px', display: 'block', lineHeight: 1 }}>{data.label}</span>
+              <span style={{ fontSize: '14px', color: '#888', fontFamily: 'monospace', marginTop: '4px', display: 'block' }}>{data.relativePath}</span>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer', fontSize: '32px', padding: '0 10px' }}
+          >
+            ×
+          </button>
+        </div>
 
-  const boxShadow = data.isHighlight
-    ? '0 0 30px rgba(246, 224, 94, 0.6)'
-    : (expanded ? '0 40px 80px rgba(0,0,0,0.9)' : '0 8px 25px rgba(0,0,0,0.6)');
+        {/* TABS */}
+        <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.2)' }}>
+          {[
+            { id: 'summary', label: 'Summary' },
+            { id: 'diagram', label: 'Diagram' }
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as 'summary' | 'diagram')}
+              style={{
+                flex: 1,
+                padding: '20px',
+                background: activeTab === tab.id ? 'rgba(255,255,255,0.05)' : 'transparent',
+                border: 'none',
+                color: activeTab === tab.id ? '#fff' : '#888',
+                borderBottom: activeTab === tab.id ? `4px solid ${colors.border}` : '4px solid transparent',
+                cursor: 'pointer',
+                fontSize: '16px',
+                fontWeight: '700',
+                transition: 'all 0.2s'
+              }}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
 
-  // Dynamic width based on label length
-  const labelLength = data.label.length;
-  const baseWidth = data.isRoot ? 340 : data.isDirectory ? 300 : 280;
-  const dynamicWidth = Math.max(baseWidth, Math.min(labelLength * 14 + 100, 500));
+        {/* CONTENT */}
+        <div
+          className="nowheel"
+          onWheel={handleScroll}
+          style={{ padding: '32px', overflowY: 'auto', background: '#0a0a0a', flex: 1 }}
+        >
+          {activeTab === 'summary' && (
+            <div style={{ animation: 'fadeIn 0.2s', maxWidth: '800px', margin: '0 auto' }}>
+              <div style={{ fontSize: '20px', lineHeight: '1.7', color: '#ddd', marginBottom: '32px' }}>
+                {data.summary || "No summary available."}
+                {data.fullCapsule?.upperLevelSummary && data.summary !== data.fullCapsule.upperLevelSummary && (
+                  <div style={{ marginTop: '24px', padding: '16px', background: '#151515', borderRadius: '8px', fontStyle: 'italic', color: '#aaa', borderLeft: '4px solid #333' }}>
+                    {data.fullCapsule.upperLevelSummary}
+                  </div>
+                )}
+              </div>
+              {!data.isDirectory && !data.isRoot && (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '32px' }}>
+                  <div style={{ padding: '20px', background: '#151515', borderRadius: '16px', border: '1px solid #222' }}>
+                    <div style={{ fontSize: '12px', color: '#666', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '1px' }}>Language</div>
+                    <div style={{ fontSize: '24px', color: colors.border, fontWeight: 'bold' }}>{data.lang}</div>
+                  </div>
+                  <div style={{ padding: '20px', background: '#151515', borderRadius: '16px', border: '1px solid #222' }}>
+                    <div style={{ fontSize: '12px', color: '#666', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '1px' }}>Dependencies</div>
+                    <div style={{ fontSize: '24px', fontWeight: 'bold' }}>{data.imports.length} <span style={{ fontSize: '16px', color: '#666', fontWeight: 'normal' }}>modules</span></div>
+                  </div>
+                </div>
+              )}
+              {data.relativePath && !data.isDirectory && !data.isRoot && (
+                <button
+                  onClick={() => {
+                    vscode.postMessage({ type: 'openFile', relativePath: data.relativePath });
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '18px',
+                    background: '#007acc',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '12px',
+                    cursor: 'pointer',
+                    fontSize: '18px',
+                    fontWeight: '600',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '12px',
+                    transition: 'background 0.2s'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#0062a3'}
+                  onMouseLeave={e => e.currentTarget.style.background = '#007acc'}
+                >
+                  <span>Open in Editor</span>
+                  <span>→</span>
+                </button>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'diagram' && (
+            <div style={{ animation: 'fadeIn 0.2s', height: '100%', display: 'flex', gap: '24px', alignItems: 'stretch' }}>
+              {!data.isDirectory && !data.isRoot ? (
+                <>
+                  {/* IMPORTS */}
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0 }}>
+                    <div style={{ textAlign: 'center', color: '#666', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>Imports</div>
+                    <div style={{ flex: 1, background: '#111', borderRadius: '16px', padding: '16px', overflowY: 'auto', border: '1px solid #222' }}>
+                      {data.fullCapsule?.imports.map((imp, i) => (
+                        <div key={i} style={{ padding: '12px', background: '#1a1a1a', marginBottom: '8px', borderRadius: '8px', fontSize: '14px', borderLeft: '3px solid #666', wordBreak: 'break-all', fontFamily: 'monospace' }}>
+                          {imp.pathOrModule}
+                        </div>
+                      ))}
+                      {(!data.fullCapsule?.imports || data.fullCapsule.imports.length === 0) && (
+                        <div style={{ color: '#444', fontStyle: 'italic', textAlign: 'center', marginTop: '40px' }}>No imports</div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* ARROW */}
+                  <div style={{ display: 'flex', alignItems: 'center', color: '#333', fontSize: '24px' }}>→</div>
+
+                  {/* CODE BLOCKS */}
+                  <div style={{ flex: 3, display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0 }}>
+                    <div style={{ textAlign: 'center', color: '#666', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                      Code Structure ({data.fullCapsule?.structure?.length || 0} blocks)
+                    </div>
+                    {data.fullCapsule?.structure && data.fullCapsule.structure.length > 0 ? (
+                      <div style={{ flex: 1, background: '#111', borderRadius: '16px', padding: '16px', overflowY: 'auto', border: '1px solid #222' }}>
+                        {data.fullCapsule.structure.map((block, i) => (
+                          <CodeBlockCard
+                            key={i}
+                            block={block}
+                            onClick={() => {
+                              vscode.postMessage({
+                                type: 'openFile',
+                                relativePath: data.relativePath,
+                                startLine: block.startLine,
+                                endLine: block.endLine
+                              });
+                            }}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#151515', borderRadius: '16px', border: `1px solid ${colors.border}`, padding: '40px' }}>
+                        <div style={{ fontSize: '64px', marginBottom: '20px' }}>🔮</div>
+                        <div style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '8px', color: '#eee' }}>Analyze Code Structure</div>
+                        <div style={{ color: '#888', textAlign: 'center', marginBottom: '32px', maxWidth: '300px' }}>
+                          Generate a deep analysis to see block-level summaries of functions, classes, and code blocks.
+                        </div>
+
+                        <button
+                          onClick={() => {
+                            vscode.postMessage({ type: 'analyzeFile', relativePath: data.relativePath });
+                          }}
+                          style={{
+                            padding: '16px 32px',
+                            background: 'transparent',
+                            border: `2px dashed ${colors.border}`,
+                            color: colors.border,
+                            borderRadius: '12px',
+                            cursor: 'pointer',
+                            fontSize: '16px',
+                            fontWeight: '600',
+                            transition: 'all 0.2s',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px'
+                          }}
+                          onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+                          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                        >
+                          <span>✨</span>
+                          Generate Deep Analysis
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* ARROW */}
+                  <div style={{ display: 'flex', alignItems: 'center', color: '#333', fontSize: '24px' }}>→</div>
+
+                  {/* EXPORTS */}
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0 }}>
+                    <div style={{ textAlign: 'center', color: '#666', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>Exports</div>
+                    <div style={{ flex: 1, background: '#111', borderRadius: '16px', padding: '16px', overflowY: 'auto', border: '1px solid #222' }}>
+                      {data.fullCapsule?.exports.map((exp, i) => (
+                        <div key={i} style={{ padding: '12px', background: '#1a3d1a', marginBottom: '8px', borderRadius: '8px', fontSize: '14px', borderLeft: '3px solid #48bb78', wordBreak: 'break-all', fontFamily: 'monospace' }}>
+                          {exp.name}
+                        </div>
+                      ))}
+                      {(!data.fullCapsule?.exports || data.fullCapsule.exports.length === 0) && (
+                        <div style={{ color: '#444', fontStyle: 'italic', textAlign: 'center', marginTop: '40px' }}>No exports</div>
+                      )}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div style={{ color: '#666', fontStyle: 'italic', fontSize: '16px', textAlign: 'center', width: '100%', marginTop: '40px' }}>
+                  Directory or Root view details not fully supported yet.
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+      <style>{`
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+      `}</style>
+    </div>
+  );
+};
+
+// --- SIMPLIFIED CAPSULE NODE ---
+const CapsuleNode: React.FC<NodeProps<FileNodeData>> = ({ data }) => {
+  const getColors = () => {
+    if (data.isRoot) return langColors.root;
+    if (data.isDirectory) return langColors.directory;
+    return langColors[data.lang] || langColors.other;
+  };
+  const colors = getColors();
 
   return (
     <div
-      onClick={toggleExpand}
       style={{
-        opacity,
-        padding: expanded ? '0' : '20px 24px',
+        padding: '20px 24px',
         borderRadius: '24px',
         background: colors.bg,
         color: '#fff',
-        border: borderStyle,
-        boxShadow: boxShadow,
-        width: expanded ? 600 : dynamicWidth,
+        border: `3px solid ${colors.border}`,
+        boxShadow: '0 8px 25px rgba(0,0,0,0.6)',
+        width: 300,
         fontFamily: 'system-ui, -apple-system, sans-serif',
-        cursor: data.isGlobalConnecting ? 'crosshair' : (expanded ? 'default' : 'pointer'),
-        position: 'relative',
-        zIndex: expanded ? 100000 : (data.isHighlight ? 5000 : 1000),
-        transition: 'opacity 0.2s, width 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s'
+        cursor: 'pointer',
+        transition: 'transform 0.2s, box-shadow 0.2s',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '16px'
       }}
+      className="capsule-node-hover"
     >
       <Handle type="target" position={Position.Top} style={{ top: '50%', left: '50%', opacity: 0 }} />
       <Handle type="source" position={Position.Bottom} style={{ top: '50%', left: '50%', opacity: 0 }} />
 
-      {!expanded && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <div style={{ fontSize: '42px' }}>{colors.icon}</div>
-          <div>
-            <div style={{ fontWeight: '800', fontSize: '24px', lineHeight: '1.1', marginBottom: '4px' }}>{data.label}</div>
-            {(data.isDirectory || data.isRoot) && (
-              <div style={{ fontSize: '16px', opacity: 0.7, fontWeight: '500' }}>{data.fileCount} items</div>
-            )}
-            {data.isHighlight && (
-              <div style={{ color: '#f6e05e', fontSize: '12px', fontWeight: 'bold', marginTop: '4px' }}>MATCH</div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {expanded && (
-        <div style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ padding: '24px', background: 'rgba(0,0,0,0.2)', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'grab' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-              <span style={{ fontSize: '32px' }}>{colors.icon}</span>
-              <span style={{ fontWeight: 'bold', fontSize: '24px' }}>{data.label}</span>
-            </div>
-            <button
-              onClick={(e) => { e.stopPropagation(); setExpanded(false); }}
-              className="nodrag"
-              style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: '32px' }}
-            >
-              ×
-            </button>
-          </div>
-
-          <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.1)', cursor: 'grab' }}>
-            {[{ id: 'summary', label: 'Summary' }, { id: 'structure', label: 'Structure' }].map(tab => (
-              <button
-                key={tab.id}
-                onClick={(e) => { e.stopPropagation(); setActiveTab(tab.id as 'summary' | 'structure'); }}
-                className="nodrag"
-                style={{
-                  flex: 1,
-                  padding: '16px',
-                  background: activeTab === tab.id ? 'rgba(255,255,255,0.05)' : 'transparent',
-                  border: 'none',
-                  color: activeTab === tab.id ? '#fff' : '#888',
-                  borderBottom: activeTab === tab.id ? `4px solid ${colors.border}` : '4px solid transparent',
-                  cursor: 'pointer',
-                  fontSize: '16px',
-                  fontWeight: '700'
-                }}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="nodrag nowheel" onWheel={handleScroll} style={{ padding: '24px', maxHeight: '500px', overflowY: 'auto', background: '#0a0a0a', cursor: 'text' }}>
-            {activeTab === 'summary' && (
-              <div style={{ animation: 'fadeIn 0.2s' }}>
-                {data.relativePath && (
-                  <div style={{ fontSize: '14px', color: '#888', marginBottom: '16px', fontFamily: 'monospace', background: '#111', padding: '8px 12px', borderRadius: '8px', wordBreak: 'break-all' }}>
-                    📂 {data.relativePath}
-                  </div>
-                )}
-                <div style={{ fontSize: '18px', lineHeight: '1.6', color: '#ddd', marginBottom: '24px' }}>
-                  {data.summary || "No summary available."}
-                </div>
-                {!data.isDirectory && !data.isRoot && (
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                    <div style={{ padding: '12px', background: '#1a1a1a', borderRadius: '12px' }}>
-                      <div style={{ fontSize: '13px', color: '#666', textTransform: 'uppercase', marginBottom: '6px' }}>Type</div>
-                      <div style={{ fontSize: '16px', color: colors.border, fontWeight: 'bold' }}>{data.lang}</div>
-                    </div>
-                    <div style={{ padding: '12px', background: '#1a1a1a', borderRadius: '12px' }}>
-                      <div style={{ fontSize: '13px', color: '#666', textTransform: 'uppercase', marginBottom: '6px' }}>Imports</div>
-                      <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{data.imports.length} modules</div>
-                    </div>
-                  </div>
-                )}
-                {data.relativePath && !data.isDirectory && !data.isRoot && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      vscode.postMessage({ type: 'openFile', relativePath: data.relativePath });
-                    }}
-                    className="nodrag"
-                    style={{
-                      marginTop: '16px',
-                      width: '100%',
-                      padding: '12px',
-                      background: '#007acc',
-                      color: '#fff',
-                      border: 'none',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                      fontSize: '14px',
-                      fontWeight: '600',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '8px'
-                    }}
-                  >
-                    Open in Editor
-                  </button>
-                )}
-              </div>
-            )}
-            {activeTab === 'structure' && (
-              <div style={{ animation: 'fadeIn 0.2s' }}>
-                {data.topSymbols && data.topSymbols.length > 0 ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    {data.topSymbols.map((sym, i) => (
-                      <div key={i} style={{ padding: '12px', background: '#1a1a1a', borderRadius: '8px', borderLeft: `5px solid ${colors.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '16px', fontWeight: '600' }}>{sym.name}</span>
-                        <span style={{ fontSize: '12px', color: '#888', background: '#111', padding: '4px 8px', borderRadius: '6px' }}>{sym.kind}</span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div style={{ color: '#666', fontStyle: 'italic', fontSize: '16px' }}>
-                    {data.isDirectory ? "Folder structure view not implemented yet." : "No symbols detected."}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-      <div
-        onClick={toggleExpand}
-        style={{
-          padding: expanded ? '0' : '20px 24px',
-          borderRadius: '24px',
-          background: colors.bg,
-          color: '#fff',
-          border: `3px solid ${expanded ? '#fff' : colors.border}`,
-          boxShadow: expanded ? '0 40px 80px rgba(0,0,0,0.9)' : '0 8px 25px rgba(0,0,0,0.6)',
-          width: expanded ? '80vw' : (data.isRoot ? 340 : 300),
-          maxWidth: expanded ? '900px' : undefined,
-          fontFamily: 'system-ui, -apple-system, sans-serif',
-          cursor: expanded ? 'default' : 'pointer',
-          position: expanded ? 'fixed' : 'relative',
-          top: expanded ? '50%' : undefined,
-          left: expanded ? '50%' : undefined,
-          transform: expanded ? 'translate(-50%, -50%)' : undefined,
-          zIndex: expanded ? 99999 : 1000,
-          transition: 'width 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s'
-        }}
-      >
-        <Handle type="target" position={Position.Top} style={{ top: '50%', left: '50%', opacity: 0 }} />
-        <Handle type="source" position={Position.Bottom} style={{ top: '50%', left: '50%', opacity: 0 }} />
-
-        {!expanded && (
-          <div style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'space-between' }}>
-            {/* Main Body: Upper Level Summary */}
-            <div style={{ paddingBottom: '12px' }}>
-              {data.summary ? (
-                <div style={{ fontSize: '18px', lineHeight: '1.4', color: '#fff', fontWeight: '500', letterSpacing: '0.2px' }}>
-                  {data.summary}
-                </div>
-              ) : (
-                <div style={{ fontSize: '18px', color: '#888', fontStyle: 'italic' }}>
-                  No summary available.
-                </div>
-              )}
-            </div>
-
-            
-          </div>
-        )}
-
-        {expanded && (
-          <div style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-
-            {/* HEADER: DRAGGABLE (No 'nodrag' class) */}
-            <div
-              style={{ padding: '24px', background: 'rgba(0,0,0,0.2)', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'grab' }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <span style={{ fontSize: '32px' }}>{colors.icon}</span>
-                <span style={{ fontWeight: 'bold', fontSize: '24px' }}>{data.label}</span>
-              </div>
-              <button
-                onClick={(e) => { e.stopPropagation(); setExpanded(false); }}
-                className="nodrag"
-                style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: '32px' }}
-              >
-                ×
-              </button>
-            </div>
-
-            {/* TABS: DRAGGABLE */}
-            <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.1)', cursor: 'grab' }}>
-              {[
-                { id: 'summary', label: 'Summary' },
-                { id: 'structure', label: 'Structure' }
-              ].map(tab => (
-                <button
-                  key={tab.id}
-                  onClick={(e) => { e.stopPropagation(); setActiveTab(tab.id as 'summary' | 'structure'); }}
-                  className="nodrag"
-                  style={{
-                    flex: 1,
-                    padding: '16px',
-                    background: activeTab === tab.id ? 'rgba(255,255,255,0.05)' : 'transparent',
-                    border: 'none',
-                    color: activeTab === tab.id ? '#fff' : '#888',
-                    borderBottom: activeTab === tab.id ? `4px solid ${colors.border}` : '4px solid transparent',
-                    cursor: 'pointer',
-                    fontSize: '16px',
-                    fontWeight: '700'
-                  }}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-
-            {/* Loading overlay for deep analysis */}
-            {data.isAnalyzing && (
-              <div style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                background: 'rgba(0,0,0,0.85)',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                zIndex: 10,
-                borderRadius: '24px'
-              }}>
-                <div style={{ fontSize: '48px', marginBottom: '16px', animation: 'pulse 1.5s infinite' }}>🔬</div>
-                <div style={{ fontSize: '18px', color: '#fff', fontWeight: '600' }}>Analyzing code structure...</div>
-                <div style={{ fontSize: '14px', color: '#888', marginTop: '8px' }}>This may take a moment</div>
-              </div>
-            )}
-
-            {/* CONTENT: NOT DRAGGABLE (Allows Text Selection) */}
-            <div
-              className="nodrag nowheel"
-              onWheel={handleScroll}
-              style={{ padding: '24px', maxHeight: '500px', overflowY: 'auto', background: '#0a0a0a', cursor: 'text' }}
-            >
-              {activeTab === 'summary' && (
-                <div style={{ animation: 'fadeIn 0.2s' }}>
-                  {data.relativePath && (
-                    <div style={{ fontSize: '14px', color: '#888', marginBottom: '16px', fontFamily: 'monospace', background: '#111', padding: '8px 12px', borderRadius: '8px', wordBreak: 'break-all' }}>
-                      📂 {data.relativePath}
-                    </div>
-                  )}
-                  {/* Show lower-level summary (bullet points) if available */}
-                  {data.lowerLevelSummary ? (
-                    <div style={{ fontSize: '15px', lineHeight: '1.8', color: '#ddd', marginBottom: '24px', whiteSpace: 'pre-wrap' }}>
-                      {data.lowerLevelSummary}
-                    </div>
-                  ) : data.isAnalyzing ? (
-                    <div style={{ fontSize: '15px', color: '#888', marginBottom: '24px', fontStyle: 'italic' }}>
-                      Generating detailed analysis...
-                    </div>
-                  ) : (
-                    <div style={{ fontSize: '15px', color: '#888', marginBottom: '24px', fontStyle: 'italic' }}>
-                      Click to load detailed analysis
-                    </div>
-                  )}
-                  {!data.isDirectory && !data.isRoot && (
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                      <div style={{ padding: '12px', background: '#1a1a1a', borderRadius: '12px' }}>
-                        <div style={{ fontSize: '13px', color: '#666', textTransform: 'uppercase', marginBottom: '6px' }}>Type</div>
-                        <div style={{ fontSize: '16px', color: colors.border, fontWeight: 'bold' }}>{data.lang}</div>
-                      </div>
-                      <div style={{ padding: '12px', background: '#1a1a1a', borderRadius: '12px' }}>
-                        <div style={{ fontSize: '13px', color: '#666', textTransform: 'uppercase', marginBottom: '6px' }}>Imports</div>
-                        <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{data.imports.length} modules</div>
-                      </div>
-                    </div>
-                  )}
-                  {data.relativePath && !data.isDirectory && !data.isRoot && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        vscode.postMessage({ type: 'openFile', relativePath: data.relativePath });
-                      }}
-                      className="nodrag"
-                      style={{
-                        marginTop: '16px',
-                        width: '100%',
-                        padding: '12px',
-                        background: '#007acc',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: '8px',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                        fontWeight: '600',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '8px'
-                      }}
-                    >
-                      Open in Editor
-                    </button>
-                  )}
-                </div>
-              )}
-              {activeTab === 'structure' && (
-                <div style={{ animation: 'fadeIn 0.2s' }}>
-                  {data.isAnalyzing && (
-                    <div style={{ textAlign: 'center', padding: '20px', color: '#aaa' }}>
-                      <div style={{ fontSize: '24px', marginBottom: '8px' }}>🔬</div>
-                      Analyzing code structure...
-                    </div>
-                  )}
-                  {!data.isAnalyzing && data.structure && data.structure.length > 0 ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                      {data.structure.map((block, i) => (
-                        <div key={i} style={{ padding: '14px', background: '#1a1a1a', borderRadius: '10px', borderLeft: `5px solid ${colors.border}` }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                            <span style={{ fontSize: '16px', fontWeight: '700' }}>{block.name}</span>
-                            <span style={{ fontSize: '11px', color: '#888', background: '#111', padding: '4px 8px', borderRadius: '6px', textTransform: 'uppercase' }}>{block.type}</span>
-                          </div>
-                          <div style={{ fontSize: '13px', color: '#aaa', marginBottom: '8px', lineHeight: '1.5' }}>{block.summary}</div>
-                          <div style={{ fontSize: '11px', color: '#666' }}>Lines {block.startLine}-{block.endLine}</div>
-                          {block.calls && block.calls.length > 0 && (
-                            <div style={{ marginTop: '8px', fontSize: '12px' }}>
-                              <span style={{ color: '#63b3ed' }}>→ Calls:</span>{' '}
-                              <span style={{ color: '#888' }}>{block.calls.join(', ')}</span>
-                            </div>
-                          )}
-                          {block.calledBy && block.calledBy.length > 0 && (
-                            <div style={{ marginTop: '4px', fontSize: '12px' }}>
-                              <span style={{ color: '#68d391' }}>← Called by:</span>{' '}
-                              <span style={{ color: '#888' }}>{block.calledBy.join(', ')}</span>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  ) : !data.isAnalyzing && data.topSymbols && data.topSymbols.length > 0 ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                      {data.topSymbols.map((sym, i) => (
-                        <div key={i} style={{ padding: '12px', background: '#1a1a1a', borderRadius: '8px', borderLeft: `5px solid ${colors.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ fontSize: '16px', fontWeight: '600' }}>{sym.name}</span>
-                          <span style={{ fontSize: '12px', color: '#888', background: '#111', padding: '4px 8px', borderRadius: '6px' }}>{sym.kind}</span>
-                        </div>
-                      ))}
-                      {!data.isDirectory && !data.isRoot && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            vscode.postMessage({ type: 'requestDeepAnalysis', relativePath: data.relativePath });
-                          }}
-                          className="nodrag"
-                          style={{ marginTop: '12px', padding: '10px', background: '#2d2d2d', color: '#ccc', border: '1px solid #444', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' }}
-                        >
-                          🔬 Analyze Structure
-                        </button>
-                      )}
-                    </div>
-                  ) : (
-                    <div style={{ color: '#666', fontStyle: 'italic', fontSize: '16px' }}>
-                      {data.isDirectory ? "Folder structure view not implemented yet." : (
-                        <div style={{ textAlign: 'center' }}>
-                          <div>No detailed structure yet.</div>
-                          {!data.isRoot && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                vscode.postMessage({ type: 'requestDeepAnalysis', relativePath: data.relativePath });
-                              }}
-                              className="nodrag"
-                              style={{ marginTop: '16px', padding: '12px 20px', background: '#007acc', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' }}
-                            >
-                              🔬 Analyze Structure
-                            </button>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-
-            </div>
-          </div>
+      <div style={{ fontSize: '42px' }}>{colors.icon}</div>
+      <div>
+        <div style={{ fontWeight: '800', fontSize: '24px', lineHeight: '1.1', marginBottom: '4px' }}>{data.label}</div>
+        {(data.isDirectory || data.isRoot) && (
+          <div style={{ fontSize: '16px', opacity: 0.7, fontWeight: '500' }}>{data.fileCount} items</div>
         )}
       </div>
     </div>
@@ -670,27 +502,16 @@ const CapsuleNode: React.FC<NodeProps<FileNodeData>> = ({ data }) => {
 const prepareGraphData = (data: CapsulesData) => {
   const nodes: FileNode[] = [];
   const edges: Edge[] = [];
-  const allDirs = new Set<string>();
-  const filesByFullDir: Record<string, CapsuleFile[]> = {};
+  const filesByDir: Record<string, CapsuleFile[]> = { '.': [] };
 
-  // Group files by their full directory path
   Object.values(data.files).forEach(file => {
-    // Handle both / and \\ path separators
-    const normalizedPath = file.relativePath.replace(/\\/g, '/');
-    const parts = normalizedPath.split('/');
+    const parts = file.relativePath.split('/');
     if (parts.length === 1) {
-      if (!filesByFullDir['.']) filesByFullDir['.'] = [];
-      filesByFullDir['.'].push(file);
+      filesByDir['.'].push(file);
     } else {
-      const dirPath = parts.slice(0, -1).join('/');
-      if (!filesByFullDir[dirPath]) filesByFullDir[dirPath] = [];
-      filesByFullDir[dirPath].push(file);
-
-      let currentPath = '';
-      for (let i = 0; i < parts.length - 1; i++) {
-        currentPath = currentPath ? `${currentPath}/${parts[i]}` : parts[i];
-        allDirs.add(currentPath);
-      }
+      const dir = parts[0];
+      if (!filesByDir[dir]) filesByDir[dir] = [];
+      filesByDir[dir].push(file);
     }
   });
 
@@ -702,52 +523,44 @@ const prepareGraphData = (data: CapsulesData) => {
     position: { x: 0, y: 0 }
   });
 
-  // Create directory nodes (sorted so parents come before children)
-  const sortedDirs = Array.from(allDirs).sort();
-  sortedDirs.forEach(dirPath => {
-    const dirId = `dir-${dirPath}`;
-    const parts = dirPath.split('/');
-    const dirName = parts[parts.length - 1];
-    const parentPath = parts.length > 1 ? parts.slice(0, -1).join('/') : null;
-    const parentId = parentPath ? `dir-${parentPath}` : rootId;
+  Object.keys(filesByDir).forEach(dir => {
+    const files = filesByDir[dir];
+    const dirId = dir === '.' ? 'root-files' : `dir-${dir}`;
 
-    const filesInDir = filesByFullDir[dirPath] || [];
-    const dirCapsule = data.directories && data.directories[dirPath];
+    if (dir !== '.') {
+      const dirCapsule = data.directories && data.directories[dir];
+      nodes.push({
+        id: dirId,
+        type: 'capsule',
+        data: {
+          label: dir + '/',
+          lang: 'directory',
+          isDirectory: true,
+          fileCount: files.length,
+          exports: [],
+          imports: [],
+          summary: dirCapsule?.upperLevelSummary || "Folder containing " + files.length + " files.",
+          relativePath: dir
+        },
+        position: { x: 0, y: 0 }
+      });
 
-    nodes.push({
-      id: dirId,
-      type: 'capsule',
-      data: {
-        label: dirName + '/',
-        lang: 'directory',
-        isDirectory: true,
-        fileCount: filesInDir.length,
-        exports: [],
-        imports: [],
-        summary: dirCapsule?.upperLevelSummary || `Contains ${filesInDir.length} files`,
-        relativePath: dirPath
-      },
-      position: { x: 0, y: 0 }
-    });
-
-    edges.push({
-      id: `${parentId}->${dirId}`,
-      source: parentId,
-      target: dirId,
-      type: 'straight',
-      style: { stroke: '#48bb78', strokeWidth: 12, opacity: 0.8 },
-    });
-  });
-
-  // Add files to their respective directories
-  Object.entries(filesByFullDir).forEach(([dirPath, files]) => {
-    const parentId = dirPath === '.' ? rootId : `dir-${dirPath}`;
+      edges.push({
+        id: `${rootId}->${dirId}`,
+        source: rootId,
+        target: dirId,
+        type: 'straight',
+        style: { stroke: '#48bb78', strokeWidth: 12, opacity: 0.8 },
+      });
+    }
 
     files.forEach(file => {
       const fileId = file.relativePath;
+
       const importCount = file.imports.length || 0;
-      const usedByCount = file.summaryContext?.usedBy?.length || 0;
+      const usedByCount = file.metadata?.usedBy?.length || 0;
       const trafficScore = importCount + usedByCount;
+
       const structuralWidth = Math.min(Math.max(6, trafficScore * 2.0), 20);
       const structuralOpacity = Math.min(Math.max(0.2, trafficScore * 0.15), 1.0);
 
@@ -758,18 +571,17 @@ const prepareGraphData = (data: CapsulesData) => {
           label: file.name,
           lang: file.lang,
           relativePath: file.relativePath,
-          summary: file.upperLevelSummary || file.summaryContext?.fileDocstring,
-          lowerLevelSummary: file.lowerLevelSummary,
+          summary: file.lowerLevelSummary || file.upperLevelSummary || file.metadata?.fileDocstring,
           exports: file.exports.map(e => e.name),
           imports: file.imports.map(i => i.pathOrModule),
           topSymbols: file.topSymbols,
-          previewCode: file.summaryContext?.firstNLines,
-          structure: file.structure,
-          isAnalyzing: file.isAnalyzing,
-          trafficScore
+          previewCode: file.metadata?.firstNLines,
+          fullCapsule: file,
         },
         position: { x: 0, y: 0 }
       });
+
+      const parentId = dir === '.' ? rootId : dirId;
 
       edges.push({
         id: `${parentId}->${fileId}`,
@@ -786,32 +598,24 @@ const prepareGraphData = (data: CapsulesData) => {
     });
   });
 
-  // Create dependency edges from usedBy relationships (in metadata)
   Object.entries(data.files).forEach(([path, file]) => {
-    // usedBy is in metadata, not summaryContext
-    const usedByList = file.metadata?.usedBy || file.summaryContext?.usedBy || [];
-    if (usedByList.length > 0) {
-      usedByList.forEach((usedByPath: string) => {
-        // Normalize the usedBy path to match node IDs
-        const normalizedUsedBy = usedByPath.replace(/\\/g, '/');
-        const normalizedPath = path.replace(/\\/g, '/');
-
-        // Find if the source node exists (the file that imports this one)
-        if (nodes.find(n => n.id.replace(/\\/g, '/') === normalizedUsedBy)) {
-          const traffic = usedByList.length;
-          const depWidth = Math.min(Math.max(4, traffic * 2), 12);
+    if (file.metadata?.usedBy) {
+      file.metadata.usedBy.forEach(usedByPath => {
+        if (nodes.find(n => n.id === usedByPath)) {
+          const traffic = (file.metadata?.usedBy?.length || 1);
+          const depWidth = Math.min(Math.max(6, traffic * 3), 18);
 
           edges.push({
-            id: `dep-${normalizedUsedBy}->${normalizedPath}`,
-            source: usedByPath, // Use original path as source
-            target: path,       // Use original path as target
+            id: `dep-${usedByPath}->${path}`,
+            source: usedByPath,
+            target: path,
             type: 'straight',
             animated: true,
             style: {
               stroke: '#63b3ed',
               strokeWidth: depWidth,
               opacity: 1,
-              strokeDasharray: '8 4'
+              strokeDasharray: '5 5'
             },
             markerEnd: { type: MarkerType.ArrowClosed, color: '#63b3ed' },
             data: { isDependency: true }
@@ -827,17 +631,14 @@ const prepareGraphData = (data: CapsulesData) => {
 // --- FORCE LAYOUT ENGINE ---
 const applyForceLayout = (nodes: FileNode[], edges: Edge[]) => {
   const simulationNodes = nodes.map(node => ({ ...node, x: 0, y: 0 }));
-
-  const nodeIds = new Set(nodes.map(n => n.id));
-  const validEdges = edges.filter(e => nodeIds.has(e.source as string) && nodeIds.has(e.target as string));
-  const simulationEdges = validEdges.map(edge => ({ ...edge, source: edge.source, target: edge.target }));
+  const simulationEdges = edges.map(edge => ({ ...edge, source: edge.source, target: edge.target }));
 
   const filesPerDir: Record<string, number> = {};
   const inDegree: Record<string, number> = {};
 
-  validEdges.forEach(e => {
+  edges.forEach(e => {
     if (e.data?.isDependency) {
-      inDegree[e.target as string] = (inDegree[e.target as string] || 0) + 1;
+      inDegree[e.target] = (inDegree[e.target] || 0) + 1;
     }
   });
 
@@ -860,17 +661,17 @@ const applyForceLayout = (nodes: FileNode[], edges: Edge[]) => {
   });
 
   const simulation = forceSimulation(simulationNodes as any)
-    .force('charge', forceManyBody().strength(-3000))
-    .force('collide', forceCollide().radius(180).strength(0.8))
+    .force('charge', forceManyBody().strength(-5000))
+    .force('collide', forceCollide().radius(250).strength(0.8))
     .force('radial', forceRadial((d: any) => {
       if (d.data.isRoot) return 0;
-      if (inDegree[d.id] && inDegree[d.id] > 2) return 300;
-      if (d.data.isDirectory) return 550;
-      return 850;
-    }, 0, 0).strength(1.0))
+      if (inDegree[d.id] && inDegree[d.id] > 2) return 350;
+      if (d.data.isDirectory) return 500;
+      return 950;
+    }, 0, 0).strength(0.7))
     .force('link', forceLink(simulationEdges as any)
       .id((d: any) => d.id)
-      .distance((d: any) => d.data?.isDependency ? 100 : 300)
+      .distance((d: any) => d.data?.isDependency ? 100 : 350)
       .strength((d: any) => d.data?.isDependency ? 0.8 : 0.1)
     )
     .force('sector', (alpha) => {
@@ -914,18 +715,9 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [selectedNodeData, setSelectedNodeData] = useState<FileNodeData | null>(null);
 
-  const nodeTypes = useMemo(() => ({
-    capsule: CapsuleNode,
-    sticky: StickyNoteNode
-  }), []);
-
-  const [showStructure, setShowStructure] = useState(true);
-  const [fileTypes, setFileTypes] = useState<Record<string, boolean>>({});
-  const [connectingNodeId, setConnectingNodeId] = useState<string | null>(null);
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
-
-  const graphStructureRef = useRef<{ edges: Edge[], nodes: FileNode[] }>({ edges: [], nodes: [] });
+  const nodeTypes = useMemo(() => ({ capsule: CapsuleNode }), []);
 
   // Listen for messages from extension
   useEffect(() => {
@@ -945,16 +737,7 @@ export default function App() {
       if (message.type === 'setCapsules') {
         const data: CapsulesData = message.data;
         setCapsules(data);
-
-        const types: Record<string, boolean> = {};
-        types['directory'] = true;
-        types['sticky'] = true;
-        Object.values(data.files).forEach(f => { types[f.lang] = true; });
-        setFileTypes(types);
-
         const { nodes: rawNodes, edges: rawEdges } = prepareGraphData(data);
-        graphStructureRef.current = { edges: rawEdges, nodes: rawNodes };
-
         const { nodes: layoutedNodes, edges: layoutedEdges } = applyForceLayout(rawNodes, rawEdges);
         setNodes(layoutedNodes);
         setEdges(layoutedEdges);
@@ -964,97 +747,22 @@ export default function App() {
       if (message.type === 'updateFileSummary') {
         const { relativePath, summary } = message.data;
 
-        setCapsules(prev => {
-          if (!prev) return prev;
-          const updatedFiles = { ...prev.files };
-          if (updatedFiles[relativePath]) {
-            updatedFiles[relativePath] = { ...updatedFiles[relativePath], summary };
-          }
-          return { ...prev, files: updatedFiles };
-        });
-
-        setNodes(prev => prev.map(node => {
-          if (node.data.relativePath === relativePath) {
-            return { ...node, data: { ...node.data, summary } };
-          }
-          return node;
-        }));
-      }
-
-      // Handle deep analysis loading
-      if (message.type === 'deepAnalysisLoading') {
-        const { relativePath } = message.data;
-        setNodes(prev => prev.map(node => {
-          if (node.data.relativePath === relativePath) {
-            return { ...node, data: { ...node.data, isAnalyzing: true } };
-          }
-          return node;
-        }));
-      }
-
-      // Handle deep analysis result
-      if (message.type === 'updateDeepAnalysis') {
-        const { relativePath, lowerLevelSummary, structure } = message.data;
-
+        // Update capsules state
         setCapsules(prev => {
           if (!prev) return prev;
           const updatedFiles = { ...prev.files };
           if (updatedFiles[relativePath]) {
             updatedFiles[relativePath] = {
               ...updatedFiles[relativePath],
-              lowerLevelSummary,
-              structure,
-              isAnalyzing: false
+              summary
             };
           }
           return { ...prev, files: updatedFiles };
         });
 
-        setNodes(prev => prev.map(node => {
-          if (node.data.relativePath === relativePath) {
-            return {
-              ...node,
-              data: {
-                ...node.data,
-                summary: node.data.summary, // Keep existing upper-level summary
-                lowerLevelSummary,          // Store lower-level summary separately
-                structure,
-                isAnalyzing: false
-              }
-            };
-          }
-          return node;
-        }));
-      }
-
-      // Handle directory summary update
-      if (message.type === 'updateDirectorySummary') {
-        const { relativePath, summary } = message.data;
-
-        // Update capsules state (directories)
-        setCapsules(prev => {
-          if (!prev) return prev;
-          const updatedDirs = { ...prev.directories };
-          if (!updatedDirs[relativePath]) {
-            // Create if missing (edge case)
-            updatedDirs[relativePath] = {
-              path: relativePath,
-              relativePath,
-              name: relativePath.split('/').pop() || relativePath,
-              files: [],
-              subdirectories: []
-            };
-          }
-          updatedDirs[relativePath] = {
-            ...updatedDirs[relativePath],
-            upperLevelSummary: summary
-          };
-          return { ...prev, directories: updatedDirs };
-        });
-
         // Update nodes state
         setNodes(prev => prev.map(node => {
-          if (node.data.isDirectory && node.data.relativePath === relativePath) {
+          if (node.data.relativePath === relativePath) {
             return {
               ...node,
               data: {
@@ -1066,21 +774,82 @@ export default function App() {
           return node;
         }));
       }
+      if (message.type === 'updateFileStructure') {
+        const { relativePath, structure, lowerLevelSummary } = message.data;
 
-      // Handle deep analysis error
-      if (message.type === 'deepAnalysisError') {
-        const { relativePath, error } = message.data;
-        console.error('Deep analysis error:', error);
+        setCapsules(prev => {
+          if (!prev) return prev;
+          const updatedFiles = { ...prev.files };
+          if (updatedFiles[relativePath]) {
+            updatedFiles[relativePath] = {
+              ...updatedFiles[relativePath],
+              structure,
+              lowerLevelSummary,
+              edges: message.data.edges
+            };
+          }
+          return { ...prev, files: updatedFiles };
+        });
+
+        // Update nodes to reflect change immediately
         setNodes(prev => prev.map(node => {
           if (node.data.relativePath === relativePath) {
-            return { ...node, data: { ...node.data, isAnalyzing: false } };
+            const updatedCapsule = capsules?.files[relativePath] ? {
+              ...capsules.files[relativePath],
+              structure,
+              lowerLevelSummary,
+              edges: message.data.edges
+            } : node.data.fullCapsule ? {
+              ...node.data.fullCapsule,
+              structure,
+              lowerLevelSummary,
+              edges: message.data.edges
+            } : undefined;
+
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                fullCapsule: updatedCapsule
+              }
+            };
           }
           return node;
         }));
+
+        // IMPORTANT: Update selectedNodeData separately using functional update 
+        // to avoid stale closure issues
+        setSelectedNodeData(prev => {
+          if (prev && prev.relativePath === relativePath) {
+            const updatedCapsule = prev.fullCapsule ? {
+              ...prev.fullCapsule,
+              structure,
+              lowerLevelSummary,
+              edges: message.data.edges
+            } : {
+              relativePath,
+              name: prev.label,
+              lang: prev.lang,
+              exports: [],
+              imports: [],
+              structure,
+              lowerLevelSummary,
+              edges: message.data.edges
+            } as any;
+
+            return {
+              ...prev,
+              fullCapsule: updatedCapsule
+            };
+          }
+          return prev;
+        });
       }
     };
 
     window.addEventListener('message', handleMessage);
+
+    // Request capsules data from extension
     vscode.postMessage({ type: 'requestCapsules' });
 
     return () => window.removeEventListener('message', handleMessage);
@@ -1094,154 +863,23 @@ export default function App() {
     vscode.postMessage({ type: 'setApiKey' });
   };
 
-  const handleAddSticky = () => {
-    const id = `sticky-${Date.now()}`;
-    const newSticky: StickyNode = {
-      id,
-      type: 'sticky',
-      position: { x: 0, y: 0 },
-      data: {
-        content: '',
-        color: '#fefcbf',
-        isConnecting: false,
-        onToggleConnect: () => {
-          setConnectingNodeId(prev => prev === id ? null : id);
-        },
-        onChange: (text) => {
-          setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, content: text } } : n));
-        },
-        onDelete: () => {
-          setNodes(nds => nds.filter(n => n.id !== id));
-          setEdges(eds => eds.filter(e => e.source !== id && e.target !== id));
-        }
-      }
-    };
-    setNodes(nds => [newSticky, ...nds]);
+  const handleNodeClick = (_event: React.MouseEvent, node: FileNode) => {
+    // Only open details for files/dirs/root, assuming we want modal for everything now?
+    // User asked "when we click the node... pop windows".
+    setSelectedNodeData(node.data);
   };
-
-  const handleNodeClick = useCallback((_event: React.MouseEvent, node: Node) => {
-    if (connectingNodeId && connectingNodeId !== node.id) {
-      const edgeId = `link-${connectingNodeId}-${node.id}`;
-      const reverseEdgeId = `link-${node.id}-${connectingNodeId}`;
-      const exists = edges.some(e => e.id === edgeId || e.id === reverseEdgeId);
-
-      if (exists) {
-        setEdges(eds => eds.filter(e => e.id !== edgeId && e.id !== reverseEdgeId));
-      } else {
-        const newEdge: Edge = {
-          id: edgeId,
-          source: connectingNodeId,
-          target: node.id,
-          type: 'straight',
-          animated: true,
-          style: { stroke: '#f6e05e', strokeWidth: 2, strokeDasharray: '5 5' }
-        };
-        setEdges(eds => addEdge(newEdge, eds));
-      }
-    }
-  }, [connectingNodeId, edges, setEdges]);
-
-  const handleSearch = useCallback((term: string) => {
-    const lowerTerm = term.toLowerCase();
-    const results: SearchResult[] = [];
-
-    setNodes((nds) => nds.map((node) => {
-      if (node.type === 'sticky') return node;
-      const data = node.data as FileNodeData;
-      if (!lowerTerm) return { ...node, data: { ...data, isDimmed: false, isHighlight: false } };
-
-      // Match on label
-      const matchLabel = data.label.toLowerCase().includes(lowerTerm);
-      // Match on summary
-      const matchSummary = data.summary?.toLowerCase().includes(lowerTerm);
-      // Match on topSymbols (function/class names)
-      const matchSymbol = data.topSymbols?.some(sym =>
-        sym.name.toLowerCase().includes(lowerTerm)
-      );
-      // Match on path
-      const matchPath = data.relativePath?.toLowerCase().includes(lowerTerm);
-
-      const isMatch = matchLabel || matchSummary || matchSymbol || matchPath;
-
-      // Build results list
-      if (isMatch && !data.isDirectory && !data.isRoot) {
-        let matchType = 'name';
-        if (matchSymbol && !matchLabel) matchType = 'symbol';
-        else if (matchSummary && !matchLabel && !matchSymbol) matchType = 'summary';
-        else if (matchPath && !matchLabel) matchType = 'path';
-
-        results.push({
-          id: node.id,
-          label: data.label,
-          lang: data.lang,
-          matchType
-        });
-      }
-
-      return { ...node, data: { ...data, isDimmed: !isMatch, isHighlight: !!isMatch } };
-    }));
-
-    setSearchResults(results);
-  }, [setNodes]);
-
-  const handleClickResult = useCallback((nodeId: string) => {
-    // Find the node and center view on it
-    const node = nodes.find(n => n.id === nodeId);
-    if (node) {
-      // Clear other highlights, highlight this one
-      setNodes(nds => nds.map(n => ({
-        ...n,
-        data: {
-          ...(n.data as FileNodeData),
-          isHighlight: n.id === nodeId,
-          isDimmed: n.id !== nodeId && (n.data as FileNodeData).isDimmed
-        }
-      })));
-    }
-  }, [nodes, setNodes]);
-
-  const toggleFileType = (type: string) => setFileTypes(prev => ({ ...prev, [type]: !prev[type] }));
-
-  // Apply filters and color mode
-  useEffect(() => {
-    setNodes(nds => nds.map(node => {
-      if (node.type === 'sticky') {
-        return {
-          ...node,
-          data: {
-            ...node.data,
-            isConnecting: node.id === connectingNodeId,
-            onToggleConnect: () => setConnectingNodeId(prev => prev === node.id ? null : node.id)
-          },
-          hidden: fileTypes['sticky'] === false
-        };
-      }
-
-      const data = node.data as FileNodeData;
-      const typeKey = data.isDirectory ? 'directory' : data.lang;
-      if (!data.isRoot && typeKey && !fileTypes[typeKey]) {
-        return { ...node, hidden: true };
-      }
-
-      return {
-        ...node,
-        hidden: false,
-        data: {
-          ...data,
-          isGlobalConnecting: !!connectingNodeId
-        }
-      };
-    }));
-
-    setEdges(eds => eds.map(edge => ({
-      ...edge,
-      hidden: edge.data?.isStructural && !showStructure
-    })));
-  }, [showStructure, fileTypes, connectingNodeId, setNodes, setEdges]);
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#0a0a0a', color: '#fff', fontSize: '18px' }}>
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100vh',
+        background: '#0a0a0a',
+        color: '#fff',
+        fontSize: '18px'
+      }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔍</div>
           Scanning workspace...
@@ -1252,49 +890,62 @@ export default function App() {
 
   if (error) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#0a0a0a', color: '#ff6b6b', gap: '16px' }}>
-        <div style={{ fontSize: '48px' }}>⚠️</div>
-        <div style={{ fontSize: '20px' }}>Error</div>
-        <div style={{ color: '#888' }}>{error}</div>
-        <button onClick={handleRefresh} style={{ marginTop: '16px', padding: '10px 20px', background: '#007acc', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px' }}>
-          Retry
-        </button>
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100vh',
+        background: '#0a0a0a',
+        color: '#ff6b6b',
+        fontSize: '18px',
+        padding: '32px',
+        textAlign: 'center'
+      }}>
+        <div>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚠️</div>
+          {error}
+          <br />
+          <button onClick={handleRefresh} style={{ marginTop: '20px', padding: '10px 20px', background: '#333', border: 'none', color: '#fff', borderRadius: '4px', cursor: 'pointer' }}>Retry</button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div style={{ display: 'flex', width: '100vw', height: '100vh', background: '#0a0a0a' }}>
-      <Sidebar
-        capsules={capsules}
-        onSearch={handleSearch}
-        showStructure={showStructure}
-        onToggleStructure={setShowStructure}
-        fileTypes={fileTypes}
-        toggleFileType={toggleFileType}
-        searchResults={searchResults}
-        onClickResult={handleClickResult}
-        onAddSticky={handleAddSticky}
-        onRefresh={handleRefresh}
-        onSettings={handleSettings}
-      />
-      <div style={{ flex: 1, position: 'relative' }}>
-        <ReactFlowProvider>
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onNodeClick={handleNodeClick}
-            nodeTypes={nodeTypes}
-            fitView
-            minZoom={0.05}
-          >
-            <Background color="#1a1a1a" gap={50} />
-            <Controls style={{ background: '#1a1a1a' }} />
-          </ReactFlow>
-        </ReactFlowProvider>
-      </div>
+    <div style={{ width: '100vw', height: '100vh', background: '#0a0a0a', overflow: 'hidden', position: 'relative' }}>
+      <ReactFlowProvider>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          nodeTypes={nodeTypes}
+          onNodeClick={handleNodeClick}
+          fitView
+          minZoom={0.1}
+          maxZoom={4}
+          proOptions={{ hideAttribution: true }}
+          defaultEdgeOptions={{ type: 'default', animated: false }}
+        >
+          <Background color="#222" gap={24} size={1} />
+          <Controls style={{ background: '#1a1a1a', border: '1px solid #333', color: '#fff' }} />
+          <Panel position="top-right" style={{ display: 'flex', gap: '8px' }}>
+            <button onClick={handleRefresh} style={{ background: '#1a1a1a', border: '1px solid #333', color: '#ccc', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
+              ↻ Refresh
+            </button>
+            <button onClick={handleSettings} style={{ background: '#1a1a1a', border: '1px solid #333', color: '#ccc', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
+              ⚙️ Settings
+            </button>
+          </Panel>
+        </ReactFlow>
+      </ReactFlowProvider>
+
+      {selectedNodeData && (
+        <NodeDetailsOverlay
+          data={selectedNodeData}
+          onClose={() => setSelectedNodeData(null)}
+        />
+      )}
     </div>
   );
 }
