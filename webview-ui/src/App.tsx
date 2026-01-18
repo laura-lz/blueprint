@@ -10,7 +10,8 @@ import ReactFlow, {
   Background,
   Node,
   Edge,
-  NodeProps
+  NodeProps,
+  ReactFlowInstance
 } from 'reactflow';
 import {
   forceSimulation,
@@ -893,6 +894,7 @@ export default function App() {
   const [riskAnalyses, setRiskAnalyses] = useState<Map<string, Map<string, RiskAnalysis>>>(new Map());
   const [stickyCounter, setStickyCounter] = useState(1);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
 
   const nodeTypes = useMemo(() => ({ capsule: CapsuleNode, sticky: StickyNode }), []);
 
@@ -1075,6 +1077,44 @@ export default function App() {
 
     return () => window.removeEventListener('message', handleMessage);
   }, [setNodes, setEdges]);
+
+  // Listen for sync messages (Editor -> Graph)
+  useEffect(() => {
+    if (!reactFlowInstance) return;
+
+    const handleSyncMessage = (event: MessageEvent) => {
+      const message = event.data;
+      if (message.type === 'highlightFile') {
+        const { relativePath } = message.data;
+        const currentNodes = reactFlowInstance.getNodes();
+        // ID might be checking both file ID and directory ID structure? 
+        // File ID IS relativePath.
+        const targetNode = currentNodes.find(n => n.id === relativePath || n.data.relativePath === relativePath);
+
+        if (targetNode) {
+          // Highlight node
+          setNodes(nds => nds.map(n => ({
+            ...n,
+            data: {
+              ...n.data,
+              isHighlight: n.id === targetNode.id
+            }
+          })));
+
+          // Zoom to node
+          reactFlowInstance.fitView({
+            nodes: [{ id: targetNode.id }],
+            padding: 0.2, // Keep some spacing
+            duration: 800,
+            maxZoom: 3
+          });
+        }
+      }
+    };
+
+    window.addEventListener('message', handleSyncMessage);
+    return () => window.removeEventListener('message', handleSyncMessage);
+  }, [reactFlowInstance, setNodes]);
 
   const handleRefresh = () => {
     vscode.postMessage({ type: 'refresh' });
@@ -1261,6 +1301,7 @@ export default function App() {
             edges={edges}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
+            onInit={setReactFlowInstance}
             nodeTypes={nodeTypes}
             onNodeClick={handleNodeClick}
             fitView

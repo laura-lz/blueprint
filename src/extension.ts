@@ -505,7 +505,31 @@ export function activate(context: vscode.ExtensionContext) {
 		});
 	});
 
-	context.subscriptions.push(disposable, readCodebase, openCanvas);
+	// Monitor active editor changes to highlight nodes in the graph
+	const activeEditorListener = vscode.window.onDidChangeActiveTextEditor(editor => {
+		if (editor && canvasPanel && canvasPanel.visible) {
+			const workspaceFolders = vscode.workspace.workspaceFolders;
+			if (!workspaceFolders || workspaceFolders.length === 0) return;
+
+			const rootPath = workspaceFolders[0].uri.fsPath;
+			const fileName = editor.document.fileName;
+
+			// Handle potentially different path separators or case sensitivity
+			if (fileName.toLowerCase().startsWith(rootPath.toLowerCase())) {
+				let relativePath = path.relative(rootPath, fileName);
+				// Ensure forward slashes for consistency with graph IDs
+				relativePath = relativePath.split(path.sep).join('/');
+
+				console.log(`[Nexhacks] Editor changed: ${relativePath}`);
+				canvasPanel.webview.postMessage({
+					type: 'highlightFile',
+					data: { relativePath }
+				});
+			}
+		}
+	});
+
+	context.subscriptions.push(disposable, readCodebase, openCanvas, activeEditorListener);
 }
 
 // This method is called when your extension is deactivated
