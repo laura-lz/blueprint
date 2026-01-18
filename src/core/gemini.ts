@@ -6,6 +6,7 @@
 export interface GeminiConfig {
     apiKey: string;
     model?: string;
+    ttcApiKey?: string;
 }
 
 export interface Message {
@@ -35,6 +36,15 @@ interface GeminiResponse {
 
 const DEFAULT_MODEL = "gemini-3-flash-preview";
 const GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models";
+const TTC_COMPRESS_URL = "https://api.thetokencompany.com/v1/compress";
+
+interface TTCResponse {
+    output?: string;
+    usage?: {
+        input_tokens: number;
+        output_tokens: number;
+    };
+}
 
 /**
  * Gemini client for generating AI-powered summaries
@@ -42,10 +52,58 @@ const GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models
 export class GeminiClient {
     private apiKey: string;
     private model: string;
+    private ttcApiKey?: string;
 
     constructor(config: GeminiConfig) {
         this.apiKey = config.apiKey;
         this.model = config.model || DEFAULT_MODEL;
+        this.ttcApiKey = config.ttcApiKey;
+    }
+
+    /**
+     * Compresses content using The Token Company's Bear-1 model
+     */
+    async compressContent(text: string): Promise<string> {
+        if (!this.ttcApiKey) {
+            return text; // Pass through if no key configured
+        }
+
+        try {
+            const start = Date.now();
+            const response = await fetch(TTC_COMPRESS_URL, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${this.ttcApiKey}`
+                },
+                body: JSON.stringify({
+                    model: "bear-1",
+                    input: text,
+                    compression_settings: {
+                        aggressiveness: 0.6, // Balanced compression
+                    }
+                })
+            });
+
+            if (!response.ok) {
+                console.warn(`⚠️ Compression failed: ${response.statusText}. Using original content.`);
+                return text;
+            }
+
+            const data = await response.json() as TTCResponse;
+            const compressedText = data.output || text;
+
+            // Log savings calculation if available
+            if (data.usage) {
+                const savings = Math.round((1 - (data.usage.output_tokens / data.usage.input_tokens)) * 100);
+                console.log(`   🐻 Compressed: ${savings}% smaller (${data.usage.input_tokens} -> ${data.usage.output_tokens} tokens) in ${Date.now() - start}ms`);
+            }
+
+            return compressedText;
+        } catch (error) {
+            console.warn("⚠️ Compression error:", error);
+            return text; // Fallback to original
+        }
     }
 
     /**
@@ -103,6 +161,9 @@ export class GeminiClient {
         exports: string[],
         imports: string[]
     ): Promise<string> {
+        // Compress content before analysis
+        const contentToAnalyze = await this.compressContent(fileContent);
+
         const prompt = `Analyze this code file and provide a concise wiki-style summary.
 
 File: ${filePath}
@@ -112,7 +173,7 @@ Imports: ${imports.join(", ") || "None"}
 
 Code:
 \`\`\`
-${fileContent.slice(0, 3000)}${fileContent.length > 3000 ? "\n... (truncated)" : ""}
+${contentToAnalyze.slice(0, 3000)}${contentToAnalyze.length > 3000 ? "\n... (truncated)" : ""}
 \`\`\`
 
 Provide a summary in the following format:
@@ -262,13 +323,16 @@ Respond with a 2-sentence summary:
         filePath: string,
         fileContent: string
     ): Promise<{ lowerLevelSummary: string; structure: any[] }> {
+        // Compress content before analysis
+        const contentToAnalyze = await this.compressContent(fileContent);
+
         const prompt = `Analyze this code file in detail.
 
 File: ${filePath}
 
 Code:
 \`\`\`
-${fileContent.slice(0, 8000)}${fileContent.length > 8000 ? "\n... (truncated)" : ""}
+${contentToAnalyze.slice(0, 8000)}${contentToAnalyze.length > 8000 ? "\n... (truncated)" : ""}
 \`\`\`
 
 Provide a JSON response with the following structure:
@@ -352,6 +416,7 @@ export function createGeminiClient(apiKey?: string): GeminiClient {
     return new GeminiClient({
         apiKey: key,
         model: process.env.GEMINI_MODEL || DEFAULT_MODEL,
+        ttcApiKey: process.env.TTC_API_KEY,
     });
 }
 
