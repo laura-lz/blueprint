@@ -23,6 +23,147 @@ interface CapsulesData {
 
 let capsulesCache: CapsulesData | null = null;
 
+// Background deep analysis queue manager
+interface DeepAnalysisQueue {
+	pending: Set<string>;           // Files waiting to be analyzed
+	inProgress: Set<string>;        // Files currently being analyzed
+	priorityFile: string | null;    // User-selected file to prioritize
+	isRunning: boolean;
+	webview: vscode.Webview | null;
+}
+
+const deepAnalysisQueue: DeepAnalysisQueue = {
+	pending: new Set(),
+	inProgress: new Set(),
+	priorityFile: null,
+	isRunning: false,
+	webview: null
+};
+
+const DEEP_ANALYSIS_CONCURRENCY = 3;
+
+/**
+ * Start or continue background deep analysis for all files
+ */
+async function runBackgroundDeepAnalysis() {
+	if (deepAnalysisQueue.isRunning || !deepAnalysisQueue.webview) {
+		return;
+	}
+
+	const config = vscode.workspace.getConfiguration('nexhacks');
+	const apiKey = config.get<string>('geminiApiKey');
+	const ttcApiKey = config.get<string>('ttcApiKey');
+
+	if (!apiKey || !capsulesCache) {
+		return;
+	}
+
+	deepAnalysisQueue.isRunning = true;
+	console.log(`[Nexhacks] 🔬 Starting background deep analysis (${deepAnalysisQueue.pending.size} files pending)...`);
+
+	const client = new GeminiClient({ apiKey, ttcApiKey });
+	const workspaceFolders = vscode.workspace.workspaceFolders;
+	if (!workspaceFolders?.length) {
+		deepAnalysisQueue.isRunning = false;
+		return;
+	}
+	const rootPath = workspaceFolders[0].uri.fsPath;
+
+	const analyzeFile = async (relativePath: string): Promise<void> => {
+		if (!capsulesCache?.files[relativePath] || !deepAnalysisQueue.webview) {
+			return;
+		}
+
+		const capsule = capsulesCache.files[relativePath];
+
+		// Skip if already analyzed
+		if (capsule.structure && capsule.structure.length > 0) {
+			return;
+		}
+
+		deepAnalysisQueue.inProgress.add(relativePath);
+
+		try {
+			const filePath = path.join(rootPath, relativePath);
+			const fileContent = fs.readFileSync(filePath, 'utf-8');
+
+			const analysis = await client.generateDeepAnalysis(relativePath, fileContent);
+
+			// Update cache
+			capsule.structure = analysis.structure;
+			capsule.lowerLevelSummary = analysis.lowerLevelSummary;
+
+			// Send update to webview
+			deepAnalysisQueue.webview?.postMessage({
+				type: 'updateFileStructure',
+				data: {
+					relativePath,
+					structure: analysis.structure,
+					lowerLevelSummary: analysis.lowerLevelSummary
+				}
+			});
+
+			console.log(`[Nexhacks] ✅ Deep analysis complete: ${relativePath}`);
+		} catch (error) {
+			console.warn(`[Nexhacks] Failed deep analysis for ${relativePath}:`, error);
+		} finally {
+			deepAnalysisQueue.inProgress.delete(relativePath);
+			deepAnalysisQueue.pending.delete(relativePath);
+		}
+	};
+
+	// Process files in batches with priority support
+	while (deepAnalysisQueue.pending.size > 0) {
+		// Check if there's a priority file that needs immediate attention
+		if (deepAnalysisQueue.priorityFile && deepAnalysisQueue.pending.has(deepAnalysisQueue.priorityFile)) {
+			const priorityPath = deepAnalysisQueue.priorityFile;
+			deepAnalysisQueue.priorityFile = null;
+			console.log(`[Nexhacks] 🚀 Prioritizing: ${priorityPath}`);
+			await analyzeFile(priorityPath);
+			continue;
+		}
+
+		// Get batch of files to process
+		const batch: string[] = [];
+		for (const file of deepAnalysisQueue.pending) {
+			if (batch.length >= DEEP_ANALYSIS_CONCURRENCY) break;
+			if (!deepAnalysisQueue.inProgress.has(file)) {
+				batch.push(file);
+			}
+		}
+
+		if (batch.length === 0) break;
+
+		// Process batch in parallel
+		await Promise.all(batch.map(file => analyzeFile(file)));
+	}
+
+	deepAnalysisQueue.isRunning = false;
+	console.log('[Nexhacks] 🔬 Background deep analysis complete');
+}
+
+/**
+ * Prioritize a specific file for deep analysis
+ */
+function prioritizeDeepAnalysis(relativePath: string) {
+	// If already analyzed, no need to prioritize
+	if (capsulesCache?.files[relativePath]?.structure?.length) {
+		return;
+	}
+
+	deepAnalysisQueue.priorityFile = relativePath;
+
+	// Ensure file is in the queue
+	if (!deepAnalysisQueue.pending.has(relativePath)) {
+		deepAnalysisQueue.pending.add(relativePath);
+	}
+
+	// Start background analysis if not running
+	if (!deepAnalysisQueue.isRunning) {
+		runBackgroundDeepAnalysis();
+	}
+}
+
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -128,10 +269,26 @@ export function activate(context: vscode.ExtensionContext) {
 					const filePath = path.join(workspaceFolders[0].uri.fsPath, message.relativePath);
 					const fileUri = vscode.Uri.file(filePath);
 					try {
+						// Create selection range if provided
+						let selection: vscode.Range | undefined;
+						if (message.startLine && message.endLine) {
+							// VS Code lines are 0-indexed
+							selection = new vscode.Range(
+								message.startLine - 1, 0,
+								message.endLine - 1, 1000
+							);
+						} else if (message.line) {
+							selection = new vscode.Range(
+								message.line - 1, 0,
+								message.line - 1, 1000
+							);
+						}
+
 						// Open the file in the main editor column (not a new split)
 						await vscode.window.showTextDocument(fileUri, {
 							viewColumn: vscode.ViewColumn.One,
-							preserveFocus: false
+							preserveFocus: false,
+							selection: selection
 						});
 					} catch (error) {
 						console.error('[Nexhacks] Failed to open file:', error);
@@ -183,6 +340,35 @@ export function activate(context: vscode.ExtensionContext) {
 				capsulesCache = null;
 				sendCapsulesDataToWebview(canvasPanel.webview);
 			}
+			if (message?.type === 'analyzeFile' && message.relativePath) {
+				const relativePath = message.relativePath;
+				console.log(`[Nexhacks] Deep analysis requested for ${relativePath}`);
+
+				if (!capsulesCache?.files[relativePath]) {
+					console.error('[Nexhacks] File not found in cache:', relativePath);
+					return;
+				}
+
+				const capsule = capsulesCache.files[relativePath];
+
+				// Check if already analyzed - send cached data
+				if (capsule.structure && capsule.structure.length > 0) {
+					console.log('[Nexhacks] Structure already exists, resending...');
+					canvasPanel.webview.postMessage({
+						type: 'updateFileStructure',
+						data: {
+							relativePath,
+							structure: capsule.structure,
+							lowerLevelSummary: capsule.lowerLevelSummary
+						}
+					});
+					return;
+				}
+
+				// Use priority queue - prioritize this file over background analysis
+				console.log(`[Nexhacks] 🚀 Prioritizing deep analysis for ${relativePath}`);
+				prioritizeDeepAnalysis(relativePath);
+			}
 		});
 	});
 
@@ -191,6 +377,26 @@ export function activate(context: vscode.ExtensionContext) {
 
 // This method is called when your extension is deactivated
 export function deactivate() { }
+
+/** Concurrency limits for API calls */
+const FILE_SUMMARY_CONCURRENCY = 300;
+const DIRECTORY_SUMMARY_CONCURRENCY = 300;
+
+/**
+ * Process items in parallel with a concurrency limit
+ * Uses a simple batching approach for reliable concurrent execution
+ */
+async function processInParallelWithLimit<T>(
+	items: T[],
+	fn: (item: T) => Promise<void>,
+	concurrencyLimit: number
+): Promise<void> {
+	// Process in batches
+	for (let i = 0; i < items.length; i += concurrencyLimit) {
+		const batch = items.slice(i, i + concurrencyLimit);
+		await Promise.all(batch.map(item => fn(item)));
+	}
+}
 
 /**
  * Scan workspace and send capsules data to webview
@@ -312,17 +518,20 @@ async function sendCapsulesDataToWebview(webview: vscode.Webview) {
 
 				let summarized = 0;
 
-				// Generate AI summaries in background and stream updates
-				for (const [relativePath, capsule] of Object.entries(files)) {
-					// Skip if summary already exists (e.g. from partial run) or non-code
+				// Generate AI summaries in background and stream updates (Fully Parallelized)
+				// User requested "all of the call async".
+				const fileEntries = Object.entries(files);
+				let processedCount = 0;
+
+				const processFile = async ([relativePath, capsule]: [string, FileCapsule]) => {
+					// Skip if summary already exists or non-code
 					if (capsule.upperLevelSummary ||
 						!capsule.metadata ||
 						['json', 'css', 'markdown', 'yaml'].includes(capsule.lang)) {
-						continue;
+						return;
 					}
 
 					try {
-						
 						const summary = await client.generateCapsuleSummary(
 							relativePath,
 							{
@@ -336,6 +545,7 @@ async function sendCapsulesDataToWebview(webview: vscode.Webview) {
 						);
 
 						capsule.upperLevelSummary = summary;
+						processedCount++;
 						summarized++;
 
 						// Send incremental update to webview
@@ -343,20 +553,21 @@ async function sendCapsulesDataToWebview(webview: vscode.Webview) {
 							type: 'updateFileSummary',
 							data: { relativePath, summary }
 						});
-
-						if (summarized % 5 === 0) {
-							console.log(`[Nexhacks] Summarized ${summarized} files...`);
-						}
 					} catch (error) {
 						console.warn(`[Nexhacks] Failed to summarize ${relativePath}:`, error);
 					}
-				}
+				};
+
+				// Process file summaries with concurrency limit
+				console.log(`[Nexhacks] Processing ${fileEntries.length} files with concurrency limit of ${FILE_SUMMARY_CONCURRENCY}...`);
+				await processInParallelWithLimit(fileEntries, processFile, FILE_SUMMARY_CONCURRENCY);
 
 				console.log(`[Nexhacks] ✅ Generated ${summarized} AI summaries`);
 
-				// Build Directory Summaries
+				// Build Directory Summaries with concurrency limit
 				console.log('[Nexhacks] 📂 Generating Directory summaries...');
-				for (const [dirRelPath, dirCapsule] of Object.entries(directories)) {
+
+				const processDirectory = async ([dirRelPath, dirCapsule]: [string, DirectoryCapsule]) => {
 					// Prepare simple file list for context
 					const fileContexts = dirCapsule.files.map(fPath => ({
 						name: path.basename(fPath),
@@ -376,10 +587,37 @@ async function sendCapsulesDataToWebview(webview: vscode.Webview) {
 					} catch (error) {
 						console.warn(`[Nexhacks] Failed to summarize directory ${dirRelPath}`);
 					}
-				}
+				};
+
+				// Process directory summaries with concurrency limit
+				const dirEntries = Object.entries(directories);
+				console.log(`[Nexhacks] Processing ${dirEntries.length} directories with concurrency limit of ${DIRECTORY_SUMMARY_CONCURRENCY}...`);
+				await processInParallelWithLimit(dirEntries, processDirectory, DIRECTORY_SUMMARY_CONCURRENCY);
 
 				// Update cache with summaries
 				capsulesCache = { stats, files, directories };
+
+				// PHASE 3: Start background deep analysis for all code files
+				console.log('[Nexhacks] 🔬 Queuing files for background deep analysis...');
+				deepAnalysisQueue.webview = webview;
+				deepAnalysisQueue.pending.clear();
+
+				// Queue all code files for deep analysis
+				for (const [relativePath, capsule] of Object.entries(files)) {
+					// Skip non-code files and already analyzed files
+					if (['json', 'css', 'markdown', 'yaml', 'txt'].includes(capsule.lang)) {
+						continue;
+					}
+					if (capsule.structure && capsule.structure.length > 0) {
+						continue;
+					}
+					deepAnalysisQueue.pending.add(relativePath);
+				}
+
+				console.log(`[Nexhacks] 🔬 Queued ${deepAnalysisQueue.pending.size} files for deep analysis`);
+
+				// Start background processing (non-blocking)
+				runBackgroundDeepAnalysis();
 			} else {
 				console.log('[Nexhacks] No API key configured, skipping AI summaries');
 			}

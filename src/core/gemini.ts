@@ -109,7 +109,10 @@ export class GeminiClient {
     /**
      * Sends a chat request to Gemini
      */
-    async chat(messages: Message[]): Promise<string> {
+    /**
+     * Sends a chat request to Gemini
+     */
+    async chat(messages: Message[], configOverrides?: { responseMimeType?: string, maxOutputTokens?: number }): Promise<string> {
         // Convert OpenAI-style messages to Gemini format
         const systemInstruction = messages.find(m => m.role === "system")?.content;
         const contents: GeminiContent[] = messages
@@ -124,6 +127,7 @@ export class GeminiClient {
             generationConfig: {
                 temperature: 0.7,
                 maxOutputTokens: 8192,
+                ...configOverrides
             }
         };
 
@@ -134,6 +138,8 @@ export class GeminiClient {
         }
 
         const url = `${GEMINI_BASE_URL}/${this.model}:generateContent?key=${this.apiKey}`;
+
+        // console.log("Gemini Request Config:", JSON.stringify(requestBody.generationConfig)); // Debug log
 
         const response = await fetch(url, {
             method: "POST",
@@ -324,54 +330,80 @@ Respond with a 2-sentence summary:
         filePath: string,
         fileContent: string
     ): Promise<{ lowerLevelSummary: string; structure: any[] }> {
-        // Compress content before analysis
-        const contentToAnalyze = await this.compressContent(fileContent);
+        // Use ORIGINAL content for structure analysis to ensure line numbers are accurate.
+        // TTC Compression destroys line number mapping.
 
-        const prompt = `Analyze this code file in detail.
+        // OPTIMIZATION: Strip comments but preserve newlines to keep line numbers accurate.
+        // This reduces input tokens significantly without breaking highlighting.
+        const contentToAnalyze = fileContent
+            .replace(/\/\/[^\n]*/g, '') // Remove single line comments
+            .replace(/\/\*[\s\S]*?\*\//g, (match) => '\n'.repeat(match.split('\n').length - 1)); // Replace block comments with newlines
+
+        const prompt = `Analyze this code file.
+CRITICAL: You must provide ACCURATE startLine and endLine for each block. These line numbers will be used to highlight code in the editor, so they must match the provided code exactly.
 
 File: ${filePath}
 
 Code:
 \`\`\`
-${contentToAnalyze.slice(0, 8000)}${contentToAnalyze.length > 8000 ? "\n... (truncated)" : ""}
+${contentToAnalyze}
 \`\`\`
 
 Provide a JSON response with the following structure:
 {
-  "lowerLevelSummary": "A comprehensive paragraph summarizing the file's purpose, key algorithms, and role.",
+  "lowerLevelSummary": "A concise paragraph (2-3 sentences) summarizing the file's purpose.",
   "structure": [
     {
       "name": "Function/Class Name",
       "type": "function" | "class" | "block",
       "startLine": <number>,
       "endLine": <number>,
-      "summary": "Detailed explanation of what this block does."
+      "summary": "Brief 1-sentence summary."
     }
   ]
 }
 
-Identify the main functions, classes, and logical blocks. Estimate start/end lines based on the provided code.
-Respond ONLY with the JSON object.`;
+Identify all main functions, classes, and logical blocks.
 
+IMPORTANT: Verify line numbers against the provided code. 'startLine' is where the function/class definition begins, 'endLine' is the closing brace.
+IMPORTANT JSON RULES:
+1. Output MUST be valid JSON.
+2. Escape all double quotes within strings.
+3. Do NOT use unescaped newlines in strings.
+Respond ONLY with the RAW JSON object.
+
+Example:
+{
+  "lowerLevelSummary": "Handles config setup.",
+  "structure": [
+    { "name": "init", "type": "function", "startLine": 1, "endLine": 10, "summary": "Initializes app." },
+    { "name": "loadConfig", "type": "function", "startLine": 12, "endLine": 25, "summary": "Loads config file." }
+  ]
+}`;
+
+        // Enable output as JSON for robustness
         const response = await this.chat([
             {
                 role: "system",
-                content: "You are a senior code analyst. detailed analysis in JSON format.",
+                content: "You are a code analyst. Output strict JSON. Be concise.",
             },
             {
                 role: "user",
                 content: prompt,
             },
-        ]);
+        ], { responseMimeType: "application/json" });
 
         try {
-            // Strip markdown code fences if present
-            const cleanJson = response.replace(/```json/g, "").replace(/```/g, "").trim();
-            return JSON.parse(cleanJson);
+            // Strip markdown code fences if present and trim whitespace
+            // Gemini JSON mode might still return markdown fences sometimes, or just raw JSON.
+            let cleanResponse = response.replace(/```json/g, "").replace(/```/g, "").trim();
+
+            return JSON.parse(cleanResponse);
         } catch (e) {
             console.error("Failed to parse deep analysis JSON:", e);
+            console.error("Raw Response:", response); // Log raw response for debugging
             return {
-                lowerLevelSummary: "Failed to generate deep analysis.",
+                lowerLevelSummary: "Failed to generate deep analysis due to invalid JSON response. Please try again.",
                 structure: []
             };
         }

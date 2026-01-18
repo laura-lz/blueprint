@@ -32,10 +32,24 @@ declare function acquireVsCodeApi(): {
 const vscode = acquireVsCodeApi();
 
 // --- TYPES ---
+interface CodeBlockSummary {
+  name: string;
+  type: "function" | "class" | "block";
+  startLine: number;
+  endLine: number;
+  summary: string;
+}
+
 interface SymbolData {
   name: string;
   kind: string;
   location?: { start: { line: number } };
+  exported?: boolean;
+}
+interface FunctionCallEdge {
+  source: string;
+  target: string;
+  type: string;
 }
 
 interface CapsuleFile {
@@ -45,16 +59,19 @@ interface CapsuleFile {
   exports: { name: string; kind: string }[];
   imports: { pathOrModule: string; isLocal: boolean }[];
   topSymbols?: SymbolData[];
-  summaryContext?: {
+  // Renamed from summaryContext to metadata to match backend
+  metadata?: {
     usedBy: string[];
     dependsOn: string[];
     fileDocstring?: string;
     firstNLines?: string;
-    functionSignatures?: { name: string; signature: string }[];
+    functionSignatures?: { name: string; signature: string; exported: boolean }[];
   };
   summary?: string;
   upperLevelSummary?: string;
   lowerLevelSummary?: string;
+  structure?: CodeBlockSummary[];
+  edges?: FunctionCallEdge[];
 }
 
 interface DirectoryCapsule {
@@ -90,6 +107,8 @@ interface FileNodeData {
   isRoot?: boolean;
   fileCount?: number;
   depth?: number;
+  // Full capsule access for diagram
+  fullCapsule?: CapsuleFile;
 }
 
 type FileNode = Node<FileNodeData>;
@@ -107,187 +126,374 @@ const langColors: Record<string, { bg: string; border: string; icon: string }> =
   'other': { bg: '#1a1a1a', border: '#555', icon: '📄' },
 };
 
-// --- CUSTOM NODE COMPONENT ---
-const CapsuleNode: React.FC<NodeProps<FileNodeData>> = ({ data }) => {
-  const [expanded, setExpanded] = useState(false);
-  const [activeTab, setActiveTab] = useState<'summary' | 'structure' | 'code'>('summary');
+// --- CODE BLOCK CARD COLORS ---
+const blockTypeColors: Record<string, { bg: string; border: string; icon: string }> = {
+  'function': { bg: '#1a3d1a', border: '#48bb78', icon: '🔧' },
+  'class': { bg: '#1a365d', border: '#4299e1', icon: '📦' },
+  'block': { bg: '#3d3d00', border: '#f7df1e', icon: '📄' },
+};
 
-  const getColors = () => {
-    if (data.isRoot) return langColors.root;
-    if (data.isDirectory) return langColors.directory;
-    return langColors[data.lang] || langColors.other;
-  };
+// --- CODE BLOCK CARD COMPONENT ---
+const CodeBlockCard: React.FC<{
+  block: CodeBlockSummary;
+  onClick: () => void;
+}> = ({ block, onClick }) => {
+  const colors = blockTypeColors[block.type] || blockTypeColors.block;
 
-  const colors = getColors();
+  return (
+    <div
+      onClick={onClick}
+      style={{
+        padding: '16px 20px',
+        borderRadius: '12px',
+        background: colors.bg,
+        color: '#fff',
+        border: `2px solid ${colors.border}`,
+        cursor: 'pointer',
+        transition: 'transform 0.2s, box-shadow 0.2s',
+        marginBottom: '12px',
+      }}
+      onMouseEnter={e => {
+        e.currentTarget.style.transform = 'translateY(-2px)';
+        e.currentTarget.style.boxShadow = `0 8px 20px rgba(0,0,0,0.4)`;
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.boxShadow = 'none';
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+        <span style={{ fontSize: '24px' }}>{colors.icon}</span>
+        <div style={{ flex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+            <span style={{ fontWeight: '700', fontSize: '16px' }}>{block.name}</span>
+            <span style={{
+              fontSize: '10px',
+              padding: '2px 6px',
+              background: 'rgba(255,255,255,0.1)',
+              borderRadius: '4px',
+              textTransform: 'uppercase'
+            }}>
+              {block.type}
+            </span>
+          </div>
+          <div style={{ fontSize: '11px', color: '#888', marginBottom: '8px', fontFamily: 'monospace' }}>
+            Lines {block.startLine} - {block.endLine}
+          </div>
+          <div style={{ fontSize: '14px', color: '#ccc', lineHeight: '1.5' }}>
+            {block.summary}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
-  const toggleExpand = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setExpanded(!expanded);
-  };
+// --- NODE DETAILS OVERLAY COMPONENT ---
+const NodeDetailsOverlay: React.FC<{ data: FileNodeData; onClose: () => void }> = ({ data, onClose }) => {
+  const [activeTab, setActiveTab] = useState<'summary' | 'diagram'>('summary');
+  const colors = langColors[data.lang] || langColors.other;
 
   const handleScroll = (e: React.WheelEvent) => {
     e.stopPropagation();
   };
 
   return (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      width: '100vw',
+      height: '100vh',
+      background: 'rgba(0,0,0,0.85)',
+      backdropFilter: 'blur(8px)',
+      zIndex: 99999,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      animation: 'fadeIn 0.2s'
+    }}
+      onClick={onClose}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: '90%',
+          maxWidth: '1200px',
+          height: '85vh',
+          background: '#0a0a0a',
+          borderRadius: '24px',
+          border: `2px solid ${colors.border}`,
+          display: 'flex',
+          flexDirection: 'column',
+          boxShadow: '0 50px 100px rgba(0,0,0,0.5)',
+          overflow: 'hidden',
+          animation: 'scaleIn 0.2s'
+        }}
+      >
+        {/* HEADER */}
+        <div
+          style={{
+            padding: '24px',
+            background: 'rgba(255,255,255,0.03)',
+            borderBottom: '1px solid rgba(255,255,255,0.1)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+            <span style={{ fontSize: '42px' }}>{colors.icon}</span>
+            <div>
+              <span style={{ fontWeight: '800', fontSize: '32px', display: 'block', lineHeight: 1 }}>{data.label}</span>
+              <span style={{ fontSize: '14px', color: '#888', fontFamily: 'monospace', marginTop: '4px', display: 'block' }}>{data.relativePath}</span>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer', fontSize: '32px', padding: '0 10px' }}
+          >
+            ×
+          </button>
+        </div>
+
+        {/* TABS */}
+        <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.2)' }}>
+          {[
+            { id: 'summary', label: 'Summary' },
+            { id: 'diagram', label: 'Diagram' }
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as 'summary' | 'diagram')}
+              style={{
+                flex: 1,
+                padding: '20px',
+                background: activeTab === tab.id ? 'rgba(255,255,255,0.05)' : 'transparent',
+                border: 'none',
+                color: activeTab === tab.id ? '#fff' : '#888',
+                borderBottom: activeTab === tab.id ? `4px solid ${colors.border}` : '4px solid transparent',
+                cursor: 'pointer',
+                fontSize: '16px',
+                fontWeight: '700',
+                transition: 'all 0.2s'
+              }}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* CONTENT */}
+        <div
+          className="nowheel"
+          onWheel={handleScroll}
+          style={{ padding: '32px', overflowY: 'auto', background: '#0a0a0a', flex: 1 }}
+        >
+          {activeTab === 'summary' && (
+            <div style={{ animation: 'fadeIn 0.2s', maxWidth: '800px', margin: '0 auto' }}>
+              <div style={{ fontSize: '20px', lineHeight: '1.7', color: '#ddd', marginBottom: '32px' }}>
+                {data.summary || "No summary available."}
+                {data.fullCapsule?.upperLevelSummary && data.summary !== data.fullCapsule.upperLevelSummary && (
+                  <div style={{ marginTop: '24px', padding: '16px', background: '#151515', borderRadius: '8px', fontStyle: 'italic', color: '#aaa', borderLeft: '4px solid #333' }}>
+                    {data.fullCapsule.upperLevelSummary}
+                  </div>
+                )}
+              </div>
+              {!data.isDirectory && !data.isRoot && (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '32px' }}>
+                  <div style={{ padding: '20px', background: '#151515', borderRadius: '16px', border: '1px solid #222' }}>
+                    <div style={{ fontSize: '12px', color: '#666', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '1px' }}>Language</div>
+                    <div style={{ fontSize: '24px', color: colors.border, fontWeight: 'bold' }}>{data.lang}</div>
+                  </div>
+                  <div style={{ padding: '20px', background: '#151515', borderRadius: '16px', border: '1px solid #222' }}>
+                    <div style={{ fontSize: '12px', color: '#666', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '1px' }}>Dependencies</div>
+                    <div style={{ fontSize: '24px', fontWeight: 'bold' }}>{data.imports.length} <span style={{ fontSize: '16px', color: '#666', fontWeight: 'normal' }}>modules</span></div>
+                  </div>
+                </div>
+              )}
+              {data.relativePath && !data.isDirectory && !data.isRoot && (
+                <button
+                  onClick={() => {
+                    vscode.postMessage({ type: 'openFile', relativePath: data.relativePath });
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '18px',
+                    background: '#007acc',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '12px',
+                    cursor: 'pointer',
+                    fontSize: '18px',
+                    fontWeight: '600',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '12px',
+                    transition: 'background 0.2s'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#0062a3'}
+                  onMouseLeave={e => e.currentTarget.style.background = '#007acc'}
+                >
+                  <span>Open in Editor</span>
+                  <span>→</span>
+                </button>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'diagram' && (
+            <div style={{ animation: 'fadeIn 0.2s', height: '100%', display: 'flex', gap: '24px', alignItems: 'stretch' }}>
+              {!data.isDirectory && !data.isRoot ? (
+                <>
+                  {/* IMPORTS */}
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0 }}>
+                    <div style={{ textAlign: 'center', color: '#666', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>Imports</div>
+                    <div style={{ flex: 1, background: '#111', borderRadius: '16px', padding: '16px', overflowY: 'auto', border: '1px solid #222' }}>
+                      {data.fullCapsule?.imports.map((imp, i) => (
+                        <div key={i} style={{ padding: '12px', background: '#1a1a1a', marginBottom: '8px', borderRadius: '8px', fontSize: '14px', borderLeft: '3px solid #666', wordBreak: 'break-all', fontFamily: 'monospace' }}>
+                          {imp.pathOrModule}
+                        </div>
+                      ))}
+                      {(!data.fullCapsule?.imports || data.fullCapsule.imports.length === 0) && (
+                        <div style={{ color: '#444', fontStyle: 'italic', textAlign: 'center', marginTop: '40px' }}>No imports</div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* ARROW */}
+                  <div style={{ display: 'flex', alignItems: 'center', color: '#333', fontSize: '24px' }}>→</div>
+
+                  {/* CODE BLOCKS */}
+                  <div style={{ flex: 3, display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0 }}>
+                    <div style={{ textAlign: 'center', color: '#666', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                      Code Structure ({data.fullCapsule?.structure?.length || 0} blocks)
+                    </div>
+                    {data.fullCapsule?.structure && data.fullCapsule.structure.length > 0 ? (
+                      <div style={{ flex: 1, background: '#111', borderRadius: '16px', padding: '16px', overflowY: 'auto', border: '1px solid #222' }}>
+                        {data.fullCapsule.structure.map((block, i) => (
+                          <CodeBlockCard
+                            key={i}
+                            block={block}
+                            onClick={() => {
+                              vscode.postMessage({
+                                type: 'openFile',
+                                relativePath: data.relativePath,
+                                startLine: block.startLine,
+                                endLine: block.endLine
+                              });
+                            }}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#151515', borderRadius: '16px', border: `1px solid ${colors.border}`, padding: '40px' }}>
+                        <div style={{ fontSize: '64px', marginBottom: '20px' }}>🔮</div>
+                        <div style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '8px', color: '#eee' }}>Analyze Code Structure</div>
+                        <div style={{ color: '#888', textAlign: 'center', marginBottom: '32px', maxWidth: '300px' }}>
+                          Generate a deep analysis to see block-level summaries of functions, classes, and code blocks.
+                        </div>
+
+                        <button
+                          onClick={() => {
+                            vscode.postMessage({ type: 'analyzeFile', relativePath: data.relativePath });
+                          }}
+                          style={{
+                            padding: '16px 32px',
+                            background: 'transparent',
+                            border: `2px dashed ${colors.border}`,
+                            color: colors.border,
+                            borderRadius: '12px',
+                            cursor: 'pointer',
+                            fontSize: '16px',
+                            fontWeight: '600',
+                            transition: 'all 0.2s',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px'
+                          }}
+                          onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+                          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                        >
+                          <span>✨</span>
+                          Generate Deep Analysis
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* ARROW */}
+                  <div style={{ display: 'flex', alignItems: 'center', color: '#333', fontSize: '24px' }}>→</div>
+
+                  {/* EXPORTS */}
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0 }}>
+                    <div style={{ textAlign: 'center', color: '#666', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>Exports</div>
+                    <div style={{ flex: 1, background: '#111', borderRadius: '16px', padding: '16px', overflowY: 'auto', border: '1px solid #222' }}>
+                      {data.fullCapsule?.exports.map((exp, i) => (
+                        <div key={i} style={{ padding: '12px', background: '#1a3d1a', marginBottom: '8px', borderRadius: '8px', fontSize: '14px', borderLeft: '3px solid #48bb78', wordBreak: 'break-all', fontFamily: 'monospace' }}>
+                          {exp.name}
+                        </div>
+                      ))}
+                      {(!data.fullCapsule?.exports || data.fullCapsule.exports.length === 0) && (
+                        <div style={{ color: '#444', fontStyle: 'italic', textAlign: 'center', marginTop: '40px' }}>No exports</div>
+                      )}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div style={{ color: '#666', fontStyle: 'italic', fontSize: '16px', textAlign: 'center', width: '100%', marginTop: '40px' }}>
+                  Directory or Root view details not fully supported yet.
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+      <style>{`
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+      `}</style>
+    </div>
+  );
+};
+
+// --- SIMPLIFIED CAPSULE NODE ---
+const CapsuleNode: React.FC<NodeProps<FileNodeData>> = ({ data }) => {
+  const getColors = () => {
+    if (data.isRoot) return langColors.root;
+    if (data.isDirectory) return langColors.directory;
+    return langColors[data.lang] || langColors.other;
+  };
+  const colors = getColors();
+
+  return (
     <div
-      onClick={toggleExpand}
       style={{
-        padding: expanded ? '0' : '20px 24px',
+        padding: '20px 24px',
         borderRadius: '24px',
         background: colors.bg,
         color: '#fff',
-        border: `3px solid ${expanded ? '#fff' : colors.border}`,
-        boxShadow: expanded ? '0 40px 80px rgba(0,0,0,0.9)' : '0 8px 25px rgba(0,0,0,0.6)',
-        width: expanded ? 600 : (data.isRoot ? 340 : 300),
+        border: `3px solid ${colors.border}`,
+        boxShadow: '0 8px 25px rgba(0,0,0,0.6)',
+        width: 300,
         fontFamily: 'system-ui, -apple-system, sans-serif',
-        cursor: expanded ? 'default' : 'pointer',
-        position: 'relative',
-        zIndex: expanded ? 100000 : 1000,
-        transition: 'width 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s'
+        cursor: 'pointer',
+        transition: 'transform 0.2s, box-shadow 0.2s',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '16px'
       }}
+      className="capsule-node-hover"
     >
       <Handle type="target" position={Position.Top} style={{ top: '50%', left: '50%', opacity: 0 }} />
       <Handle type="source" position={Position.Bottom} style={{ top: '50%', left: '50%', opacity: 0 }} />
 
-      {!expanded && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <div style={{ fontSize: '42px' }}>{colors.icon}</div>
-          <div>
-            <div style={{ fontWeight: '800', fontSize: '24px', lineHeight: '1.1', marginBottom: '4px' }}>{data.label}</div>
-            {(data.isDirectory || data.isRoot) && (
-              <div style={{ fontSize: '16px', opacity: 0.7, fontWeight: '500' }}>{data.fileCount} items</div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {expanded && (
-        <div style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-
-          {/* HEADER: DRAGGABLE (No 'nodrag' class) */}
-          <div
-            style={{ padding: '24px', background: 'rgba(0,0,0,0.2)', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'grab' }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-              <span style={{ fontSize: '32px' }}>{colors.icon}</span>
-              <span style={{ fontWeight: 'bold', fontSize: '24px' }}>{data.label}</span>
-            </div>
-            <button
-              onClick={(e) => { e.stopPropagation(); setExpanded(false); }}
-              className="nodrag"
-              style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: '32px' }}
-            >
-              ×
-            </button>
-          </div>
-
-          {/* TABS: DRAGGABLE */}
-          <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.1)', cursor: 'grab' }}>
-            {[
-              { id: 'summary', label: 'Summary' },
-              { id: 'structure', label: 'Structure' }
-            ].map(tab => (
-              <button
-                key={tab.id}
-                onClick={(e) => { e.stopPropagation(); setActiveTab(tab.id as 'summary' | 'structure' | 'code'); }}
-                className="nodrag"
-                style={{
-                  flex: 1,
-                  padding: '16px',
-                  background: activeTab === tab.id ? 'rgba(255,255,255,0.05)' : 'transparent',
-                  border: 'none',
-                  color: activeTab === tab.id ? '#fff' : '#888',
-                  borderBottom: activeTab === tab.id ? `4px solid ${colors.border}` : '4px solid transparent',
-                  cursor: 'pointer',
-                  fontSize: '16px',
-                  fontWeight: '700'
-                }}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
-          {/* CONTENT: NOT DRAGGABLE (Allows Text Selection) */}
-          <div
-            className="nodrag nowheel"
-            onWheel={handleScroll}
-            style={{ padding: '24px', maxHeight: '500px', overflowY: 'auto', background: '#0a0a0a', cursor: 'text' }}
-          >
-            {activeTab === 'summary' && (
-              <div style={{ animation: 'fadeIn 0.2s' }}>
-                {data.relativePath && (
-                  <div style={{ fontSize: '14px', color: '#888', marginBottom: '16px', fontFamily: 'monospace', background: '#111', padding: '8px 12px', borderRadius: '8px', wordBreak: 'break-all' }}>
-                    📂 {data.relativePath}
-                  </div>
-                )}
-                <div style={{ fontSize: '18px', lineHeight: '1.6', color: '#ddd', marginBottom: '24px' }}>
-                  {data.summary || "No summary available."}
-                </div>
-                {!data.isDirectory && !data.isRoot && (
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                    <div style={{ padding: '12px', background: '#1a1a1a', borderRadius: '12px' }}>
-                      <div style={{ fontSize: '13px', color: '#666', textTransform: 'uppercase', marginBottom: '6px' }}>Type</div>
-                      <div style={{ fontSize: '16px', color: colors.border, fontWeight: 'bold' }}>{data.lang}</div>
-                    </div>
-                    <div style={{ padding: '12px', background: '#1a1a1a', borderRadius: '12px' }}>
-                      <div style={{ fontSize: '13px', color: '#666', textTransform: 'uppercase', marginBottom: '6px' }}>Imports</div>
-                      <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{data.imports.length} modules</div>
-                    </div>
-                  </div>
-                )}
-                {data.relativePath && !data.isDirectory && !data.isRoot && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      vscode.postMessage({ type: 'openFile', relativePath: data.relativePath });
-                    }}
-                    className="nodrag"
-                    style={{
-                      marginTop: '16px',
-                      width: '100%',
-                      padding: '12px',
-                      background: '#007acc',
-                      color: '#fff',
-                      border: 'none',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                      fontSize: '14px',
-                      fontWeight: '600',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '8px'
-                    }}
-                  >
-                    Open in Editor
-                  </button>
-                )}
-              </div>
-            )}
-            {activeTab === 'structure' && (
-              <div style={{ animation: 'fadeIn 0.2s' }}>
-                {data.topSymbols && data.topSymbols.length > 0 ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    {data.topSymbols.map((sym, i) => (
-                      <div key={i} style={{ padding: '12px', background: '#1a1a1a', borderRadius: '8px', borderLeft: `5px solid ${colors.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '16px', fontWeight: '600' }}>{sym.name}</span>
-                        <span style={{ fontSize: '12px', color: '#888', background: '#111', padding: '4px 8px', borderRadius: '6px' }}>{sym.kind}</span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div style={{ color: '#666', fontStyle: 'italic', fontSize: '16px' }}>
-                    {data.isDirectory ? "Folder structure view not implemented yet." : "No symbols detected."}
-                  </div>
-                )}
-              </div>
-            )}
-
-          </div>
-        </div>
-      )}
+      <div style={{ fontSize: '42px' }}>{colors.icon}</div>
+      <div>
+        <div style={{ fontWeight: '800', fontSize: '24px', lineHeight: '1.1', marginBottom: '4px' }}>{data.label}</div>
+        {(data.isDirectory || data.isRoot) && (
+          <div style={{ fontSize: '16px', opacity: 0.7, fontWeight: '500' }}>{data.fileCount} items</div>
+        )}
+      </div>
     </div>
   );
 };
@@ -352,7 +558,7 @@ const prepareGraphData = (data: CapsulesData) => {
       const fileId = file.relativePath;
 
       const importCount = file.imports.length || 0;
-      const usedByCount = file.summaryContext?.usedBy?.length || 0;
+      const usedByCount = file.metadata?.usedBy?.length || 0;
       const trafficScore = importCount + usedByCount;
 
       const structuralWidth = Math.min(Math.max(6, trafficScore * 2.0), 20);
@@ -365,11 +571,12 @@ const prepareGraphData = (data: CapsulesData) => {
           label: file.name,
           lang: file.lang,
           relativePath: file.relativePath,
-          summary: file.lowerLevelSummary || file.upperLevelSummary || file.summaryContext?.fileDocstring,
+          summary: file.lowerLevelSummary || file.upperLevelSummary || file.metadata?.fileDocstring,
           exports: file.exports.map(e => e.name),
           imports: file.imports.map(i => i.pathOrModule),
           topSymbols: file.topSymbols,
-          previewCode: file.summaryContext?.firstNLines
+          previewCode: file.metadata?.firstNLines,
+          fullCapsule: file,
         },
         position: { x: 0, y: 0 }
       });
@@ -392,10 +599,10 @@ const prepareGraphData = (data: CapsulesData) => {
   });
 
   Object.entries(data.files).forEach(([path, file]) => {
-    if (file.summaryContext?.usedBy) {
-      file.summaryContext.usedBy.forEach(usedByPath => {
+    if (file.metadata?.usedBy) {
+      file.metadata.usedBy.forEach(usedByPath => {
         if (nodes.find(n => n.id === usedByPath)) {
-          const traffic = (file.summaryContext?.usedBy?.length || 1);
+          const traffic = (file.metadata?.usedBy?.length || 1);
           const depWidth = Math.min(Math.max(6, traffic * 3), 18);
 
           edges.push({
@@ -508,6 +715,8 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [selectedNodeData, setSelectedNodeData] = useState<FileNodeData | null>(null);
+
   const nodeTypes = useMemo(() => ({ capsule: CapsuleNode }), []);
 
   // Listen for messages from extension
@@ -565,6 +774,77 @@ export default function App() {
           return node;
         }));
       }
+      if (message.type === 'updateFileStructure') {
+        const { relativePath, structure, lowerLevelSummary } = message.data;
+
+        setCapsules(prev => {
+          if (!prev) return prev;
+          const updatedFiles = { ...prev.files };
+          if (updatedFiles[relativePath]) {
+            updatedFiles[relativePath] = {
+              ...updatedFiles[relativePath],
+              structure,
+              lowerLevelSummary,
+              edges: message.data.edges
+            };
+          }
+          return { ...prev, files: updatedFiles };
+        });
+
+        // Update nodes to reflect change immediately
+        setNodes(prev => prev.map(node => {
+          if (node.data.relativePath === relativePath) {
+            const updatedCapsule = capsules?.files[relativePath] ? {
+              ...capsules.files[relativePath],
+              structure,
+              lowerLevelSummary,
+              edges: message.data.edges
+            } : node.data.fullCapsule ? {
+              ...node.data.fullCapsule,
+              structure,
+              lowerLevelSummary,
+              edges: message.data.edges
+            } : undefined;
+
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                fullCapsule: updatedCapsule
+              }
+            };
+          }
+          return node;
+        }));
+
+        // IMPORTANT: Update selectedNodeData separately using functional update 
+        // to avoid stale closure issues
+        setSelectedNodeData(prev => {
+          if (prev && prev.relativePath === relativePath) {
+            const updatedCapsule = prev.fullCapsule ? {
+              ...prev.fullCapsule,
+              structure,
+              lowerLevelSummary,
+              edges: message.data.edges
+            } : {
+              relativePath,
+              name: prev.label,
+              lang: prev.lang,
+              exports: [],
+              imports: [],
+              structure,
+              lowerLevelSummary,
+              edges: message.data.edges
+            } as any;
+
+            return {
+              ...prev,
+              fullCapsule: updatedCapsule
+            };
+          }
+          return prev;
+        });
+      }
     };
 
     window.addEventListener('message', handleMessage);
@@ -584,10 +864,9 @@ export default function App() {
   };
 
   const handleNodeClick = (_event: React.MouseEvent, node: FileNode) => {
-    // Only open files, not directories or root
-    if (node.data.relativePath && !node.data.isDirectory && !node.data.isRoot) {
-      vscode.postMessage({ type: 'openFile', relativePath: node.data.relativePath });
-    }
+    // Only open details for files/dirs/root, assuming we want modal for everything now?
+    // User asked "when we click the node... pop windows".
+    setSelectedNodeData(node.data);
   };
 
   if (loading) {
@@ -613,101 +892,60 @@ export default function App() {
     return (
       <div style={{
         display: 'flex',
-        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
         height: '100vh',
         background: '#0a0a0a',
         color: '#ff6b6b',
-        gap: '16px'
+        fontSize: '18px',
+        padding: '32px',
+        textAlign: 'center'
       }}>
-        <div style={{ fontSize: '48px' }}>⚠️</div>
-        <div style={{ fontSize: '20px' }}>Error</div>
-        <div style={{ color: '#888' }}>{error}</div>
-        <button
-          onClick={handleRefresh}
-          style={{
-            marginTop: '16px',
-            padding: '10px 20px',
-            background: '#007acc',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            fontSize: '14px'
-          }}
-        >
-          Retry
-        </button>
+        <div>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚠️</div>
+          {error}
+          <br />
+          <button onClick={handleRefresh} style={{ marginTop: '20px', padding: '10px 20px', background: '#333', border: 'none', color: '#fff', borderRadius: '4px', cursor: 'pointer' }}>Retry</button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div style={{ width: '100vw', height: '100vh', background: '#0a0a0a' }}>
+    <div style={{ width: '100vw', height: '100vh', background: '#0a0a0a', overflow: 'hidden', position: 'relative' }}>
       <ReactFlowProvider>
         <ReactFlow
           nodes={nodes}
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
-          onNodeClick={handleNodeClick}
           nodeTypes={nodeTypes}
+          onNodeClick={handleNodeClick}
           fitView
-          minZoom={0.05}
+          minZoom={0.1}
+          maxZoom={4}
+          proOptions={{ hideAttribution: true }}
+          defaultEdgeOptions={{ type: 'default', animated: false }}
         >
-          <Background color="#1a1a1a" gap={50} />
-          <Controls style={{ background: '#1a1a1a' }} />
-          <Panel position="top-left" style={{ background: 'rgba(0,0,0,0.8)', padding: '16px', borderRadius: '12px', color: '#fff' }}>
-            <div style={{ fontWeight: 'bold', fontSize: '18px' }}>🏙️ City Map Layout</div>
-            <div style={{ fontSize: '14px', color: '#aaa', marginBottom: '8px' }}>
-              {capsules?.stats.totalFiles} Files • {capsules?.stats.totalDirectories} Folders
-            </div>
-            {capsules?.stats.externalDependencies && (
-              <div style={{ borderTop: '1px solid #333', paddingTop: '8px' }}>
-                <div style={{ fontSize: '12px', color: '#888', marginBottom: '4px', textTransform: 'uppercase' }}>Tech Stack</div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                  {capsules.stats.externalDependencies.map(dep => (
-                    <span key={dep} style={{ fontSize: '12px', background: '#222', padding: '4px 8px', borderRadius: '4px', color: '#ccc' }}>
-                      {dep}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-            <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
-              <button
-                onClick={handleRefresh}
-                style={{
-                  padding: '6px 12px',
-                  background: '#333',
-                  color: '#ccc',
-                  border: '1px solid #555',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontSize: '12px'
-                }}
-              >
-                🔄 Refresh
-              </button>
-              <button
-                onClick={handleSettings}
-                style={{
-                  padding: '6px 12px',
-                  background: '#333',
-                  color: '#ccc',
-                  border: '1px solid #555',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontSize: '12px'
-                }}
-              >
-                ⚙️ Settings
-              </button>
-            </div>
+          <Background color="#222" gap={24} size={1} />
+          <Controls style={{ background: '#1a1a1a', border: '1px solid #333', color: '#fff' }} />
+          <Panel position="top-right" style={{ display: 'flex', gap: '8px' }}>
+            <button onClick={handleRefresh} style={{ background: '#1a1a1a', border: '1px solid #333', color: '#ccc', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
+              ↻ Refresh
+            </button>
+            <button onClick={handleSettings} style={{ background: '#1a1a1a', border: '1px solid #333', color: '#ccc', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
+              ⚙️ Settings
+            </button>
           </Panel>
         </ReactFlow>
       </ReactFlowProvider>
+
+      {selectedNodeData && (
+        <NodeDetailsOverlay
+          data={selectedNodeData}
+          onClose={() => setSelectedNodeData(null)}
+        />
+      )}
     </div>
   );
 }

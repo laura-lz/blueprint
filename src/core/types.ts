@@ -69,6 +69,15 @@ export interface FileCapsule {
 
     /** Code structure analysis (lower level, added via CLI --file or --deep-all) */
     structure?: CodeBlockSummary[];
+
+    /** Function call edges (lower level, derived from deep analysis) */
+    edges?: FunctionCallEdge[];
+}
+
+export interface FunctionCallEdge {
+    source: string;
+    target: string;
+    type: "call" | "uses" | "shares_state" | "data_flow" | "contains";
 }
 
 export interface CodeBlockSummary {
