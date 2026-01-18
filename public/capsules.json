@@ -1,7 +1,7 @@
 {
   "stats": {
-    "totalFiles": 20,
-    "totalDirectories": 5,
+    "totalFiles": 19,
+    "totalDirectories": 4,
     "totalEdges": 11,
     "externalDependencies": [
       "next",
@@ -16,7 +16,6 @@
       "next.config.ts",
       "package-lock.json",
       "package.json",
-      "public/capsules.json",
       "tsconfig.json"
     ]
   },
@@ -140,8 +139,7 @@
         "dependsOn": [
           "./globals.css"
         ]
-      },
-      "summary": "Defines the root layout and global metadata while configuring the application's primary typography.\nServes as the top-level entry point for the UI structure and integrates the global stylesheet."
+      }
     },
     "app/page.module.css": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/app/page.module.css",
@@ -222,8 +220,7 @@
           "@/components/Calculator",
           "./page.module.css"
         ]
-      },
-      "summary": "Renders the application home page featuring a calculator in a centered layout.\nActs as a primary entry point utilizing the Calculator component and local CSS modules."
+      }
     },
     "components/Button.module.css": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/components/Button.module.css",
@@ -301,8 +298,7 @@
         "dependsOn": [
           "./Button.module.css"
         ]
-      },
-      "summary": "This file defines a reusable calculator button component that supports various visual variants and click interactions. It is utilized by the ButtonGrid component and depends on an internal CSS module for styling."
+      }
     },
     "components/ButtonGrid.module.css": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/components/ButtonGrid.module.css",
@@ -384,8 +380,7 @@
           "./Button",
           "./ButtonGrid.module.css"
         ]
-      },
-      "summary": "This component organizes calculator buttons into a 4x5 grid layout and handles user click interactions. It is used by the Calculator component and depends on the local Button component and CSS modules."
+      }
     },
     "components/Calculator.module.css": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/components/Calculator.module.css",
@@ -498,7 +493,86 @@
           "./Calculator.module.css"
         ]
       },
-      "summary": "This component manages the calculator's state and core logic, coordinating input processing and display formatting. It is used by the main application page and relies on external calculation utilities, UI sub-components, and modular styling."
+      "detailedSummary": "The `Calculator.tsx` file defines the primary React component for a calculator application using Next.js 'use client' directive. It serves as the orchestrator for the application's state, managing the current display value, previous operands, active operations, and calculation history. The component leverages the `useCallback` hook for performance optimization of event handlers and integrates with utility functions from a separate calculator library to perform mathematical logic and formatting. It coordinates user interactions from a `ButtonGrid` component and reflects the state through a `Display` component, supporting features such as basic arithmetic, decimal input, percentage calculations, sign toggling, and backspace functionality.",
+      "codeBlocks": [
+        {
+          "name": "Calculator",
+          "type": "function",
+          "startLine": 11,
+          "endLine": 171,
+          "summary": "The main functional component that initializes state for the calculator (display, previousValue, operation, waitingForOperand, and history) and renders the UI structure."
+        },
+        {
+          "name": "handleNumber",
+          "type": "function",
+          "startLine": 23,
+          "endLine": 30,
+          "summary": "Updates the display state when a number is clicked; handles the transition from a 'waiting' state to a new input and prevents leading zeros."
+        },
+        {
+          "name": "handleDecimal",
+          "type": "function",
+          "startLine": 35,
+          "endLine": 41,
+          "summary": "Appends a decimal point to the current display value if one does not already exist, ensuring valid floating-point number entry."
+        },
+        {
+          "name": "handleOperator",
+          "type": "function",
+          "startLine": 46,
+          "endLine": 69,
+          "summary": "Manages the logic for arithmetic operators. It performs intermediate calculations if an operation is already pending, updates the history string, and sets the calculator to wait for the next operand."
+        },
+        {
+          "name": "handleEquals",
+          "type": "function",
+          "startLine": 74,
+          "endLine": 93,
+          "summary": "Finalizes the current calculation by invoking the calculate utility with the stored previous value and the current display value, then updates the display and resets the operation state."
+        },
+        {
+          "name": "handleClear",
+          "type": "function",
+          "startLine": 98,
+          "endLine": 104,
+          "summary": "Resets all component states to their initial values, effectively clearing the calculator display and memory."
+        },
+        {
+          "name": "handleBackspace",
+          "type": "function",
+          "startLine": 109,
+          "endLine": 115,
+          "summary": "Removes the last character from the display string, reverting to '0' if the display becomes empty or contains only a negative sign."
+        },
+        {
+          "name": "handleToggleSign",
+          "type": "function",
+          "startLine": 120,
+          "endLine": 123,
+          "summary": "Converts the current display value to its negative or positive counterpart using the formatDisplay and parseInput utilities."
+        },
+        {
+          "name": "handlePercent",
+          "type": "function",
+          "startLine": 128,
+          "endLine": 131,
+          "summary": "Divides the current display value by 100 to calculate a percentage representation."
+        },
+        {
+          "name": "handleButtonClick",
+          "type": "function",
+          "startLine": 136,
+          "endLine": 164,
+          "summary": "A centralized dispatcher function that receives button labels from the ButtonGrid and routes them to the appropriate handler function based on a switch statement."
+        },
+        {
+          "name": "JSX Return Block",
+          "type": "block",
+          "startLine": 166,
+          "endLine": 170,
+          "summary": "The rendering logic that produces the component's HTML structure, passing state and handlers down to the Display and ButtonGrid sub-components."
+        }
+      ]
     },
     "components/Display.module.css": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/components/Display.module.css",
@@ -571,8 +645,7 @@
         "dependsOn": [
           "./Display.module.css"
         ]
-      },
-      "summary": "This component renders a calculator display interface to visualize current input values and calculation history. It is utilized by the Calculator component and depends on local CSS modules for its styling."
+      }
     },
     "lib/calculator.ts": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/lib/calculator.ts",
@@ -774,7 +847,66 @@
         ],
         "dependsOn": []
       },
-      "summary": "Provides core mathematical operations, input parsing, and display formatting logic. Functions as a standalone utility module utilized by the Calculator component."
+      "detailedSummary": "This file, lib/calculator.ts, acts as the core logic engine for a calculator application. It defines a set of pure mathematical functions for basic arithmetic (addition, subtraction, multiplication, and division) and a central orchestration function to execute these operations based on a specific operator type. Beyond raw math, the module includes robust utility functions for input sanitization, such as parsing strings into numbers with fallback values, and a complex formatting function that manages numerical display. The formatting logic ensures that very large or very small numbers are converted to scientific notation and that long decimals are truncated to maintain UI consistency.",
+      "codeBlocks": [
+        {
+          "name": "add",
+          "type": "function",
+          "startLine": 6,
+          "endLine": 13,
+          "summary": "A pure function that takes two numbers and returns their sum."
+        },
+        {
+          "name": "subtract",
+          "type": "function",
+          "startLine": 15,
+          "endLine": 22,
+          "summary": "A pure function that calculates the difference between two numbers."
+        },
+        {
+          "name": "multiply",
+          "type": "function",
+          "startLine": 24,
+          "endLine": 31,
+          "summary": "A pure function that returns the product of two numerical operands."
+        },
+        {
+          "name": "divide",
+          "type": "function",
+          "startLine": 33,
+          "endLine": 43,
+          "summary": "Performs division of two numbers. It includes a safety check to throw an error if the divisor is zero, preventing illegal mathematical operations."
+        },
+        {
+          "name": "Operation",
+          "type": "block",
+          "startLine": 45,
+          "endLine": 48,
+          "summary": "A TypeScript type definition that restricts the allowed mathematical operation symbols to specific string literals: '+', '-', '×', or '÷'."
+        },
+        {
+          "name": "calculate",
+          "type": "function",
+          "startLine": 50,
+          "endLine": 68,
+          "summary": "An orchestrator function that uses a switch statement to route operands to the correct arithmetic function based on the provided Operation type."
+        },
+        {
+          "name": "parseInput",
+          "type": "function",
+          "startLine": 70,
+          "endLine": 80,
+          "summary": "Converts string-based user input into a number using parseFloat. It returns 0 as a default if the input is not a valid number (NaN)."
+        },
+        {
+          "name": "formatDisplay",
+          "type": "function",
+          "startLine": 82,
+          "endLine": 96,
+          "summary": "Handles the visual representation of numerical results. It applies scientific notation for extreme values (very large or very small) and limits the string length to 12 characters using precision formatting to ensure the output fits within typical UI constraints."
+        }
+      ],
+      "summary": "This file, lib/calculator.ts, acts as the core logic engine for a calculator application. It defines a set of pure mathematical functions for basic arithmetic (addition, subtraction, multiplication, and division) and a central orchestration function to execute these operations based on a specific operator type. Beyond raw math, the module includes robust utility functions for input sanitization, such as parsing strings into numbers with fallback values, and a complex formatting function that manages numerical display. The formatting logic ensures that very large or very small numbers are converted to scientific notation and that long decimals are truncated to maintain UI consistency."
     },
     "next-env.d.ts": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/next-env.d.ts",
@@ -799,8 +931,7 @@
         "dependsOn": [
           "./.next/dev/types/routes.d.ts"
         ]
-      },
-      "summary": "This file provides TypeScript type definitions and global references required for Next.js environment compatibility. It imports generated route types from the build directory and should not be manually edited."
+      }
     },
     "next.config.ts": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/next.config.ts",
@@ -831,8 +962,7 @@
         "firstNLines": "import type { NextConfig } from \"next\";\n\nconst nextConfig: NextConfig = {\n  /* config options here */\n};\n\nexport default nextConfig;\n",
         "usedBy": [],
         "dependsOn": []
-      },
-      "summary": "This file defines the global configuration settings for the Next.js application framework. It exports a standalone configuration object with no local dependencies or internal project dependents."
+      }
     },
     "package-lock.json": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/package-lock.json",
@@ -860,21 +990,6 @@
       "summaryContext": {
         "functionSignatures": [],
         "firstNLines": "{\n    \"name\": \"calculator\",\n    \"version\": \"0.1.0\",\n    \"private\": true,\n    \"scripts\": {\n        \"dev\": \"next dev\",\n        \"build\": \"next build\",\n        \"start\": \"next start\",\n        \"lint\": \"eslint\"\n    },\n    \"dependencies\": {\n        \"next\": \"16.1.3\",\n        \"react\": \"19.2.3\",\n        \"react-dom\": \"19.2.3\"\n    },\n    \"devDependencies\": {\n        \"@types/node\": \"^20\",\n        \"@types/react\": \"^19\",\n        \"@types/react-dom\": \"^19\",\n        \"eslint\": \"^9\",\n        \"eslint-config-next\": \"16.1.3\",\n        \"typescript\": \"^5\"\n    }\n}",
-        "usedBy": [],
-        "dependsOn": []
-      }
-    },
-    "public/capsules.json": {
-      "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/public/capsules.json",
-      "relativePath": "public/capsules.json",
-      "name": "capsules.json",
-      "lang": "json",
-      "imports": [],
-      "exports": [],
-      "topSymbols": [],
-      "summaryContext": {
-        "functionSignatures": [],
-        "firstNLines": "{\n  \"stats\": {\n    \"totalFiles\": 19,\n    \"totalDirectories\": 4,\n    \"totalEdges\": 11,\n    \"externalDependencies\": [\n      \"next\",\n      \"next/font/google\",\n      \"react\"\n    ],\n    \"entryPoints\": [\n      \"README.md\",\n      \"app/layout.tsx\",\n      \"app/page.tsx\",\n      \"next-env.d.ts\",\n      \"next.config.ts\",\n      \"package-lock.json\",\n      \"package.json\",\n      \"tsconfig.json\"\n    ]\n  },\n  \"files\": {\n    \"README.md\": {\n      \"path\": \"/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/README.md\",\n      \"relativePath\": \"README.md\",\n      \"name\": \"README.md\",\n      \"lang\": \"markdown\",\n      \"imports\": [],\n      \"exports\": [],\n      \"topSymbols\": [],",
         "usedBy": [],
         "dependsOn": []
       }
@@ -911,10 +1026,8 @@
       "subdirectories": [
         "app",
         "components",
-        "lib",
-        "public"
-      ],
-      "summary": "This root directory serves as the foundation for a TypeScript-based Next.js application, containing essential build and environment configurations. It organizes the core source code into subdirectories for routing, reusable UI components, and shared utility logic."
+        "lib"
+      ]
     },
     "app": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/app",
@@ -926,8 +1039,7 @@
         "app/page.module.css",
         "app/page.tsx"
       ],
-      "subdirectories": [],
-      "summary": "This directory serves as the root entry point for the application's routing and layout structure. It defines global styles and metadata while rendering the main landing page containing a calculator component."
+      "subdirectories": []
     },
     "components": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/components",
@@ -943,8 +1055,7 @@
         "components/Display.module.css",
         "components/Display.tsx"
       ],
-      "subdirectories": [],
-      "summary": "This directory contains the modular React components used to construct the calculator's user interface. Key functionalities include state management for calculation logic, input handling via an interactive button grid, and visual rendering of the numeric display."
+      "subdirectories": []
     },
     "lib": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/lib",
@@ -953,18 +1064,7 @@
       "files": [
         "lib/calculator.ts"
       ],
-      "subdirectories": [],
-      "summary": "This directory serves as a central utility library for core application logic and mathematical processing. It provides essential functionality for executing mathematical operations, parsing user input, and formatting display data."
-    },
-    "public": {
-      "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/public",
-      "relativePath": "public",
-      "name": "public",
-      "files": [
-        "public/capsules.json"
-      ],
-      "subdirectories": [],
-      "summary": "This directory serves as the storage location for static assets and publicly accessible data files. It specifically hosts a JSON data source containing structured information about capsules."
+      "subdirectories": []
     }
   }
 }

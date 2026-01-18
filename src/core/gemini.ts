@@ -65,7 +65,7 @@ export class GeminiClient {
             contents,
             generationConfig: {
                 temperature: 0.7,
-                maxOutputTokens: 1024,
+                maxOutputTokens: 8192,
             }
         };
 
@@ -253,6 +253,63 @@ Respond with a 2-sentence summary:
                 content: prompt,
             },
         ]);
+    }
+
+    /**
+     * Generates a deep analysis for a single file including block-level summaries
+     */
+    async generateDeepAnalysis(
+        filePath: string,
+        fileContent: string
+    ): Promise<{ detailedSummary: string; codeBlocks: any[] }> {
+        const prompt = `Analyze this code file in detail.
+
+File: ${filePath}
+
+Code:
+\`\`\`
+${fileContent.slice(0, 8000)}${fileContent.length > 8000 ? "\n... (truncated)" : ""}
+\`\`\`
+
+Provide a JSON response with the following structure:
+{
+  "detailedSummary": "A comprehensive paragraph summarizing the file's purpose, key algorithms, and role.",
+  "codeBlocks": [
+    {
+      "name": "Function/Class Name",
+      "type": "function" | "class" | "block",
+      "startLine": <number>,
+      "endLine": <number>,
+      "summary": "Detailed explanation of what this block does."
+    }
+  ]
+}
+
+Identify the main functions, classes, and logical blocks. Estimate start/end lines based on the provided code.
+Respond ONLY with the JSON object.`;
+
+        const response = await this.chat([
+            {
+                role: "system",
+                content: "You are a senior code analyst. detailed analysis in JSON format.",
+            },
+            {
+                role: "user",
+                content: prompt,
+            },
+        ]);
+
+        try {
+            // Strip markdown code fences if present
+            const cleanJson = response.replace(/```json/g, "").replace(/```/g, "").trim();
+            return JSON.parse(cleanJson);
+        } catch (e) {
+            console.error("Failed to parse deep analysis JSON:", e);
+            return {
+                detailedSummary: "Failed to generate deep analysis.",
+                codeBlocks: []
+            };
+        }
     }
 
     /**

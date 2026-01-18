@@ -59,6 +59,20 @@ export interface FileCapsule {
 
     /** Generated 2-line summary */
     summary?: string;
+
+    /** Deep analysis summary (optional, added via CLI --file) */
+    detailedSummary?: string;
+
+    /** Code blocks summary (optional, added via CLI --file) */
+    codeBlocks?: CodeBlockSummary[];
+}
+
+export interface CodeBlockSummary {
+    name: string;
+    type: "function" | "class" | "block";
+    startLine: number;
+    endLine: number;
+    summary: string;
 }
 
 /**
