@@ -68,6 +68,7 @@ interface CapsulesData {
 interface FileNodeData {
   label: string;
   lang: string;
+  relativePath?: string;
   summary?: string;
   exports: string[];
   imports: string[];
@@ -205,6 +206,11 @@ const CapsuleNode: React.FC<NodeProps<FileNodeData>> = ({ data }) => {
           >
             {activeTab === 'summary' && (
               <div style={{ animation: 'fadeIn 0.2s' }}>
+                {data.relativePath && (
+                  <div style={{ fontSize: '14px', color: '#888', marginBottom: '16px', fontFamily: 'monospace', background: '#111', padding: '8px 12px', borderRadius: '8px', wordBreak: 'break-all' }}>
+                    📂 {data.relativePath}
+                  </div>
+                )}
                 <div style={{ fontSize: '18px', lineHeight: '1.6', color: '#ddd', marginBottom: '24px' }}>
                   {data.summary || "No summary available."}
                 </div>
@@ -218,6 +224,33 @@ const CapsuleNode: React.FC<NodeProps<FileNodeData>> = ({ data }) => {
                     <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{data.imports.length} modules</div>
                   </div>
                 </div>
+                {data.relativePath && !data.isDirectory && !data.isRoot && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      vscode.postMessage({ type: 'openFile', relativePath: data.relativePath });
+                    }}
+                    className="nodrag"
+                    style={{
+                      marginTop: '16px',
+                      width: '100%',
+                      padding: '12px',
+                      background: '#007acc',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px'
+                    }}
+                  >
+                    Open in Editor
+                  </button>
+                )}
               </div>
             )}
             {activeTab === 'structure' && (
@@ -316,6 +349,7 @@ const prepareGraphData = (data: CapsulesData) => {
         data: {
           label: file.name,
           lang: file.lang,
+          relativePath: file.relativePath,
           summary: file.summary || file.summaryContext?.fileDocstring,
           exports: file.exports.map(e => e.name),
           imports: file.imports.map(i => i.pathOrModule),
@@ -503,6 +537,13 @@ export default function App() {
     vscode.postMessage({ type: 'setApiKey' });
   };
 
+  const handleNodeClick = (_event: React.MouseEvent, node: FileNode) => {
+    // Only open files, not directories or root
+    if (node.data.relativePath && !node.data.isDirectory && !node.data.isRoot) {
+      vscode.postMessage({ type: 'openFile', relativePath: node.data.relativePath });
+    }
+  };
+
   if (loading) {
     return (
       <div style={{
@@ -564,6 +605,7 @@ export default function App() {
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
+          onNodeClick={handleNodeClick}
           nodeTypes={nodeTypes}
           fitView
           minZoom={0.05}

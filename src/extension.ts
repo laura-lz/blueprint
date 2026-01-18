@@ -120,6 +120,24 @@ export function activate(context: vscode.ExtensionContext) {
 			if (!canvasPanel) {
 				return;
 			}
+			if (message?.type === 'openFile' && message.relativePath) {
+				const workspaceFolders = vscode.workspace.workspaceFolders;
+				if (workspaceFolders && workspaceFolders.length > 0) {
+					const filePath = path.join(workspaceFolders[0].uri.fsPath, message.relativePath);
+					const fileUri = vscode.Uri.file(filePath);
+					try {
+						// Open the file in the main editor column (not a new split)
+						await vscode.window.showTextDocument(fileUri, {
+							viewColumn: vscode.ViewColumn.One,
+							preserveFocus: false
+						});
+					} catch (error) {
+						console.error('[Nexhacks] Failed to open file:', error);
+						vscode.window.showErrorMessage(`Failed to open file: ${message.relativePath}`);
+					}
+				}
+				return;
+			}
 			if (message?.type === 'setApiKey') {
 				const value = await vscode.window.showInputBox({
 					prompt: 'Enter your LLM API key (OpenRouter or OpenAI)',
