@@ -72,6 +72,12 @@ export interface FileCapsule {
 
     /** Function call edges (lower level, derived from deep analysis) */
     edges?: FunctionCallEdge[];
+
+    /** Prompt version used for upper level summary (RLHF) */
+    upperLevelSummaryVersion?: string;
+
+    /** Prompt version used for deep analysis (RLHF) */
+    lowerLevelSummaryVersion?: string;
 }
 
 export interface FunctionCallEdge {

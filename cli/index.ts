@@ -5,11 +5,19 @@
  * Usage: npx tsx cli/index.ts --target ./samples/calculator --output ./output
  */
 
-import "dotenv/config";
-
 import { Command } from "commander";
 import * as fs from "fs/promises";
 import * as path from "path";
+import { spawn } from "child_process";
+import { fileURLToPath } from "url";
+import { config } from "dotenv";
+
+// ES module compatible __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load .env from project root
+config({ path: path.resolve(__dirname, "../.env"), override: true });
 import {
     createUpperLevelAPI,
     createGeminiClient,
@@ -28,6 +36,7 @@ program
     .option("-o, --output <path>", "Output directory for capsules.json", "./output")
     .option("--no-summarize", "Disable AI summary generation")
     .option("--deep-all", "Generate deep analysis (lowerLevelSummary + structure) for all code files")
+    .option("--with-evals", "Run LLM evaluations after agent completes (saves CSVs to monitoring/)")
     .option("-v, --verbose", "Enable verbose logging")
     .parse(process.argv);
 
@@ -85,7 +94,7 @@ async function main() {
                         console.log(`   [${count}/${total}] ${capsule.relativePath}`);
                     }
 
-                    const summary = await client.generateCapsuleSummary(
+                    const { summary, version } = await client.generateCapsuleSummary(
                         capsule.relativePath,
                         {
                             fileDocstring: capsule.metadata.fileDocstring,
@@ -98,6 +107,7 @@ async function main() {
                     );
 
                     capsule.upperLevelSummary = summary;
+                    capsule.upperLevelSummaryVersion = version;
                 } catch (error) {
                     console.warn(`   ⚠️ Failed to summarize ${capsule.relativePath}`);
                 }
@@ -168,6 +178,7 @@ async function main() {
 
                     capsule.lowerLevelSummary = analysis.lowerLevelSummary;
                     capsule.structure = analysis.structure;
+                    capsule.lowerLevelSummaryVersion = analysis.version;
                 } catch (error) {
                     console.warn(`   ⚠️ Failed deep analysis for ${capsule.relativePath}`);
                     if (options.verbose) {
@@ -210,6 +221,42 @@ async function main() {
 
     console.log("");
     console.log("✅ Done!");
+
+    // Run evaluations if requested
+    if (options.withEvals) {
+        console.log("");
+        console.log("🧪 Running LLM evaluations...");
+
+        const monitoringDir = path.resolve(__dirname, "../monitoring");
+        const appPy = path.join(monitoringDir, "app.py");
+
+        try {
+            await fs.access(appPy);
+        } catch {
+            console.warn("⚠️ monitoring/app.py not found, skipping evaluations.");
+            return;
+        }
+
+        const pythonProcess = spawn("python", [
+            appPy,
+            "--headless",
+            "--capsules-path", capsulesPath
+        ], {
+            cwd: monitoringDir,
+            stdio: "inherit"
+        });
+
+        await new Promise<void>((resolve, reject) => {
+            pythonProcess.on("close", (code) => {
+                if (code === 0) {
+                    resolve();
+                } else {
+                    reject(new Error(`Evaluation script exited with code ${code}`));
+                }
+            });
+            pythonProcess.on("error", reject);
+        });
+    }
 }
 
 main().catch((error) => {

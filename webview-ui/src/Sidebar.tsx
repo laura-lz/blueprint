@@ -278,6 +278,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                                 </CardContent>
                             </Card>
                         )}
+
                     </div>
                 </ScrollArea>
 

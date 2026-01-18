@@ -1,0 +1,7 @@
+Feature,Type,Count,Mean,Min,Max,StdDev,Top/Unique
+clarity_score,Numeric,21.0,4.76,4.0,5.0,0.44,N/A
+completeness_score,Numeric,20.0,3.9,3.0,5.0,0.55,N/A
+verbosity_is_good,Numeric,22.0,1.0,1.0,1.0,0.0,N/A
+verbosity_label,Categorical,22.0,N/A,N/A,N/A,N/A,good (22/1)
+language,Categorical,22.0,N/A,N/A,N/A,N/A,css (6/6)
+name,Categorical,22.0,N/A,N/A,N/A,N/A,capsules.json (2/21)
