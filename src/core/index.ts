@@ -46,14 +46,6 @@ export {
     type ComponentGraph,
 } from "./analyzer";
 
-// Generator
-export {
-    generateWiki,
-    generateMermaidDiagram,
-    wikiToFile,
-    type WikiOptions,
-    type GeneratedWiki,
-} from "./generator";
 
 // Gemini (formerly OpenRouter)
 export {

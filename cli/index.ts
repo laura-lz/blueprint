@@ -25,6 +25,7 @@ program
     .requiredOption("-t, --target <path>", "Target directory to scan")
     .option("-o, --output <path>", "Output directory for capsules.json", "./output")
     .option("-f, --file <path>", "Analyze a specific file in depth")
+    .option("--deep-all", "Run deep analysis on all files")
     .option("--no-summarize", "Disable AI summary generation")
     .option("-v, --verbose", "Enable verbose logging")
     .parse(process.argv);
@@ -113,7 +114,7 @@ async function main() {
             const total = capsules.size;
 
             for (const [, capsule] of capsules) {
-                if (!capsule.summaryContext ||
+                if (!capsule.metadata ||
                     ["json", "css", "markdown"].includes(capsule.lang)) {
                     continue;
                 }
@@ -127,16 +128,16 @@ async function main() {
                     const summary = await client.generateCapsuleSummary(
                         capsule.relativePath,
                         {
-                            fileDocstring: capsule.summaryContext.fileDocstring,
-                            functionSignatures: capsule.summaryContext.functionSignatures,
-                            firstNLines: capsule.summaryContext.firstNLines,
-                            usedBy: capsule.summaryContext.usedBy,
-                            dependsOn: capsule.summaryContext.dependsOn,
+                            fileDocstring: capsule.metadata.fileDocstring,
+                            functionSignatures: capsule.metadata.functionSignatures,
+                            firstNLines: capsule.metadata.firstNLines,
+                            usedBy: capsule.metadata.usedBy,
+                            dependsOn: capsule.metadata.dependsOn,
                             exports: capsule.exports.map(e => e.name),
                         }
                     );
 
-                    capsule.summary = summary;
+                    capsule.upperLevelSummary = summary;
                 } catch (error) {
                     console.warn(`   ⚠️ Failed to summarize ${capsule.relativePath}`);
                 }
@@ -164,7 +165,7 @@ async function main() {
                         }
                         return {
                             name: path.basename(relPath),
-                            summary: fileCap?.summary || "No summary available"
+                            summary: fileCap?.upperLevelSummary || "No summary available"
                         };
                     });
 
@@ -192,47 +193,65 @@ async function main() {
         }
     }
 
-    // Phase 3: Deep File Analysis (if requested)
-    if (options.file) {
+    // Phase 3: Deep File Analysis (if requested via --file or --deep-all)
+    if (options.file || options.deepAll) {
         const client = createGeminiClient();
         if (client.isConfigured()) {
-            console.log(`🔬 Performing deep analysis on: ${options.file}`);
+            // Determine which capsules to analyze
+            let capsulesToAnalyze: FileCapsule[] = [];
 
-            const deepFileAbsPath = path.resolve(process.cwd(), options.file);
-            let targetCapsule: FileCapsule | undefined;
-            for (const [, cap] of capsules) {
-                if (cap.path === deepFileAbsPath) {
-                    targetCapsule = cap;
-                    break;
+            if (options.deepAll) {
+                console.log("🔬 Performing deep analysis on ALL files...");
+                // Analyze all capsules that have analyzable content
+                for (const [, cap] of capsules) {
+                    // Skip non-analyzable files (JSON, CSS, markdown, etc.)
+                    if (["json", "css", "markdown", "md"].includes(cap.lang)) {
+                        continue;
+                    }
+                    capsulesToAnalyze.push(cap);
+                }
+                console.log(`   Found ${capsulesToAnalyze.length} files to analyze`);
+            } else if (options.file) {
+                console.log(`🔬 Performing deep analysis on: ${options.file}`);
+                const deepFileAbsPath = path.resolve(process.cwd(), options.file);
+                for (const [, cap] of capsules) {
+                    if (cap.path === deepFileAbsPath) {
+                        capsulesToAnalyze.push(cap);
+                        break;
+                    }
+                }
+                if (capsulesToAnalyze.length === 0) {
+                    console.warn(`   ⚠️ Target file not found in graph: ${options.file}`);
+                    console.warn(`      Make sure it is within the target directory: ${targetPath}`);
+                    if (loadedFromJson) {
+                        console.warn(`      (Loaded from existing capsules.json - maybe try re-scanning without --file first?)`);
+                    }
                 }
             }
 
-            if (targetCapsule) {
+            // Perform deep analysis on each capsule
+            let successCount = 0;
+            const total = capsulesToAnalyze.length;
+            for (let i = 0; i < capsulesToAnalyze.length; i++) {
+                const capsule = capsulesToAnalyze[i];
                 try {
-                    const content = await fs.readFile(targetCapsule.path, "utf-8");
-                    const analysis = await client.generateDeepAnalysis(targetCapsule.relativePath, content);
-
-                    // Update capsule
-                    targetCapsule.detailedSummary = analysis.detailedSummary;
-                    targetCapsule.codeBlocks = analysis.codeBlocks;
-
-                    // User Request: detailedSummary should replace the file's summary
-                    if (analysis.detailedSummary) {
-                        targetCapsule.summary = analysis.detailedSummary;
-                        console.log(`   🔄 Updated 'summary' with deep analysis content`);
+                    if (options.verbose || options.deepAll) {
+                        console.log(`   [${i + 1}/${total}] ${capsule.relativePath}`);
                     }
 
-                    console.log(`   ✅ Deep analysis complete for ${targetCapsule.relativePath}`);
+                    const content = await fs.readFile(capsule.path, "utf-8");
+                    const analysis = await client.generateDeepAnalysis(capsule.relativePath, content);
+
+                    // Update capsule with lower level analysis
+                    capsule.lowerLevelSummary = analysis.lowerLevelSummary;
+                    capsule.structure = analysis.structure;
+
+                    successCount++;
                 } catch (error) {
-                    console.error(`   ❌ Deep analysis failed:`, error);
-                }
-            } else {
-                console.warn(`   ⚠️ Target file not found in graph: ${options.file}`);
-                console.warn(`      Make sure it is within the target directory: ${targetPath}`);
-                if (loadedFromJson) {
-                    console.warn(`      (Loaded from existing capsules.json - maybe try re-scanning without --file first?)`);
+                    console.error(`   ❌ Deep analysis failed for ${capsule.relativePath}:`, error);
                 }
             }
+            console.log(`   ✅ Deep analysis complete: ${successCount}/${total} files`);
         } else {
             console.log("⚠️ GEMINI_API_KEY not set, skipping deep analysis");
         }

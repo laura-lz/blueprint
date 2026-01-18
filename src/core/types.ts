@@ -55,16 +55,16 @@ export interface FileCapsule {
     metrics?: FileMetrics;
 
     /** Summary context for LLM-based summaries */
-    summaryContext?: SummaryContext;
+    metadata?: Metadata;
 
-    /** Generated 2-line summary */
-    summary?: string;
+    /** Generated 2-line summary (upper level) */
+    upperLevelSummary?: string;
 
-    /** Deep analysis summary (optional, added via CLI --file) */
-    detailedSummary?: string;
+    /** Deep analysis summary (lower level, added via CLI --file or --deep-all) */
+    lowerLevelSummary?: string;
 
-    /** Code blocks summary (optional, added via CLI --file) */
-    codeBlocks?: CodeBlockSummary[];
+    /** Code structure analysis (lower level, added via CLI --file or --deep-all) */
+    structure?: CodeBlockSummary[];
 }
 
 export interface CodeBlockSummary {
@@ -101,7 +101,7 @@ export interface DirectoryCapsule {
 /**
  * Context for generating file summaries with limited content
  */
-export interface SummaryContext {
+export interface Metadata {
     /** File-level docstring (first comment block) */
     fileDocstring?: string;
 

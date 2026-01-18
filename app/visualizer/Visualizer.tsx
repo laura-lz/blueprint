@@ -26,13 +26,13 @@ interface CapsuleFile {
     lang: string;
     exports: { name: string; kind: string }[];
     imports: { pathOrModule: string; isLocal: boolean }[];
-    summaryContext?: {
+    metadata?: {
         usedBy: string[];
         dependsOn: string[];
         fileDocstring?: string;
         functionSignatures?: { name: string; signature: string }[];
     };
-    summary?: string;
+    upperLevelSummary?: string;
 }
 
 interface CapsulesData {
@@ -42,7 +42,7 @@ interface CapsulesData {
         totalEdges: number;
     };
     files: Record<string, CapsuleFile>;
-    directories?: Record<string, { summary?: string }>;
+    directories?: Record<string, { upperLevelSummary?: string }>;
 }
 
 interface FileNodeData {
@@ -159,7 +159,7 @@ const createHierarchicalLayout = (data: CapsulesData) => {
 
     // Create root node
     const rootId = 'root';
-    const rootSummary = data.directories ? data.directories['.']?.summary : undefined;
+    const rootSummary = data.directories ? data.directories['.']?.upperLevelSummary : undefined;
 
     nodes.push({
         id: rootId,
@@ -203,7 +203,7 @@ const createHierarchicalLayout = (data: CapsulesData) => {
                         // effectively simplified to "files in this specific structure"
                         fileCount: 0,
                         exports: [],
-                        summary: dirCapsule?.summary,
+                        summary: dirCapsule?.upperLevelSummary,
                         depth: index + 1
                     },
                     position: { x: 0, y: 0 }
@@ -230,7 +230,7 @@ const createHierarchicalLayout = (data: CapsulesData) => {
             data: {
                 label: file.name,
                 lang: file.lang,
-                summary: file.summary || file.summaryContext?.fileDocstring?.slice(0, 100),
+                summary: file.upperLevelSummary || file.metadata?.fileDocstring?.slice(0, 100),
                 exports: file.exports.map(e => e.name),
                 depth: parts.length + 1
             },
@@ -249,8 +249,8 @@ const createHierarchicalLayout = (data: CapsulesData) => {
 
     // Create dependency edges (from usedBy)
     Object.entries(data.files).forEach(([path, file]) => {
-        if (file.summaryContext?.usedBy) {
-            file.summaryContext.usedBy.forEach(usedByPath => {
+        if (file.metadata?.usedBy) {
+            file.metadata.usedBy.forEach(usedByPath => {
                 // Only add if both nodes exist
                 if (nodes.find(n => n.id === usedByPath)) {
                     edges.push({

@@ -261,7 +261,7 @@ Respond with a 2-sentence summary:
     async generateDeepAnalysis(
         filePath: string,
         fileContent: string
-    ): Promise<{ detailedSummary: string; codeBlocks: any[] }> {
+    ): Promise<{ lowerLevelSummary: string; structure: any[] }> {
         const prompt = `Analyze this code file in detail.
 
 File: ${filePath}
@@ -273,8 +273,8 @@ ${fileContent.slice(0, 8000)}${fileContent.length > 8000 ? "\n... (truncated)" :
 
 Provide a JSON response with the following structure:
 {
-  "detailedSummary": "A comprehensive paragraph summarizing the file's purpose, key algorithms, and role.",
-  "codeBlocks": [
+  "lowerLevelSummary": "A comprehensive paragraph summarizing the file's purpose, key algorithms, and role.",
+  "structure": [
     {
       "name": "Function/Class Name",
       "type": "function" | "class" | "block",
@@ -306,8 +306,8 @@ Respond ONLY with the JSON object.`;
         } catch (e) {
             console.error("Failed to parse deep analysis JSON:", e);
             return {
-                detailedSummary: "Failed to generate deep analysis.",
-                codeBlocks: []
+                lowerLevelSummary: "Failed to generate deep analysis.",
+                structure: []
             };
         }
     }

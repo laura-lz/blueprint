@@ -17,7 +17,7 @@ import type {
     ExportEntry,
     TopSymbol,
     Language,
-    SummaryContext,
+    Metadata,
     DirectoryCapsule,
 } from "./types";
 import { scanDirectory, readFileContent, type FileInfo } from "./scanner";
@@ -93,7 +93,7 @@ function buildFileCapsule(
     }
 
     // Build summary context for LLM-based summaries
-    const summaryContext: SummaryContext = {
+    const metadata: Metadata = {
         fileDocstring: parsed.fileDocstring,
         functionSignatures: parsed.functionSignatures.map((sig) => ({
             name: sig.name,
@@ -116,7 +116,7 @@ function buildFileCapsule(
         imports,
         exports,
         topSymbols,
-        summaryContext,
+        metadata,
     };
 }
 
@@ -375,11 +375,11 @@ export async function buildUpperLevelGraph(rootDir: string): Promise<UpperLevelG
         }
     }
 
-    // Populate usedBy in summaryContext (reverse dependency)
+    // Populate usedBy in metadata (reverse dependency)
     for (const edge of edges) {
         const targetNode = nodes.get(edge.to);
-        if (targetNode?.capsule.summaryContext) {
-            targetNode.capsule.summaryContext.usedBy.push(
+        if (targetNode?.capsule.metadata) {
+            targetNode.capsule.metadata.usedBy.push(
                 nodes.get(edge.from)?.capsule.relativePath || edge.from
             );
         }
@@ -452,7 +452,7 @@ function resolveLocalImport(
     }
 
     // Try with various extensions
-    const extensions = ["", ".ts", ".tsx", ".js", ".jsx", "/index.ts", "/index.tsx", "/index.js"];
+    const extensions = ["", ".ts", ".tsx", ".js", ".jsx", "/index.ts", "/index.tsx", "/index.js", ".css", ".py"];
 
     for (const ext of extensions) {
         const fullPath = targetPath + ext;

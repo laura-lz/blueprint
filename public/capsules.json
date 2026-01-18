@@ -28,7 +28,7 @@
       "imports": [],
       "exports": [],
       "topSymbols": [],
-      "summaryContext": {
+      "metadata": {
         "functionSignatures": [],
         "firstNLines": "This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).\n\n## Getting Started\n\nFirst, run the development server:\n\n```bash\nnpm run dev\n# or\nyarn dev\n# or\npnpm dev\n# or\nbun dev\n```\n\nOpen [http://localhost:3000](http://localhost:3000) with your browser to see the result.\n\nYou can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.\n\nThis project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.\n\n## Learn More\n\nTo learn more about Next.js, take a look at the following resources:\n\n- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.\n- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.\n\nYou can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!",
         "usedBy": [],
@@ -43,7 +43,7 @@
       "imports": [],
       "exports": [],
       "topSymbols": [],
-      "summaryContext": {
+      "metadata": {
         "functionSignatures": [],
         "firstNLines": ":root {\n  --background: #0a0a12;\n  --foreground: #ffffff;\n}\n\n* {\n  box-sizing: border-box;\n  padding: 0;\n  margin: 0;\n}\n\nhtml,\nbody {\n  max-width: 100vw;\n  overflow-x: hidden;\n  font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;\n}\n\nbody {\n  color: var(--foreground);\n  background: var(--background);\n  background-image:\n    radial-gradient(ellipse 80% 80% at 50% -20%, rgba(120, 119, 198, 0.15), transparent),\n    radial-gradient(ellipse 60% 60% at 80% 100%, rgba(255, 149, 0, 0.1), transparent);\n  min-height: 100vh;\n}\n\na {\n  color: inherit;\n  text-decoration: none;",
         "usedBy": [
@@ -126,7 +126,7 @@
           "exported": true
         }
       ],
-      "summaryContext": {
+      "metadata": {
         "functionSignatures": [
           {
             "name": "RootLayout",
@@ -139,7 +139,32 @@
         "dependsOn": [
           "./globals.css"
         ]
-      }
+      },
+      "upperLevelSummary": "This file defines the root layout for a Next.js application, specifically a calculator project. It serves as the top-level wrapper for all pages, establishing the essential HTML document structure including the <html> and <body> tags. The file integrates custom Google Fonts (Geist Sans and Geist Mono) using CSS variables for consistent typography across the site and imports global CSS styles. Additionally, it defines the application's metadata for SEO purposes, setting the page title and description. The RootLayout component acts as a high-order component that ensures these styles and configurations are inherited by all child components within the app directory.",
+      "lowerLevelSummary": "This file defines the root layout for a Next.js application, specifically a calculator project. It serves as the top-level wrapper for all pages, establishing the essential HTML document structure including the <html> and <body> tags. The file integrates custom Google Fonts (Geist Sans and Geist Mono) using CSS variables for consistent typography across the site and imports global CSS styles. Additionally, it defines the application's metadata for SEO purposes, setting the page title and description. The RootLayout component acts as a high-order component that ensures these styles and configurations are inherited by all child components within the app directory.",
+      "structure": [
+        {
+          "name": "Font Configuration",
+          "type": "block",
+          "startLine": 5,
+          "endLine": 14,
+          "summary": "Initializes the Geist and Geist_Mono fonts from next/font/google. It configures them to use the 'latin' subset and assigns them to CSS variables (--font-geist-sans and --font-geist-mono) for use throughout the application's styling."
+        },
+        {
+          "name": "metadata",
+          "type": "block",
+          "startLine": 16,
+          "endLine": 19,
+          "summary": "Exports a Metadata object that defines the static SEO properties for the application, including the document title ('Calculator | Nexhacks Sample') and a description."
+        },
+        {
+          "name": "RootLayout",
+          "type": "function",
+          "startLine": 21,
+          "endLine": 31,
+          "summary": "The main layout component that wraps all page content. It renders the base HTML structure, sets the language to English, and applies the font CSS variables to the body element via className. It accepts and renders 'children' as its primary content."
+        }
+      ]
     },
     "app/page.module.css": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/app/page.module.css",
@@ -149,7 +174,7 @@
       "imports": [],
       "exports": [],
       "topSymbols": [],
-      "summaryContext": {
+      "metadata": {
         "functionSignatures": [],
         "firstNLines": ".main {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  min-height: 100vh;\n  padding: 24px;\n}\n\n.title {\n  font-size: 1.5rem;\n  font-weight: 500;\n  color: rgba(255, 255, 255, 0.6);\n  margin-bottom: 24px;\n  letter-spacing: 0.05em;\n  text-transform: uppercase;\n}",
         "usedBy": [
@@ -205,7 +230,7 @@
           "exported": true
         }
       ],
-      "summaryContext": {
+      "metadata": {
         "fileDocstring": "*\n * Home page component\n * Renders the calculator in a centered layout",
         "functionSignatures": [
           {
@@ -220,7 +245,18 @@
           "@/components/Calculator",
           "./page.module.css"
         ]
-      }
+      },
+      "upperLevelSummary": "This file serves as the main entry point for the application's home page, utilizing Next.js's App Router structure. It defines the 'Home' React component, which acts as a top-level container for the user interface. The component imports and renders a custom 'Calculator' component within a semantic 'main' HTML element, applying CSS module styles for layout and presentation. Its primary role is to provide the structural foundation and title for the calculator application, ensuring the content is centered and styled correctly according to the associated stylesheet.",
+      "lowerLevelSummary": "This file serves as the main entry point for the application's home page, utilizing Next.js's App Router structure. It defines the 'Home' React component, which acts as a top-level container for the user interface. The component imports and renders a custom 'Calculator' component within a semantic 'main' HTML element, applying CSS module styles for layout and presentation. Its primary role is to provide the structural foundation and title for the calculator application, ensuring the content is centered and styled correctly according to the associated stylesheet.",
+      "structure": [
+        {
+          "name": "Home",
+          "type": "function",
+          "startLine": 8,
+          "endLine": 15,
+          "summary": "The default export function that defines the Home page UI. It renders a semantic 'main' element using styles from page.module.css, containing a title heading and the imported Calculator component. It serves as the root layout for the calculator feature."
+        }
+      ]
     },
     "components/Button.module.css": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/components/Button.module.css",
@@ -230,7 +266,7 @@
       "imports": [],
       "exports": [],
       "topSymbols": [],
-      "summaryContext": {
+      "metadata": {
         "functionSignatures": [],
         "firstNLines": ".button {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    font-size: 1.5rem;\n    font-weight: 400;\n    border: none;\n    border-radius: 16px;\n    cursor: pointer;\n    transition: all 0.15s ease;\n    user-select: none;\n    aspect-ratio: 1;\n    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;\n}\n\n.button:active {\n    transform: scale(0.95);\n}\n\n/* Number buttons */\n.number {\n    background: linear-gradient(145deg, #2d2d44, #252538);\n    color: #ffffff;\n    box-shadow:\n        0 4px 15px rgba(0, 0, 0, 0.3),\n        inset 0 1px 0 rgba(255, 255, 255, 0.1);\n}\n\n.number:hover {\n    background: linear-gradient(145deg, #3a3a55, #2d2d44);",
         "usedBy": [
@@ -278,7 +314,7 @@
           "exported": true
         }
       ],
-      "summaryContext": {
+      "metadata": {
         "functionSignatures": [
           {
             "name": "Button",
@@ -298,7 +334,39 @@
         "dependsOn": [
           "./Button.module.css"
         ]
-      }
+      },
+      "upperLevelSummary": "This file defines a reusable Button React component specifically designed for a calculator application. It utilizes TypeScript for type safety via the ButtonProps interface, defining properties for button labels, click handlers, visual variants (number, operator, special, equals), and layout options (wide). The component dynamically constructs CSS classes using CSS modules based on the provided props, ensuring modular styling. Its primary role is to handle user interactions and emit the button's value back to a parent container via a callback function.",
+      "lowerLevelSummary": "This file defines a reusable Button React component specifically designed for a calculator application. It utilizes TypeScript for type safety via the ButtonProps interface, defining properties for button labels, click handlers, visual variants (number, operator, special, equals), and layout options (wide). The component dynamically constructs CSS classes using CSS modules based on the provided props, ensuring modular styling. Its primary role is to handle user interactions and emit the button's value back to a parent container via a callback function.",
+      "structure": [
+        {
+          "name": "ButtonProps",
+          "type": "block",
+          "startLine": 3,
+          "endLine": 8,
+          "summary": "Defines the TypeScript interface for the component's props, specifying the button label (value), the click callback function, visual styling variants, and an optional wide flag for layout flexibility."
+        },
+        {
+          "name": "Button",
+          "type": "function",
+          "startLine": 14,
+          "endLine": 37,
+          "summary": "The main functional component that renders a HTML button element. It manages the click event mapping and dynamically calculates the CSS classes based on the 'variant' and 'wide' props."
+        },
+        {
+          "name": "handleClick",
+          "type": "function",
+          "startLine": 20,
+          "endLine": 22,
+          "summary": "An internal event handler that wraps the provided onClick prop, passing the button's specific value back to the parent component when the button is clicked."
+        },
+        {
+          "name": "classNames calculation",
+          "type": "block",
+          "startLine": 24,
+          "endLine": 28,
+          "summary": "A logic block that assembles an array of CSS module classes, filtering out falsy values and joining them into a single string to apply multiple styles to the button element."
+        }
+      ]
     },
     "components/ButtonGrid.module.css": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/components/ButtonGrid.module.css",
@@ -308,7 +376,7 @@
       "imports": [],
       "exports": [],
       "topSymbols": [],
-      "summaryContext": {
+      "metadata": {
         "functionSignatures": [],
         "firstNLines": ".grid {\n    display: grid;\n    grid-template-columns: repeat(4, 1fr);\n    gap: 12px;\n}\n\n@media (max-width: 480px) {\n    .grid {\n        gap: 8px;\n    }\n}",
         "usedBy": [
@@ -364,7 +432,7 @@
           "exported": true
         }
       ],
-      "summaryContext": {
+      "metadata": {
         "functionSignatures": [
           {
             "name": "ButtonGrid",
@@ -380,7 +448,39 @@
           "./Button",
           "./ButtonGrid.module.css"
         ]
-      }
+      },
+      "upperLevelSummary": "The ButtonGrid component serves as the structural layout for a calculator's keypad, organizing individual Button components into a grid pattern. It defines a static configuration array containing the labels, visual variants (special, operator, number, equals), and layout properties (like width) for each button. By mapping through this data, it dynamically instantiates Button components and passes down a shared click handler, facilitating user interaction for the calculator application. The component uses CSS modules for styling the grid container and relies on a separate Button component for individual button rendering.",
+      "lowerLevelSummary": "The ButtonGrid component serves as the structural layout for a calculator's keypad, organizing individual Button components into a grid pattern. It defines a static configuration array containing the labels, visual variants (special, operator, number, equals), and layout properties (like width) for each button. By mapping through this data, it dynamically instantiates Button components and passes down a shared click handler, facilitating user interaction for the calculator application. The component uses CSS modules for styling the grid container and relies on a separate Button component for individual button rendering.",
+      "structure": [
+        {
+          "name": "ButtonGridProps",
+          "type": "block",
+          "startLine": 4,
+          "endLine": 6,
+          "summary": "TypeScript interface defining the component's props, specifically requiring an onButtonClick callback function that accepts a string value."
+        },
+        {
+          "name": "ButtonGrid",
+          "type": "function",
+          "startLine": 12,
+          "endLine": 46,
+          "summary": "The main functional component that initializes the calculator button configuration and renders the grid UI."
+        },
+        {
+          "name": "buttons",
+          "type": "block",
+          "startLine": 13,
+          "endLine": 33,
+          "summary": "A static array of objects defining the metadata for each calculator button, including its label, UI variant for styling, and layout flags like 'wide'."
+        },
+        {
+          "name": "JSX Return",
+          "type": "block",
+          "startLine": 35,
+          "endLine": 45,
+          "summary": "The rendering logic that maps over the buttons array to produce a collection of Button components wrapped in a styled div container."
+        }
+      ]
     },
     "components/Calculator.module.css": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/components/Calculator.module.css",
@@ -390,7 +490,7 @@
       "imports": [],
       "exports": [],
       "topSymbols": [],
-      "summaryContext": {
+      "metadata": {
         "functionSignatures": [],
         "firstNLines": ".calculator {\n  background: linear-gradient(145deg, #1a1a2e, #16213e);\n  border-radius: 24px;\n  padding: 24px;\n  box-shadow: \n    0 25px 50px -12px rgba(0, 0, 0, 0.5),\n    0 0 0 1px rgba(255, 255, 255, 0.1),\n    inset 0 1px 0 rgba(255, 255, 255, 0.1);\n  backdrop-filter: blur(20px);\n  min-width: 320px;\n  max-width: 400px;\n}\n\n@media (max-width: 480px) {\n  .calculator {\n    min-width: 280px;\n    padding: 16px;\n    border-radius: 20px;\n  }\n}\n",
         "usedBy": [
@@ -474,7 +574,7 @@
           "exported": true
         }
       ],
-      "summaryContext": {
+      "metadata": {
         "functionSignatures": [
           {
             "name": "Calculator",
@@ -493,84 +593,78 @@
           "./Calculator.module.css"
         ]
       },
-      "detailedSummary": "The `Calculator.tsx` file defines the primary React component for a calculator application using Next.js 'use client' directive. It serves as the orchestrator for the application's state, managing the current display value, previous operands, active operations, and calculation history. The component leverages the `useCallback` hook for performance optimization of event handlers and integrates with utility functions from a separate calculator library to perform mathematical logic and formatting. It coordinates user interactions from a `ButtonGrid` component and reflects the state through a `Display` component, supporting features such as basic arithmetic, decimal input, percentage calculations, sign toggling, and backspace functionality.",
-      "codeBlocks": [
+      "upperLevelSummary": "The Calculator component is a client-side React component that serves as the primary controller for a web-based calculator. It manages internal states for the current display, previous numerical values, active mathematical operations, and calculation history. The component leverages several memoized callbacks (useCallback) to handle user interactions such as digit entry, operator selection, and specialized functions like clearing state or calculating percentages. It acts as a bridge between the presentation layer (Display and ButtonGrid components) and the core calculation logic imported from a utility library, ensuring that the UI remains synchronized with the underlying mathematical state machine.",
+      "lowerLevelSummary": "The Calculator component is a client-side React component that serves as the primary controller for a web-based calculator. It manages internal states for the current display, previous numerical values, active mathematical operations, and calculation history. The component leverages several memoized callbacks (useCallback) to handle user interactions such as digit entry, operator selection, and specialized functions like clearing state or calculating percentages. It acts as a bridge between the presentation layer (Display and ButtonGrid components) and the core calculation logic imported from a utility library, ensuring that the UI remains synchronized with the underlying mathematical state machine.",
+      "structure": [
         {
           "name": "Calculator",
           "type": "function",
-          "startLine": 11,
-          "endLine": 171,
-          "summary": "The main functional component that initializes state for the calculator (display, previousValue, operation, waitingForOperand, and history) and renders the UI structure."
+          "startLine": 13,
+          "endLine": 176,
+          "summary": "The main functional component that initializes state hooks for the calculator's operation and renders the layout consisting of a Display and a ButtonGrid."
         },
         {
           "name": "handleNumber",
           "type": "function",
           "startLine": 23,
           "endLine": 30,
-          "summary": "Updates the display state when a number is clicked; handles the transition from a 'waiting' state to a new input and prevents leading zeros."
+          "summary": "Processes numeric input, either appending the digit to the current display or replacing it if the calculator is waiting for a new operand."
         },
         {
           "name": "handleDecimal",
           "type": "function",
           "startLine": 35,
-          "endLine": 41,
-          "summary": "Appends a decimal point to the current display value if one does not already exist, ensuring valid floating-point number entry."
+          "endLine": 42,
+          "summary": "Appends a decimal point to the current display value, ensuring only one decimal exists and handling cases where a decimal starts a new operand."
         },
         {
           "name": "handleOperator",
           "type": "function",
-          "startLine": 46,
+          "startLine": 47,
           "endLine": 69,
-          "summary": "Manages the logic for arithmetic operators. It performs intermediate calculations if an operation is already pending, updates the history string, and sets the calculator to wait for the next operand."
+          "summary": "Handles the selection of arithmetic operators. It performs intermediate calculations if an operation is already pending and updates the history and previous value states."
         },
         {
           "name": "handleEquals",
           "type": "function",
           "startLine": 74,
           "endLine": 93,
-          "summary": "Finalizes the current calculation by invoking the calculate utility with the stored previous value and the current display value, then updates the display and resets the operation state."
+          "summary": "Executes the final calculation based on the stored previous value, the selected operator, and the current display value. It updates the display with the result and resets the operation state."
         },
         {
           "name": "handleClear",
           "type": "function",
           "startLine": 98,
           "endLine": 104,
-          "summary": "Resets all component states to their initial values, effectively clearing the calculator display and memory."
+          "summary": "Resets all component states (display, previousValue, operation, history) to their initial default values."
         },
         {
           "name": "handleBackspace",
           "type": "function",
           "startLine": 109,
           "endLine": 115,
-          "summary": "Removes the last character from the display string, reverting to '0' if the display becomes empty or contains only a negative sign."
+          "summary": "Removes the last character from the display string, reverting to '0' if the string becomes empty or only contains a minus sign."
         },
         {
           "name": "handleToggleSign",
           "type": "function",
           "startLine": 120,
           "endLine": 123,
-          "summary": "Converts the current display value to its negative or positive counterpart using the formatDisplay and parseInput utilities."
+          "summary": "Negates the current numeric value on the display by parsing it, multiplying by -1, and reformatting it."
         },
         {
           "name": "handlePercent",
           "type": "function",
           "startLine": 128,
           "endLine": 131,
-          "summary": "Divides the current display value by 100 to calculate a percentage representation."
+          "summary": "Converts the current display value into a percentage by dividing it by 100."
         },
         {
           "name": "handleButtonClick",
           "type": "function",
           "startLine": 136,
-          "endLine": 164,
-          "summary": "A centralized dispatcher function that receives button labels from the ButtonGrid and routes them to the appropriate handler function based on a switch statement."
-        },
-        {
-          "name": "JSX Return Block",
-          "type": "block",
-          "startLine": 166,
-          "endLine": 170,
-          "summary": "The rendering logic that produces the component's HTML structure, passing state and handlers down to the Display and ButtonGrid sub-components."
+          "endLine": 168,
+          "summary": "A dispatcher function that receives a string value from the ButtonGrid and routes it to the appropriate specific handler function using a switch statement."
         }
       ]
     },
@@ -582,7 +676,7 @@
       "imports": [],
       "exports": [],
       "topSymbols": [],
-      "summaryContext": {
+      "metadata": {
         "functionSignatures": [],
         "firstNLines": ".display {\n    background: linear-gradient(180deg, #0f0f1a, #1a1a2e);\n    border-radius: 16px;\n    padding: 20px 24px;\n    margin-bottom: 20px;\n    min-height: 100px;\n    display: flex;\n    flex-direction: column;\n    justify-content: flex-end;\n    align-items: flex-end;\n    border: 1px solid rgba(255, 255, 255, 0.05);\n    box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.3);\n}\n\n.history {\n    font-size: 0.875rem;\n    color: rgba(255, 255, 255, 0.4);\n    min-height: 1.25rem;\n    margin-bottom: 8px;\n    font-family: 'SF Mono', 'Fira Code', monospace;\n}\n\n.value {\n    font-size: 2.5rem;\n    font-weight: 300;\n    color: #ffffff;\n    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;\n    letter-spacing: -0.02em;\n    word-break: break-all;\n    text-align: right;",
         "usedBy": [
@@ -630,7 +724,7 @@
           "exported": true
         }
       ],
-      "summaryContext": {
+      "metadata": {
         "functionSignatures": [
           {
             "name": "Display",
@@ -645,7 +739,25 @@
         "dependsOn": [
           "./Display.module.css"
         ]
-      }
+      },
+      "upperLevelSummary": "The Display.tsx file defines a React functional component named Display designed for a calculator application. It serves as the visual interface for presenting the current input value and the preceding calculation history to the user. The component leverages TypeScript for type safety through the DisplayProps interface and utilizes CSS Modules for encapsulated styling. It is a stateless presentational component that receives its data via props and renders two distinct div elements to separate the history from the current result.",
+      "lowerLevelSummary": "The Display.tsx file defines a React functional component named Display designed for a calculator application. It serves as the visual interface for presenting the current input value and the preceding calculation history to the user. The component leverages TypeScript for type safety through the DisplayProps interface and utilizes CSS Modules for encapsulated styling. It is a stateless presentational component that receives its data via props and renders two distinct div elements to separate the history from the current result.",
+      "structure": [
+        {
+          "name": "DisplayProps",
+          "type": "block",
+          "startLine": 3,
+          "endLine": 6,
+          "summary": "A TypeScript interface that defines the shape of the props object, requiring 'value' and 'history' strings to ensure type safety for the component's inputs."
+        },
+        {
+          "name": "Display",
+          "type": "function",
+          "startLine": 12,
+          "endLine": 19,
+          "summary": "The primary functional component that renders the calculator's display UI. It maps the 'history' and 'value' props to specific styled div elements to provide a clear visual distinction between past operations and the current input."
+        }
+      ]
     },
     "lib/calculator.ts": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/lib/calculator.ts",
@@ -802,7 +914,7 @@
           "exported": true
         }
       ],
-      "summaryContext": {
+      "metadata": {
         "fileDocstring": "*\n * Calculator logic module\n * Contains pure mathematical functions for calculator operations",
         "functionSignatures": [
           {
@@ -847,66 +959,66 @@
         ],
         "dependsOn": []
       },
-      "detailedSummary": "This file, lib/calculator.ts, acts as the core logic engine for a calculator application. It defines a set of pure mathematical functions for basic arithmetic (addition, subtraction, multiplication, and division) and a central orchestration function to execute these operations based on a specific operator type. Beyond raw math, the module includes robust utility functions for input sanitization, such as parsing strings into numbers with fallback values, and a complex formatting function that manages numerical display. The formatting logic ensures that very large or very small numbers are converted to scientific notation and that long decimals are truncated to maintain UI consistency.",
-      "codeBlocks": [
+      "upperLevelSummary": "This module serves as the core computational engine for a calculator application, providing a set of pure functions for arithmetic operations and data transformation. It implements basic mathematical logic for addition, subtraction, multiplication, and division—the latter including explicit error handling for division by zero. Beyond raw calculations, the file includes a centralized 'calculate' dispatcher that maps operational symbols to their respective functions, a robust input parser that handles non-numeric strings by defaulting to zero, and a display formatter that manages numerical precision and scientific notation for extreme values to ensure a clean user interface.",
+      "lowerLevelSummary": "This module serves as the core computational engine for a calculator application, providing a set of pure functions for arithmetic operations and data transformation. It implements basic mathematical logic for addition, subtraction, multiplication, and division—the latter including explicit error handling for division by zero. Beyond raw calculations, the file includes a centralized 'calculate' dispatcher that maps operational symbols to their respective functions, a robust input parser that handles non-numeric strings by defaulting to zero, and a display formatter that manages numerical precision and scientific notation for extreme values to ensure a clean user interface.",
+      "structure": [
         {
           "name": "add",
           "type": "function",
           "startLine": 6,
-          "endLine": 13,
-          "summary": "A pure function that takes two numbers and returns their sum."
+          "endLine": 14,
+          "summary": "Performs basic addition of two numeric operands and returns the sum."
         },
         {
           "name": "subtract",
           "type": "function",
-          "startLine": 15,
-          "endLine": 22,
-          "summary": "A pure function that calculates the difference between two numbers."
+          "startLine": 16,
+          "endLine": 24,
+          "summary": "Calculates the difference between two numbers by subtracting the second operand from the first."
         },
         {
           "name": "multiply",
           "type": "function",
-          "startLine": 24,
-          "endLine": 31,
-          "summary": "A pure function that returns the product of two numerical operands."
+          "startLine": 26,
+          "endLine": 34,
+          "summary": "Computes the product of two numeric operands."
         },
         {
           "name": "divide",
           "type": "function",
-          "startLine": 33,
-          "endLine": 43,
-          "summary": "Performs division of two numbers. It includes a safety check to throw an error if the divisor is zero, preventing illegal mathematical operations."
+          "startLine": 36,
+          "endLine": 48,
+          "summary": "Divides the first operand by the second, including a safety check that throws an error if the divisor is zero."
         },
         {
           "name": "Operation",
           "type": "block",
-          "startLine": 45,
-          "endLine": 48,
-          "summary": "A TypeScript type definition that restricts the allowed mathematical operation symbols to specific string literals: '+', '-', '×', or '÷'."
+          "startLine": 50,
+          "endLine": 53,
+          "summary": "Defines a TypeScript union type representing the valid string symbols for calculator operations (+, -, ×, ÷)."
         },
         {
           "name": "calculate",
           "type": "function",
-          "startLine": 50,
-          "endLine": 68,
-          "summary": "An orchestrator function that uses a switch statement to route operands to the correct arithmetic function based on the provided Operation type."
+          "startLine": 55,
+          "endLine": 75,
+          "summary": "Acts as a high-level dispatcher that accepts two operands and an Operation type, routing them to the appropriate mathematical function via a switch statement."
         },
         {
           "name": "parseInput",
           "type": "function",
-          "startLine": 70,
-          "endLine": 80,
-          "summary": "Converts string-based user input into a number using parseFloat. It returns 0 as a default if the input is not a valid number (NaN)."
+          "startLine": 77,
+          "endLine": 88,
+          "summary": "Safely converts string input into a floating-point number, returning 0 if the input is not a valid number (NaN)."
         },
         {
           "name": "formatDisplay",
           "type": "function",
-          "startLine": 82,
-          "endLine": 96,
-          "summary": "Handles the visual representation of numerical results. It applies scientific notation for extreme values (very large or very small) and limits the string length to 12 characters using precision formatting to ensure the output fits within typical UI constraints."
+          "startLine": 90,
+          "endLine": 108,
+          "summary": "Prepares numeric values for UI display by applying scientific notation for extremely large/small numbers and limiting precision for long decimal strings."
         }
-      ],
-      "summary": "This file, lib/calculator.ts, acts as the core logic engine for a calculator application. It defines a set of pure mathematical functions for basic arithmetic (addition, subtraction, multiplication, and division) and a central orchestration function to execute these operations based on a specific operator type. Beyond raw math, the module includes robust utility functions for input sanitization, such as parsing strings into numbers with fallback values, and a complex formatting function that manages numerical display. The formatting logic ensures that very large or very small numbers are converted to scientific notation and that long decimals are truncated to maintain UI consistency."
+      ]
     },
     "next-env.d.ts": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/next-env.d.ts",
@@ -923,7 +1035,7 @@
       ],
       "exports": [],
       "topSymbols": [],
-      "summaryContext": {
+      "metadata": {
         "fileDocstring": "/ <reference types=\"next\" />",
         "functionSignatures": [],
         "firstNLines": "/// <reference types=\"next\" />\n/// <reference types=\"next/image-types/global\" />\nimport \"./.next/dev/types/routes.d.ts\";\n\n// NOTE: This file should not be edited\n// see https://nextjs.org/docs/app/api-reference/config/typescript for more information.\n",
@@ -931,7 +1043,32 @@
         "dependsOn": [
           "./.next/dev/types/routes.d.ts"
         ]
-      }
+      },
+      "upperLevelSummary": "This file is a TypeScript declaration file (d.ts) automatically generated and managed by Next.js. Its primary role is to ensure that the TypeScript compiler recognizes Next.js-specific types, global image definitions, and dynamically generated route types. It facilitates type safety and IDE autocompletion for Next.js features such as the App Router, image optimization, and static/dynamic routing. The file acts as a configuration bridge, linking the project's source code to the internal type definitions provided by the Next.js framework and its build artifacts.",
+      "lowerLevelSummary": "This file is a TypeScript declaration file (d.ts) automatically generated and managed by Next.js. Its primary role is to ensure that the TypeScript compiler recognizes Next.js-specific types, global image definitions, and dynamically generated route types. It facilitates type safety and IDE autocompletion for Next.js features such as the App Router, image optimization, and static/dynamic routing. The file acts as a configuration bridge, linking the project's source code to the internal type definitions provided by the Next.js framework and its build artifacts.",
+      "structure": [
+        {
+          "name": "Type Reference Directives",
+          "type": "block",
+          "startLine": 1,
+          "endLine": 2,
+          "summary": "Includes triple-slash directives that reference the core Next.js type definitions and global image types, allowing TypeScript to recognize Next.js-specific globals and asset imports."
+        },
+        {
+          "name": "Route Type Import",
+          "type": "block",
+          "startLine": 3,
+          "endLine": 3,
+          "summary": "Imports autogenerated route types from the .next directory. This enables statically typed routing, ensuring that links and navigation within the application adhere to existing file-based routes."
+        },
+        {
+          "name": "Maintenance Notice",
+          "type": "block",
+          "startLine": 5,
+          "endLine": 6,
+          "summary": "A comment block advising developers not to manually edit this file, as it is overwritten by the Next.js CLI during the development or build process."
+        }
+      ]
     },
     "next.config.ts": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/next.config.ts",
@@ -956,13 +1093,38 @@
         }
       ],
       "topSymbols": [],
-      "summaryContext": {
+      "metadata": {
         "fileDocstring": "config options here",
         "functionSignatures": [],
         "firstNLines": "import type { NextConfig } from \"next\";\n\nconst nextConfig: NextConfig = {\n  /* config options here */\n};\n\nexport default nextConfig;\n",
         "usedBy": [],
         "dependsOn": []
-      }
+      },
+      "upperLevelSummary": "This file serves as the primary configuration entry point for a Next.js application using TypeScript. It imports the 'NextConfig' type definition to provide static type checking and IntelliSense for the configuration object. The 'nextConfig' constant is initialized as an empty object intended to store framework-specific settings such as environment variables, build-time optimizations, redirect rules, and experimental features. By exporting this object as the default, the Next.js build system can consume these settings to customize the application's runtime and compilation behavior.",
+      "lowerLevelSummary": "This file serves as the primary configuration entry point for a Next.js application using TypeScript. It imports the 'NextConfig' type definition to provide static type checking and IntelliSense for the configuration object. The 'nextConfig' constant is initialized as an empty object intended to store framework-specific settings such as environment variables, build-time optimizations, redirect rules, and experimental features. By exporting this object as the default, the Next.js build system can consume these settings to customize the application's runtime and compilation behavior.",
+      "structure": [
+        {
+          "name": "Imports",
+          "type": "block",
+          "startLine": 1,
+          "endLine": 1,
+          "summary": "Imports the NextConfig type from the 'next' package to ensure the configuration object adheres to the expected schema and provides developer tooling support."
+        },
+        {
+          "name": "nextConfig",
+          "type": "block",
+          "startLine": 3,
+          "endLine": 5,
+          "summary": "Defines a constant named nextConfig of type NextConfig. This object is currently a placeholder where developers can add specific Next.js configuration options like image domains, custom headers, or build-time environment variables."
+        },
+        {
+          "name": "Export",
+          "type": "block",
+          "startLine": 7,
+          "endLine": 7,
+          "summary": "Performs a default export of the nextConfig object, making it available for the Next.js framework to load during the server startup or build process."
+        }
+      ]
     },
     "package-lock.json": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/package-lock.json",
@@ -972,7 +1134,7 @@
       "imports": [],
       "exports": [],
       "topSymbols": [],
-      "summaryContext": {
+      "metadata": {
         "functionSignatures": [],
         "firstNLines": "{\n    \"name\": \"calculator\",\n    \"version\": \"0.1.0\",\n    \"lockfileVersion\": 3,\n    \"requires\": true,\n    \"packages\": {\n        \"\": {\n            \"name\": \"calculator\",\n            \"version\": \"0.1.0\",\n            \"dependencies\": {\n                \"next\": \"16.1.3\",\n                \"react\": \"19.2.3\",\n                \"react-dom\": \"19.2.3\"\n            },\n            \"devDependencies\": {\n                \"@types/node\": \"^20\",\n                \"@types/react\": \"^19\",\n                \"@types/react-dom\": \"^19\",\n                \"eslint\": \"^9\",\n                \"eslint-config-next\": \"16.1.3\",\n                \"typescript\": \"^5\"\n            }\n        },\n        \"node_modules/@babel/code-frame\": {\n            \"version\": \"7.28.6\",\n            \"resolved\": \"https://registry.npmjs.org/@babel/code-frame/-/code-frame-7.28.6.tgz\",\n            \"integrity\": \"sha512-JYgintcMjRiCvS8mMECzaEn+m3PfoQiyqukOMCCVQtoJGYJw8j/8LBJEiqkHLkfwCcs74E3pbAUFNg7d9VNJ+Q==\",\n            \"dev\": true,\n            \"license\": \"MIT\",\n            \"dependencies\": {",
         "usedBy": [],
@@ -987,7 +1149,7 @@
       "imports": [],
       "exports": [],
       "topSymbols": [],
-      "summaryContext": {
+      "metadata": {
         "functionSignatures": [],
         "firstNLines": "{\n    \"name\": \"calculator\",\n    \"version\": \"0.1.0\",\n    \"private\": true,\n    \"scripts\": {\n        \"dev\": \"next dev\",\n        \"build\": \"next build\",\n        \"start\": \"next start\",\n        \"lint\": \"eslint\"\n    },\n    \"dependencies\": {\n        \"next\": \"16.1.3\",\n        \"react\": \"19.2.3\",\n        \"react-dom\": \"19.2.3\"\n    },\n    \"devDependencies\": {\n        \"@types/node\": \"^20\",\n        \"@types/react\": \"^19\",\n        \"@types/react-dom\": \"^19\",\n        \"eslint\": \"^9\",\n        \"eslint-config-next\": \"16.1.3\",\n        \"typescript\": \"^5\"\n    }\n}",
         "usedBy": [],
@@ -1002,7 +1164,7 @@
       "imports": [],
       "exports": [],
       "topSymbols": [],
-      "summaryContext": {
+      "metadata": {
         "functionSignatures": [],
         "firstNLines": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2017\",\n    \"lib\": [\"dom\", \"dom.iterable\", \"esnext\"],\n    \"allowJs\": true,\n    \"skipLibCheck\": true,\n    \"strict\": true,\n    \"noEmit\": true,\n    \"esModuleInterop\": true,\n    \"module\": \"esnext\",\n    \"moduleResolution\": \"bundler\",\n    \"resolveJsonModule\": true,\n    \"isolatedModules\": true,\n    \"jsx\": \"react-jsx\",\n    \"incremental\": true,\n    \"plugins\": [\n      {\n        \"name\": \"next\"\n      }\n    ],\n    \"paths\": {\n      \"@/*\": [\"./*\"]\n    }\n  },\n  \"include\": [\n    \"next-env.d.ts\",\n    \"**/*.ts\",\n    \"**/*.tsx\",\n    \".next/types/**/*.ts\",\n    \".next/dev/types/**/*.ts\",",
         "usedBy": [],
@@ -1027,7 +1189,8 @@
         "app",
         "components",
         "lib"
-      ]
+      ],
+      "summary": "This directory serves as the root of a TypeScript-based Next.js application. It manages project-wide configurations and orchestrates core functionality through application routes, reusable UI components, and shared utility libraries."
     },
     "app": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/app",
@@ -1039,7 +1202,8 @@
         "app/page.module.css",
         "app/page.tsx"
       ],
-      "subdirectories": []
+      "subdirectories": [],
+      "summary": "This directory serves as the application's root entry point, defining the foundational structure and global styling for the project. It manages the top-level layout and metadata while hosting the main page's core calculator interface."
     },
     "components": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/components",
@@ -1055,7 +1219,8 @@
         "components/Display.module.css",
         "components/Display.tsx"
       ],
-      "subdirectories": []
+      "subdirectories": [],
+      "summary": "This directory houses the modular UI components and CSS modules required to build a functional calculator interface. Key functionalities include centralized state orchestration, a history-tracking display, and a structured grid of interactive input buttons."
     },
     "lib": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/lib",
@@ -1064,7 +1229,8 @@
       "files": [
         "lib/calculator.ts"
       ],
-      "subdirectories": []
+      "subdirectories": [],
+      "summary": "1. This directory serves as a dependency-free logic layer providing core mathematical and utility functions.\n2. It implements essential modules for arithmetic operations, input parsing, and display formatting."
     }
   }
 }

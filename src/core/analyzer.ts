@@ -10,7 +10,7 @@ import * as path from "path";
 export interface FileNode {
     file: FileInfo;
     parsed: ParsedFile;
-    summary?: string;
+    upperLevelSummary?: string;
 }
 
 export interface DependencyEdge {
