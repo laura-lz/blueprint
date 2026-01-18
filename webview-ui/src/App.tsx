@@ -10,8 +10,7 @@ import ReactFlow, {
   Background,
   Node,
   Edge,
-  NodeProps,
-  Panel
+  NodeProps
 } from 'reactflow';
 import {
   forceSimulation,
@@ -21,6 +20,7 @@ import {
   forceRadial
 } from 'd3-force';
 import 'reactflow/dist/style.css';
+import Sidebar, { langColors, type SearchResult } from './Sidebar';
 
 // VS Code API
 declare function acquireVsCodeApi(): {
@@ -113,18 +113,8 @@ interface FileNodeData {
 
 type FileNode = Node<FileNodeData>;
 
-// --- LANG COLORS ---
-const langColors: Record<string, { bg: string; border: string; icon: string }> = {
-  'react-typescript': { bg: '#1a365d', border: '#4299e1', icon: '⚛️' },
-  'typescript': { bg: '#1e3a5f', border: '#3178c6', icon: '📘' },
-  'javascript': { bg: '#3d3d00', border: '#f7df1e', icon: '📒' },
-  'css': { bg: '#1a1a4e', border: '#264de4', icon: '🎨' },
-  'json': { bg: '#1a1a1a', border: '#555', icon: '📄' },
-  'markdown': { bg: '#1a2a1a', border: '#083fa1', icon: '📝' },
-  'directory': { bg: '#2d1f3d', border: '#9f7aea', icon: '📁' },
-  'root': { bg: '#1a3d1a', border: '#48bb78', icon: '🏠' },
-  'other': { bg: '#1a1a1a', border: '#555', icon: '📄' },
-};
+// Use langColors from Sidebar.tsx (removed local duplicate)
+
 
 // --- CODE BLOCK CARD COLORS ---
 const blockTypeColors: Record<string, { bg: string; border: string; icon: string }> = {
@@ -468,18 +458,18 @@ const CapsuleNode: React.FC<NodeProps<FileNodeData>> = ({ data }) => {
   return (
     <div
       style={{
-        padding: '20px 24px',
+        padding: '24px',
         borderRadius: '24px',
         background: colors.bg,
         color: '#fff',
         border: `3px solid ${colors.border}`,
         boxShadow: '0 8px 25px rgba(0,0,0,0.6)',
-        width: 300,
+        width: 320,
         fontFamily: 'system-ui, -apple-system, sans-serif',
         cursor: 'pointer',
         transition: 'transform 0.2s, box-shadow 0.2s',
         display: 'flex',
-        alignItems: 'center',
+        flexDirection: 'column',
         gap: '16px'
       }}
       className="capsule-node-hover"
@@ -487,12 +477,22 @@ const CapsuleNode: React.FC<NodeProps<FileNodeData>> = ({ data }) => {
       <Handle type="target" position={Position.Top} style={{ top: '50%', left: '50%', opacity: 0 }} />
       <Handle type="source" position={Position.Bottom} style={{ top: '50%', left: '50%', opacity: 0 }} />
 
-      <div style={{ fontSize: '42px' }}>{colors.icon}</div>
-      <div>
-        <div style={{ fontWeight: '800', fontSize: '24px', lineHeight: '1.1', marginBottom: '4px' }}>{data.label}</div>
-        {(data.isDirectory || data.isRoot) && (
-          <div style={{ fontSize: '16px', opacity: 0.7, fontWeight: '500' }}>{data.fileCount} items</div>
-        )}
+      {/* BODY: Summary */}
+      <div style={{ flex: 1 }}>
+        <div style={{ fontSize: '16px', lineHeight: '1.5', color: '#fff', fontWeight: '500' }}>
+          {data.summary || "No summary available."}
+        </div>
+      </div>
+
+      {/* FOOTER: Icon + Label */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '12px' }}>
+        <div style={{ fontSize: '24px' }}>{colors.icon}</div>
+        <div style={{ overflow: 'hidden' }}>
+          <div style={{ fontWeight: '800', fontSize: '18px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{data.label}</div>
+          {(data.isDirectory || data.isRoot) && (
+            <div style={{ fontSize: '12px', opacity: 0.7 }}>{data.fileCount} items</div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -716,6 +716,12 @@ export default function App() {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [selectedNodeData, setSelectedNodeData] = useState<FileNodeData | null>(null);
+  const [showStructure, setShowStructure] = useState(true);
+  const [fileTypes, setFileTypes] = useState<Record<string, boolean>>({
+    'react-typescript': true, 'typescript': true, 'javascript': true, 'css': true,
+    'json': true, 'markdown': true, 'directory': true, 'sticky': true
+  });
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
 
   const nodeTypes = useMemo(() => ({ capsule: CapsuleNode }), []);
 
@@ -747,18 +753,7 @@ export default function App() {
       if (message.type === 'updateFileSummary') {
         const { relativePath, summary } = message.data;
 
-        // Update capsules state
-        setCapsules(prev => {
-          if (!prev) return prev;
-          const updatedFiles = { ...prev.files };
-          if (updatedFiles[relativePath]) {
-            updatedFiles[relativePath] = {
-              ...updatedFiles[relativePath],
-              summary
-            };
-          }
-          return { ...prev, files: updatedFiles };
-        });
+        // Update nodes state (No capsules state anymore)
 
         // Update nodes state
         setNodes(prev => prev.map(node => {
@@ -777,40 +772,23 @@ export default function App() {
       if (message.type === 'updateFileStructure') {
         const { relativePath, structure, lowerLevelSummary } = message.data;
 
-        setCapsules(prev => {
-          if (!prev) return prev;
-          const updatedFiles = { ...prev.files };
-          if (updatedFiles[relativePath]) {
-            updatedFiles[relativePath] = {
-              ...updatedFiles[relativePath],
-              structure,
-              lowerLevelSummary,
-              edges: message.data.edges
-            };
-          }
-          return { ...prev, files: updatedFiles };
-        });
+        // Update nodes to reflect change immediately (No capsules state anymore)
 
         // Update nodes to reflect change immediately
-        setNodes(prev => prev.map(node => {
+        setNodes(nds => nds.map(node => {
           if (node.data.relativePath === relativePath) {
-            const updatedCapsule = capsules?.files[relativePath] ? {
-              ...capsules.files[relativePath],
-              structure,
-              lowerLevelSummary,
-              edges: message.data.edges
-            } : node.data.fullCapsule ? {
-              ...node.data.fullCapsule,
-              structure,
-              lowerLevelSummary,
-              edges: message.data.edges
-            } : undefined;
-
             return {
               ...node,
               data: {
                 ...node.data,
-                fullCapsule: updatedCapsule
+                structure,
+                lowerLevelSummary,
+                fullCapsule: node.data.fullCapsule ? {
+                  ...node.data.fullCapsule,
+                  structure,
+                  lowerLevelSummary,
+                  edges: message.data.edges
+                } : undefined
               }
             };
           }
@@ -845,6 +823,25 @@ export default function App() {
           return prev;
         });
       }
+      if (message.type === 'updateDirectorySummary') {
+        const { relativePath, summary } = message.data;
+
+        // Update capsules state (No capsules state anymore, we'll just update nodes)
+
+        // Update nodes state
+        setNodes(nds => nds.map(node => {
+          if (node.data.isDirectory && node.data.relativePath === relativePath) {
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                summary
+              }
+            };
+          }
+          return node;
+        }));
+      }
     };
 
     window.addEventListener('message', handleMessage);
@@ -864,9 +861,39 @@ export default function App() {
   };
 
   const handleNodeClick = (_event: React.MouseEvent, node: FileNode) => {
-    // Only open details for files/dirs/root, assuming we want modal for everything now?
-    // User asked "when we click the node... pop windows".
     setSelectedNodeData(node.data);
+  };
+
+  const handleSearch = (term: string) => {
+    const lowerTerm = term.toLowerCase();
+    const results: SearchResult[] = [];
+    setNodes(nds => nds.map(node => {
+      const data = node.data as FileNodeData;
+      if (!lowerTerm) return { ...node, data: { ...data, isDimmed: false, isHighlight: false } };
+      const isMatch = (data.label?.toLowerCase().includes(lowerTerm)) ||
+        (data.summary?.toLowerCase().includes(lowerTerm)) ||
+        (data.relativePath?.toLowerCase().includes(lowerTerm));
+      if (isMatch && !data.isDirectory && !data.isRoot) {
+        results.push({ id: node.id, label: data.label, lang: data.lang, matchType: 'match' });
+      }
+      return { ...node, data: { ...data, isDimmed: !isMatch, isHighlight: !!isMatch } };
+    }));
+    setSearchResults(results);
+  };
+
+  const handleClickResult = (nodeId: string) => {
+    setNodes(nds => nds.map(n => ({
+      ...n,
+      data: { ...n.data as FileNodeData, isHighlight: n.id === nodeId }
+    })));
+  };
+
+  const toggleFileType = (type: string) => {
+    setFileTypes(prev => ({ ...prev, [type]: !prev[type] }));
+  };
+
+  const handleAddSticky = () => {
+    // Placeholder for sticky note creation
   };
 
   if (loading) {
@@ -912,40 +939,45 @@ export default function App() {
   }
 
   return (
-    <div style={{ width: '100vw', height: '100vh', background: '#0a0a0a', overflow: 'hidden', position: 'relative' }}>
-      <ReactFlowProvider>
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          nodeTypes={nodeTypes}
-          onNodeClick={handleNodeClick}
-          fitView
-          minZoom={0.1}
-          maxZoom={4}
-          proOptions={{ hideAttribution: true }}
-          defaultEdgeOptions={{ type: 'default', animated: false }}
-        >
-          <Background color="#222" gap={24} size={1} />
-          <Controls style={{ background: '#1a1a1a', border: '1px solid #333', color: '#fff' }} />
-          <Panel position="top-right" style={{ display: 'flex', gap: '8px' }}>
-            <button onClick={handleRefresh} style={{ background: '#1a1a1a', border: '1px solid #333', color: '#ccc', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
-              ↻ Refresh
-            </button>
-            <button onClick={handleSettings} style={{ background: '#1a1a1a', border: '1px solid #333', color: '#ccc', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
-              ⚙️ Settings
-            </button>
-          </Panel>
-        </ReactFlow>
-      </ReactFlowProvider>
-
-      {selectedNodeData && (
-        <NodeDetailsOverlay
-          data={selectedNodeData}
-          onClose={() => setSelectedNodeData(null)}
-        />
-      )}
+    <div style={{ display: 'flex', width: '100vw', height: '100vh', background: '#0a0a0a', overflow: 'hidden' }}>
+      <Sidebar
+        capsules={capsules}
+        onSearch={handleSearch}
+        showStructure={showStructure}
+        onToggleStructure={setShowStructure}
+        fileTypes={fileTypes}
+        toggleFileType={toggleFileType}
+        searchResults={searchResults}
+        onClickResult={handleClickResult}
+        onAddSticky={handleAddSticky}
+        onRefresh={handleRefresh}
+        onSettings={handleSettings}
+      />
+      <div style={{ flex: 1, position: 'relative' }}>
+        <ReactFlowProvider>
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            nodeTypes={nodeTypes}
+            onNodeClick={handleNodeClick}
+            fitView
+            minZoom={0.05}
+            maxZoom={4}
+            proOptions={{ hideAttribution: true }}
+          >
+            <Background color="#1a1a1a" gap={50} />
+            <Controls style={{ background: '#1a1a1a' }} />
+          </ReactFlow>
+        </ReactFlowProvider>
+        {selectedNodeData && (
+          <NodeDetailsOverlay
+            data={selectedNodeData}
+            onClose={() => setSelectedNodeData(null)}
+          />
+        )}
+      </div>
     </div>
   );
 }
