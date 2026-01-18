@@ -197,7 +197,7 @@ Keep it concise and focused on the big picture.`;
             exports: string[];
         }
     ): Promise<string> {
-        const prompt = `Generate a 2-sentence summary for this code file based on ONLY the following context.
+        const prompt = `Generate a ONE-SENTENCE summary for this code file.
 
 File: ${filePath}
 
@@ -213,11 +213,11 @@ ${context.functionSignatures.map((s) => `- ${s.signature}${s.jsdoc ? ` // ${s.js
 First 15 lines preview:
 ${context.firstNLines.split("\n").slice(0, 15).join("\n")}
 
-Respond with ONLY 2 sentences:
-1. What this file does (purpose)
-2. How it fits into the codebase (dependencies/usage)
-
-Write for optimal readability and understanding; the output does not have to be full sentences.`;
+Rules:
+1. Respond with ONLY ONE sentence (max 15 words)
+2. Start with a verb (e.g., "Handles...", "Provides...", "Defines...", "Exports...")
+3. Focus on WHAT the file does, not implementation details
+4. Be direct and action-oriented`;
 
         return this.chat([
             {
@@ -251,7 +251,7 @@ ${fileList}
 
 Subdirectories: ${subdirectories.join(", ") || "None"}
 
-Respond with a 2-sentence summary:
+Respond with a 1-sentence summary:
 1. What is the primary purpose of this directory?
 2. What are the key functionalities contained within?`;
 
@@ -259,7 +259,7 @@ Respond with a 2-sentence summary:
             {
                 role: "system",
                 content:
-                    "You are a code documentation expert. Generate extremely concise 2-sentence directory summaries.",
+                    "You are a code documentation expert. Generate extremely concise 1-sentence directory summaries.",
             },
             {
                 role: "user",
@@ -286,19 +286,25 @@ ${fileContent.slice(0, 8000)}${fileContent.length > 8000 ? "\n... (truncated)" :
 
 Provide a JSON response with the following structure:
 {
-  "lowerLevelSummary": "A comprehensive paragraph summarizing the file's purpose, key algorithms, and role.",
+  "lowerLevelSummary": "• First key point\\n• Second key point\\n• Third key point",
   "structure": [
     {
       "name": "Function/Class Name",
       "type": "function" | "class" | "block",
       "startLine": <number>,
       "endLine": <number>,
-      "summary": "Detailed explanation of what this block does."
+      "summary": "Detailed explanation of what this block does.",
+      "calls": ["list", "of", "function", "names", "this", "block", "calls"]
     }
   ]
 }
 
-Identify the main functions, classes, and logical blocks. Estimate start/end lines based on the provided code.
+Rules:
+1. For lowerLevelSummary: write 3-5 bullet points (each starting with •) about key functionality
+2. Identify the main functions, classes, and logical blocks
+3. Estimate start/end lines based on the provided code
+4. For "calls", list ONLY functions/methods defined within THIS FILE that are called by this block
+5. Do not include external library calls or built-in functions in "calls"
 Respond ONLY with the JSON object.`;
 
         const response = await this.chat([

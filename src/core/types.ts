@@ -77,6 +77,10 @@ export interface CodeBlockSummary {
     startLine: number;
     endLine: number;
     summary: string;
+    /** Names of functions/methods this block calls */
+    calls?: string[];
+    /** Names of functions that call this block */
+    calledBy?: string[];
 }
 
 /**
