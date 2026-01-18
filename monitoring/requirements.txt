@@ -1,0 +1,6 @@
+arize-phoenix
+pandas
+arize-phoenix-evals
+openai
+nest_asyncio
+litellm
