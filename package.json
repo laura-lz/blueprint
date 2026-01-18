@@ -32,7 +32,8 @@
       },
       {
         "command": "nexhacks.openCanvas",
-        "title": "Open Visualizer"
+        "title": "Open Visualizer",
+        "icon": "$(graph)"
       }
     ],
     "configuration": {
@@ -51,6 +52,14 @@
           "scope": "application"
         }
       }
+    },
+    "menus": {
+      "editor/title": [
+        {
+          "command": "nexhacks.openCanvas",
+          "group": "navigation"
+        }
+      ]
     }
   },
   "scripts": {

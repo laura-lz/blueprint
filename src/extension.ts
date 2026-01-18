@@ -85,7 +85,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 		if (canvasPanel) {
 			console.log('[Nexhacks] Panel exists, revealing and sending data');
-			canvasPanel.reveal(vscode.ViewColumn.Active);
+			canvasPanel.reveal(vscode.ViewColumn.Beside);
 			sendCapsulesDataToWebview(canvasPanel.webview);
 			return;
 		}
@@ -94,7 +94,7 @@ export function activate(context: vscode.ExtensionContext) {
 		canvasPanel = vscode.window.createWebviewPanel(
 			'nexhacksCanvas',
 			'Nexhacks Visualizer',
-			vscode.ViewColumn.Active,
+			vscode.ViewColumn.Beside,
 			{
 				enableScripts: true,
 				retainContextWhenHidden: true,
@@ -407,7 +407,7 @@ async function sendCapsulesDataToWebview(webview: vscode.Webview) {
 					}
 
 					try {
-						
+
 						const summary = await client.generateCapsuleSummary(
 							relativePath,
 							{

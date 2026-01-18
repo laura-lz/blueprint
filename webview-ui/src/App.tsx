@@ -439,24 +439,7 @@ const CapsuleNode: React.FC<NodeProps<FileNodeData>> = ({ data }) => {
               )}
             </div>
 
-            {/* Footer: Icon & Filename */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              opacity: 0.6,
-              marginTop: 'auto',
-              transform: 'scale(0.9)',
-              transformOrigin: 'left bottom'
-            }}>
-              <div style={{ fontSize: '18px' }}>{colors.icon}</div>
-              <div>
-                <div style={{ fontWeight: '600', fontSize: '13px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>{data.label}</div>
-                {(data.isDirectory || data.isRoot) && (
-                  <div style={{ fontSize: '10px' }}>{data.fileCount} items</div>
-                )}
-              </div>
-            </div>
+            
           </div>
         )}
 
