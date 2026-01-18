@@ -1,337 +1,949 @@
 {
   "stats": {
-    "totalFiles": 20,
+    "totalFiles": 22,
     "totalDirectories": 6,
-    "totalEdges": 0,
-    "externalDependencies": [],
+    "totalEdges": 8,
+    "externalDependencies": [
+      "eslint-config-next/core-web-vitals",
+      "eslint-config-next/typescript",
+      "eslint/config",
+      "next",
+      "next/font/google",
+      "react"
+    ],
     "entryPoints": [
-      ".nexhacks/capsules.json",
-      "README.md",
-      "bench.py",
-      "config/eval_gpt2.py",
-      "config/eval_gpt2_large.py",
-      "config/eval_gpt2_medium.py",
-      "config/eval_gpt2_xl.py",
-      "config/finetune_shakespeare.py",
-      "config/train_gpt2.py",
-      "config/train_shakespeare_char.py"
+      ".nexhacks\\capsules.json",
+      "app\\layout.tsx",
+      "app\\page.module.css",
+      "app\\page.tsx",
+      "components\\Calculator.tsx",
+      "eslint.config.mjs",
+      "lib\\calculator.ts",
+      "next-env.d.ts",
+      "next.config.ts",
+      "package-lock.json"
     ]
   },
   "files": {
-    ".nexhacks/capsules.json": {
-      "path": "/Users/wayne_tx/Desktop/nanoGPT/.nexhacks/capsules.json",
-      "relativePath": ".nexhacks/capsules.json",
+    ".nexhacks\\capsules.json": {
+      "path": "C:\\Users\\maggi\\OneDrive\\Documents\\GitHub\\nexhacks\\samples\\calculator\\.nexhacks\\capsules.json",
+      "relativePath": ".nexhacks\\capsules.json",
       "name": "capsules.json",
       "lang": "json",
       "imports": [],
       "exports": [],
       "topSymbols": [],
-      "summaryContext": {
+      "metadata": {
         "functionSignatures": [],
-        "firstNLines": "{\n  \"stats\": {\n    \"totalFiles\": 20,\n    \"totalDirectories\": 6,\n    \"totalEdges\": 0,\n    \"externalDependencies\": [],\n    \"entryPoints\": [\n      \".nexhacks/capsules.json\",\n      \"README.md\",\n      \"bench.py\",\n      \"config/eval_gpt2.py\",\n      \"config/eval_gpt2_large.py\",\n      \"config/eval_gpt2_medium.py\",\n      \"config/eval_gpt2_xl.py\",\n      \"config/finetune_shakespeare.py\",\n      \"config/train_gpt2.py\",\n      \"config/train_shakespeare_char.py\"\n    ]\n  },\n  \"files\": {\n    \".nexhacks/capsules.json\": {\n      \"path\": \"/Users/wayne_tx/Desktop/nanoGPT/.nexhacks/capsules.json\",\n      \"relativePath\": \".nexhacks/capsules.json\",\n      \"name\": \"capsules.json\",\n      \"lang\": \"json\",\n      \"imports\": [],\n      \"exports\": [],\n      \"topSymbols\": [],\n      \"summaryContext\": {\n        \"functionSignatures\": [],",
+        "firstNLines": "{\n  \"stats\": {\n    \"totalFiles\": 21,\n    \"totalDirectories\": 5,\n    \"totalEdges\": 8,\n    \"externalDependencies\": [\n      \"eslint-config-next/core-web-vitals\",\n      \"eslint-config-next/typescript\",\n      \"eslint/config\",\n      \"next\",\n      \"next/font/google\",\n      \"react\"\n    ],\n    \"entryPoints\": [\n      \"app\\\\layout.tsx\",\n      \"app\\\\page.module.css\",\n      \"app\\\\page.tsx\",\n      \"components\\\\Calculator.tsx\",\n      \"eslint.config.mjs\",\n      \"lib\\\\calculator.ts\",\n      \"next-env.d.ts\",\n      \"next.config.ts\",\n      \"package-lock.json\",\n      \"package.json\"\n    ]\n  },\n  \"files\": {\n    \"app\\\\globals.css\": {\n      \"path\": \"c:\\\\Users\\\\maggi\\\\OneDrive\\\\Documents\\\\GitHub\\\\nexhacks\\\\samples\\\\calculator\\\\app\\\\globals.css\",\n      \"relativePath\": \"app\\\\globals.css\",",
+        "usedBy": [],
+        "dependsOn": []
+      }
+    },
+    "app\\globals.css": {
+      "path": "C:\\Users\\maggi\\OneDrive\\Documents\\GitHub\\nexhacks\\samples\\calculator\\app\\globals.css",
+      "relativePath": "app\\globals.css",
+      "name": "globals.css",
+      "lang": "css",
+      "imports": [],
+      "exports": [],
+      "topSymbols": [],
+      "metadata": {
+        "functionSignatures": [],
+        "firstNLines": ":root {\r\n  --background: #0a0a12;\r\n  --foreground: #ffffff;\r\n}\r\n\r\n* {\r\n  box-sizing: border-box;\r\n  padding: 0;\r\n  margin: 0;\r\n}\r\n\r\nhtml,\r\nbody {\r\n  max-width: 100vw;\r\n  overflow-x: hidden;\r\n  font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;\r\n}\r\n\r\nbody {\r\n  color: var(--foreground);\r\n  background: var(--background);\r\n  background-image:\r\n    radial-gradient(ellipse 80% 80% at 50% -20%, rgba(120, 119, 198, 0.15), transparent),\r\n    radial-gradient(ellipse 60% 60% at 80% 100%, rgba(255, 149, 0, 0.1), transparent);\r\n  min-height: 100vh;\r\n}\r\n\r\na {\r\n  color: inherit;\r\n  text-decoration: none;\r",
+        "usedBy": [
+          "app\\layout.tsx"
+        ],
+        "dependsOn": []
+      }
+    },
+    "app\\layout.tsx": {
+      "path": "C:\\Users\\maggi\\OneDrive\\Documents\\GitHub\\nexhacks\\samples\\calculator\\app\\layout.tsx",
+      "relativePath": "app\\layout.tsx",
+      "name": "layout.tsx",
+      "lang": "react-typescript",
+      "imports": [
+        {
+          "pathOrModule": "next",
+          "symbols": [
+            "Metadata"
+          ],
+          "isDefault": false,
+          "isLocal": false
+        },
+        {
+          "pathOrModule": "next/font/google",
+          "symbols": [
+            "Geist",
+            "Geist_Mono"
+          ],
+          "isDefault": false,
+          "isLocal": false
+        },
+        {
+          "pathOrModule": "./globals.css",
+          "symbols": [],
+          "isDefault": false,
+          "isLocal": true
+        }
+      ],
+      "exports": [
+        {
+          "name": "metadata",
+          "kind": "variable",
+          "isDefault": false
+        },
+        {
+          "name": "RootLayout",
+          "kind": "default",
+          "isDefault": true
+        }
+      ],
+      "topSymbols": [
+        {
+          "name": "RootLayout",
+          "kind": "function",
+          "location": {
+            "start": {
+              "line": 20,
+              "column": 0
+            },
+            "end": {
+              "line": 32,
+              "column": 0
+            }
+          },
+          "exported": true
+        },
+        {
+          "name": "metadata",
+          "kind": "const",
+          "location": {
+            "start": {
+              "line": 15,
+              "column": 0
+            },
+            "end": {
+              "line": 18,
+              "column": 0
+            }
+          },
+          "exported": true
+        }
+      ],
+      "metadata": {
+        "functionSignatures": [
+          {
+            "name": "RootLayout",
+            "signature": "export default function RootLayout(",
+            "exported": true
+          }
+        ],
+        "firstNLines": "import type { Metadata } from \"next\";\r\nimport { Geist, Geist_Mono } from \"next/font/google\";\r\nimport \"./globals.css\";\r\n\r\nconst geistSans = Geist({\r\n  variable: \"--font-geist-sans\",\r\n  subsets: [\"latin\"],\r\n});\r\n\r\nconst geistMono = Geist_Mono({\r\n  variable: \"--font-geist-mono\",\r\n  subsets: [\"latin\"],\r\n});\r\n\r\nexport const metadata: Metadata = {\r\n  title: \"Calculator | Nexhacks Sample\",\r\n  description: \"A modern calculator built with Next.js\",\r\n};\r\n\r\nexport default function RootLayout({\r\n  children,\r\n}: Readonly<{\r\n  children: React.ReactNode;\r\n}>) {\r\n  return (\r\n    <html lang=\"en\">\r\n      <body className={`${geistSans.variable} ${geistMono.variable}`}>\r\n        {children}\r\n      </body>\r\n    </html>\r",
+        "usedBy": [],
+        "dependsOn": [
+          "./globals.css"
+        ]
+      },
+      "upperLevelSummary": "Defines the application's root layout structure, metadata, and global font configurations. It serves as the primary entry point wrapper for all pages while importing required global CSS styles."
+    },
+    "app\\page.module.css": {
+      "path": "C:\\Users\\maggi\\OneDrive\\Documents\\GitHub\\nexhacks\\samples\\calculator\\app\\page.module.css",
+      "relativePath": "app\\page.module.css",
+      "name": "page.module.css",
+      "lang": "css",
+      "imports": [],
+      "exports": [],
+      "topSymbols": [],
+      "metadata": {
+        "functionSignatures": [],
+        "firstNLines": ".main {\r\n  display: flex;\r\n  flex-direction: column;\r\n  align-items: center;\r\n  justify-content: center;\r\n  min-height: 100vh;\r\n  padding: 24px;\r\n}\r\n\r\n.title {\r\n  font-size: 1.5rem;\r\n  font-weight: 500;\r\n  color: rgba(255, 255, 255, 0.6);\r\n  margin-bottom: 24px;\r\n  letter-spacing: 0.05em;\r\n  text-transform: uppercase;\r\n}",
+        "usedBy": [],
+        "dependsOn": []
+      }
+    },
+    "app\\page.tsx": {
+      "path": "C:\\Users\\maggi\\OneDrive\\Documents\\GitHub\\nexhacks\\samples\\calculator\\app\\page.tsx",
+      "relativePath": "app\\page.tsx",
+      "name": "page.tsx",
+      "lang": "react-typescript",
+      "imports": [
+        {
+          "pathOrModule": "react",
+          "symbols": [
+            "React"
+          ],
+          "isDefault": true,
+          "isLocal": false
+        },
+        {
+          "pathOrModule": "./Visualizer",
+          "symbols": [
+            "Visualizer"
+          ],
+          "isDefault": true,
+          "isLocal": true
+        }
+      ],
+      "exports": [
+        {
+          "name": "Home",
+          "kind": "default",
+          "isDefault": true
+        }
+      ],
+      "topSymbols": [
+        {
+          "name": "Home",
+          "kind": "function",
+          "location": {
+            "start": {
+              "line": 22,
+              "column": 0
+            },
+            "end": {
+              "line": 28,
+              "column": 0
+            }
+          },
+          "exported": true
+        }
+      ],
+      "metadata": {
+        "fileDocstring": "import Calculator from \"@/components/Calculator\";",
+        "functionSignatures": [
+          {
+            "name": "Home",
+            "signature": "export default function Home()",
+            "exported": true
+          }
+        ],
+        "firstNLines": "// import Calculator from \"@/components/Calculator\";\r\n// import styles from \"./page.module.css\";\r\n\r\n// /**\r\n//  * Home page component\r\n//  * Renders the calculator in a centered layout\r\n//  */\r\n// export default function Home() {\r\n//   return (\r\n//     <main className={styles.main}>\r\n//       <h1 className={styles.title}>Calculator</h1>\r\n//       <Calculator />\r\n//     </main>\r\n//   );\r\n// }\r\n\r\n\"use client\"; // <--- Important for Next.js!\r\n\r\nimport React from 'react';\r\nimport Visualizer from './Visualizer'; // Import your new component\r\n\r\nexport default function Home() {\r\n  return (\r\n    <main style={{ width: '100vw', height: '100vh' }}>\r\n      <Visualizer />\r\n    </main>\r\n  );\r\n}",
+        "usedBy": [],
+        "dependsOn": [
+          "./Visualizer"
+        ]
+      },
+      "upperLevelSummary": "Defines the home page component that renders a calculator interface within a centered layout. Serves as the main entry point for the application and depends on the Calculator and Visualizer components."
+    },
+    "components\\Button.module.css": {
+      "path": "C:\\Users\\maggi\\OneDrive\\Documents\\GitHub\\nexhacks\\samples\\calculator\\components\\Button.module.css",
+      "relativePath": "components\\Button.module.css",
+      "name": "Button.module.css",
+      "lang": "css",
+      "imports": [],
+      "exports": [],
+      "topSymbols": [],
+      "metadata": {
+        "functionSignatures": [],
+        "firstNLines": ".button {\r\n    display: flex;\r\n    align-items: center;\r\n    justify-content: center;\r\n    font-size: 1.5rem;\r\n    font-weight: 400;\r\n    border: none;\r\n    border-radius: 16px;\r\n    cursor: pointer;\r\n    transition: all 0.15s ease;\r\n    user-select: none;\r\n    aspect-ratio: 1;\r\n    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;\r\n}\r\n\r\n.button:active {\r\n    transform: scale(0.95);\r\n}\r\n\r\n/* Number buttons */\r\n.number {\r\n    background: linear-gradient(145deg, #2d2d44, #252538);\r\n    color: #ffffff;\r\n    box-shadow:\r\n        0 4px 15px rgba(0, 0, 0, 0.3),\r\n        inset 0 1px 0 rgba(255, 255, 255, 0.1);\r\n}\r\n\r\n.number:hover {\r\n    background: linear-gradient(145deg, #3a3a55, #2d2d44);\r",
+        "usedBy": [
+          "components\\Button.tsx"
+        ],
+        "dependsOn": []
+      }
+    },
+    "components\\Button.tsx": {
+      "path": "C:\\Users\\maggi\\OneDrive\\Documents\\GitHub\\nexhacks\\samples\\calculator\\components\\Button.tsx",
+      "relativePath": "components\\Button.tsx",
+      "name": "Button.tsx",
+      "lang": "react-typescript",
+      "imports": [
+        {
+          "pathOrModule": "./Button.module.css",
+          "symbols": [
+            "styles"
+          ],
+          "isDefault": true,
+          "isLocal": true
+        }
+      ],
+      "exports": [
+        {
+          "name": "Button",
+          "kind": "default",
+          "isDefault": true
+        }
+      ],
+      "topSymbols": [
+        {
+          "name": "Button",
+          "kind": "function",
+          "location": {
+            "start": {
+              "line": 14,
+              "column": 0
+            },
+            "end": {
+              "line": 39,
+              "column": 0
+            }
+          },
+          "exported": true
+        }
+      ],
+      "metadata": {
+        "functionSignatures": [
+          {
+            "name": "Button",
+            "signature": "export default function Button(",
+            "exported": true
+          },
+          {
+            "name": "handleClick",
+            "signature": "const handleClick = () =>",
+            "exported": true
+          }
+        ],
+        "firstNLines": "import styles from \"./Button.module.css\";\r\n\r\ninterface ButtonProps {\r\n    value: string;\r\n    onClick: (value: string) => void;\r\n    variant?: \"number\" | \"operator\" | \"special\" | \"equals\";\r\n    wide?: boolean;\r\n}\r\n\r\n/**\r\n * Calculator button component\r\n * Supports multiple visual variants for different button types\r\n */\r\nexport default function Button({\r\n    value,\r\n    onClick,\r\n    variant = \"number\",\r\n    wide = false\r\n}: ButtonProps) {\r\n    const handleClick = () => {\r\n        onClick(value);\r\n    };\r\n\r\n    const classNames = [\r\n        styles.button,\r\n        styles[variant],\r\n        wide ? styles.wide : \"\"\r\n    ].filter(Boolean).join(\" \");\r\n\r\n    return (\r",
+        "usedBy": [
+          "components\\ButtonGrid.tsx"
+        ],
+        "dependsOn": [
+          "./Button.module.css"
+        ]
+      },
+      "upperLevelSummary": "This component provides a customizable calculator button with support for multiple visual variants and click handling. It relies on local CSS modules for styling and is primarily utilized by the ButtonGrid component to build the user interface."
+    },
+    "components\\ButtonGrid.module.css": {
+      "path": "C:\\Users\\maggi\\OneDrive\\Documents\\GitHub\\nexhacks\\samples\\calculator\\components\\ButtonGrid.module.css",
+      "relativePath": "components\\ButtonGrid.module.css",
+      "name": "ButtonGrid.module.css",
+      "lang": "css",
+      "imports": [],
+      "exports": [],
+      "topSymbols": [],
+      "metadata": {
+        "functionSignatures": [],
+        "firstNLines": ".grid {\r\n    display: grid;\r\n    grid-template-columns: repeat(4, 1fr);\r\n    gap: 12px;\r\n}\r\n\r\n@media (max-width: 480px) {\r\n    .grid {\r\n        gap: 8px;\r\n    }\r\n}",
+        "usedBy": [
+          "components\\ButtonGrid.tsx"
+        ],
+        "dependsOn": []
+      }
+    },
+    "components\\ButtonGrid.tsx": {
+      "path": "C:\\Users\\maggi\\OneDrive\\Documents\\GitHub\\nexhacks\\samples\\calculator\\components\\ButtonGrid.tsx",
+      "relativePath": "components\\ButtonGrid.tsx",
+      "name": "ButtonGrid.tsx",
+      "lang": "react-typescript",
+      "imports": [
+        {
+          "pathOrModule": "./Button",
+          "symbols": [
+            "Button"
+          ],
+          "isDefault": true,
+          "isLocal": true
+        },
+        {
+          "pathOrModule": "./ButtonGrid.module.css",
+          "symbols": [
+            "styles"
+          ],
+          "isDefault": true,
+          "isLocal": true
+        }
+      ],
+      "exports": [
+        {
+          "name": "ButtonGrid",
+          "kind": "default",
+          "isDefault": true
+        }
+      ],
+      "topSymbols": [
+        {
+          "name": "ButtonGrid",
+          "kind": "function",
+          "location": {
+            "start": {
+              "line": 12,
+              "column": 0
+            },
+            "end": {
+              "line": 48,
+              "column": 0
+            }
+          },
+          "exported": true
+        }
+      ],
+      "metadata": {
+        "functionSignatures": [
+          {
+            "name": "ButtonGrid",
+            "signature": "export default function ButtonGrid(",
+            "exported": true
+          }
+        ],
+        "firstNLines": "import Button from \"./Button\";\r\nimport styles from \"./ButtonGrid.module.css\";\r\n\r\ninterface ButtonGridProps {\r\n    onButtonClick: (value: string) => void;\r\n}\r\n\r\n/**\r\n * Calculator button grid component\r\n * Arranges buttons in a 4x5 grid layout\r\n */\r\nexport default function ButtonGrid({ onButtonClick }: ButtonGridProps) {\r\n    const buttons = [\r\n        { value: \"C\", variant: \"special\" as const },\r\n        { value: \"±\", variant: \"special\" as const },\r\n        { value: \"%\", variant: \"special\" as const },\r\n        { value: \"÷\", variant: \"operator\" as const },\r\n        { value: \"7\", variant: \"number\" as const },\r\n        { value: \"8\", variant: \"number\" as const },\r\n        { value: \"9\", variant: \"number\" as const },\r\n        { value: \"×\", variant: \"operator\" as const },\r\n        { value: \"4\", variant: \"number\" as const },\r\n        { value: \"5\", variant: \"number\" as const },\r\n        { value: \"6\", variant: \"number\" as const },\r\n        { value: \"-\", variant: \"operator\" as const },\r\n        { value: \"1\", variant: \"number\" as const },\r\n        { value: \"2\", variant: \"number\" as const },\r\n        { value: \"3\", variant: \"number\" as const },\r\n        { value: \"+\", variant: \"operator\" as const },\r\n        { value: \"0\", variant: \"number\" as const, wide: true },\r",
+        "usedBy": [
+          "components\\Calculator.tsx"
+        ],
+        "dependsOn": [
+          "./Button",
+          "./ButtonGrid.module.css"
+        ]
+      },
+      "upperLevelSummary": "This component renders a 4x5 grid of calculator buttons and manages click interactions via a provided callback function. It depends on the Button component and local styles to supply interactive elements to the parent Calculator container."
+    },
+    "components\\Calculator.module.css": {
+      "path": "C:\\Users\\maggi\\OneDrive\\Documents\\GitHub\\nexhacks\\samples\\calculator\\components\\Calculator.module.css",
+      "relativePath": "components\\Calculator.module.css",
+      "name": "Calculator.module.css",
+      "lang": "css",
+      "imports": [],
+      "exports": [],
+      "topSymbols": [],
+      "metadata": {
+        "functionSignatures": [],
+        "firstNLines": ".calculator {\r\n  background: linear-gradient(145deg, #1a1a2e, #16213e);\r\n  border-radius: 24px;\r\n  padding: 24px;\r\n  box-shadow: \r\n    0 25px 50px -12px rgba(0, 0, 0, 0.5),\r\n    0 0 0 1px rgba(255, 255, 255, 0.1),\r\n    inset 0 1px 0 rgba(255, 255, 255, 0.1);\r\n  backdrop-filter: blur(20px);\r\n  min-width: 320px;\r\n  max-width: 400px;\r\n}\r\n\r\n@media (max-width: 480px) {\r\n  .calculator {\r\n    min-width: 280px;\r\n    padding: 16px;\r\n    border-radius: 20px;\r\n  }\r\n}\r\n",
+        "usedBy": [
+          "components\\Calculator.tsx"
+        ],
+        "dependsOn": []
+      }
+    },
+    "components\\Calculator.tsx": {
+      "path": "C:\\Users\\maggi\\OneDrive\\Documents\\GitHub\\nexhacks\\samples\\calculator\\components\\Calculator.tsx",
+      "relativePath": "components\\Calculator.tsx",
+      "name": "Calculator.tsx",
+      "lang": "react-typescript",
+      "imports": [
+        {
+          "pathOrModule": "react",
+          "symbols": [
+            "useState",
+            "useCallback"
+          ],
+          "isDefault": false,
+          "isLocal": false
+        },
+        {
+          "pathOrModule": "@/lib/calculator",
+          "symbols": [
+            "calculate",
+            "parseInput",
+            "formatDisplay",
+            "Operation"
+          ],
+          "isDefault": false,
+          "isLocal": true
+        },
+        {
+          "pathOrModule": "./Display",
+          "symbols": [
+            "Display"
+          ],
+          "isDefault": true,
+          "isLocal": true
+        },
+        {
+          "pathOrModule": "./ButtonGrid",
+          "symbols": [
+            "ButtonGrid"
+          ],
+          "isDefault": true,
+          "isLocal": true
+        },
+        {
+          "pathOrModule": "./Calculator.module.css",
+          "symbols": [
+            "styles"
+          ],
+          "isDefault": true,
+          "isLocal": true
+        }
+      ],
+      "exports": [
+        {
+          "name": "Calculator",
+          "kind": "default",
+          "isDefault": true
+        }
+      ],
+      "topSymbols": [
+        {
+          "name": "Calculator",
+          "kind": "function",
+          "location": {
+            "start": {
+              "line": 13,
+              "column": 0
+            },
+            "end": {
+              "line": 172,
+              "column": 0
+            }
+          },
+          "exported": true
+        }
+      ],
+      "metadata": {
+        "functionSignatures": [
+          {
+            "name": "Calculator",
+            "signature": "export default function Calculator()",
+            "exported": true
+          }
+        ],
+        "firstNLines": "\"use client\";\r\n\r\nimport { useState, useCallback } from \"react\";\r\nimport { calculate, parseInput, formatDisplay, Operation } from \"@/lib/calculator\";\r\nimport Display from \"./Display\";\r\nimport ButtonGrid from \"./ButtonGrid\";\r\nimport styles from \"./Calculator.module.css\";\r\n\r\n/**\r\n * Main Calculator component\r\n * Manages state and orchestrates calculation logic\r\n */\r\nexport default function Calculator() {\r\n    const [display, setDisplay] = useState(\"0\");\r\n    const [previousValue, setPreviousValue] = useState<number | null>(null);\r\n    const [operation, setOperation] = useState<Operation | null>(null);\r\n    const [waitingForOperand, setWaitingForOperand] = useState(false);\r\n    const [history, setHistory] = useState(\"\");\r\n\r\n    /**\r\n     * Handles number button clicks\r\n     */\r\n    const handleNumber = useCallback((num: string) => {\r\n        if (waitingForOperand) {\r\n            setDisplay(num);\r\n            setWaitingForOperand(false);\r\n        } else {\r\n            setDisplay(display === \"0\" ? num : display + num);\r\n        }\r\n    }, [display, waitingForOperand]);\r",
+        "usedBy": [],
+        "dependsOn": [
+          "@/lib/calculator",
+          "./Display",
+          "./ButtonGrid",
+          "./Calculator.module.css"
+        ]
+      },
+      "upperLevelSummary": "This component manages the state and logic for a functional calculator interface. It coordinates display and input subcomponents while utilizing a shared utility library for mathematical operations."
+    },
+    "components\\Display.module.css": {
+      "path": "C:\\Users\\maggi\\OneDrive\\Documents\\GitHub\\nexhacks\\samples\\calculator\\components\\Display.module.css",
+      "relativePath": "components\\Display.module.css",
+      "name": "Display.module.css",
+      "lang": "css",
+      "imports": [],
+      "exports": [],
+      "topSymbols": [],
+      "metadata": {
+        "functionSignatures": [],
+        "firstNLines": ".display {\r\n    background: linear-gradient(180deg, #0f0f1a, #1a1a2e);\r\n    border-radius: 16px;\r\n    padding: 20px 24px;\r\n    margin-bottom: 20px;\r\n    min-height: 100px;\r\n    display: flex;\r\n    flex-direction: column;\r\n    justify-content: flex-end;\r\n    align-items: flex-end;\r\n    border: 1px solid rgba(255, 255, 255, 0.05);\r\n    box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.3);\r\n}\r\n\r\n.history {\r\n    font-size: 0.875rem;\r\n    color: rgba(255, 255, 255, 0.4);\r\n    min-height: 1.25rem;\r\n    margin-bottom: 8px;\r\n    font-family: 'SF Mono', 'Fira Code', monospace;\r\n}\r\n\r\n.value {\r\n    font-size: 2.5rem;\r\n    font-weight: 300;\r\n    color: #ffffff;\r\n    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;\r\n    letter-spacing: -0.02em;\r\n    word-break: break-all;\r\n    text-align: right;\r",
+        "usedBy": [
+          "components\\Display.tsx"
+        ],
+        "dependsOn": []
+      }
+    },
+    "components\\Display.tsx": {
+      "path": "C:\\Users\\maggi\\OneDrive\\Documents\\GitHub\\nexhacks\\samples\\calculator\\components\\Display.tsx",
+      "relativePath": "components\\Display.tsx",
+      "name": "Display.tsx",
+      "lang": "react-typescript",
+      "imports": [
+        {
+          "pathOrModule": "./Display.module.css",
+          "symbols": [
+            "styles"
+          ],
+          "isDefault": true,
+          "isLocal": true
+        }
+      ],
+      "exports": [
+        {
+          "name": "Display",
+          "kind": "default",
+          "isDefault": true
+        }
+      ],
+      "topSymbols": [
+        {
+          "name": "Display",
+          "kind": "function",
+          "location": {
+            "start": {
+              "line": 12,
+              "column": 0
+            },
+            "end": {
+              "line": 19,
+              "column": 0
+            }
+          },
+          "exported": true
+        }
+      ],
+      "metadata": {
+        "functionSignatures": [
+          {
+            "name": "Display",
+            "signature": "export default function Display(",
+            "exported": true
+          }
+        ],
+        "firstNLines": "import styles from \"./Display.module.css\";\r\n\r\ninterface DisplayProps {\r\n    value: string;\r\n    history: string;\r\n}\r\n\r\n/**\r\n * Calculator display component\r\n * Shows the current value and calculation history\r\n */\r\nexport default function Display({ value, history }: DisplayProps) {\r\n    return (\r\n        <div className={styles.display}>\r\n            <div className={styles.history}>{history}</div>\r\n            <div className={styles.value}>{value}</div>\r\n        </div>\r\n    );\r\n}\r\n",
+        "usedBy": [
+          "components\\Calculator.tsx"
+        ],
+        "dependsOn": [
+          "./Display.module.css"
+        ]
+      },
+      "upperLevelSummary": "This component renders the calculator's display interface to show current input values and operation history. It is utilized by the Calculator component and depends on a local CSS module for styling."
+    },
+    "eslint.config.mjs": {
+      "path": "C:\\Users\\maggi\\OneDrive\\Documents\\GitHub\\nexhacks\\samples\\calculator\\eslint.config.mjs",
+      "relativePath": "eslint.config.mjs",
+      "name": "eslint.config.mjs",
+      "lang": "javascript",
+      "imports": [
+        {
+          "pathOrModule": "eslint/config",
+          "symbols": [
+            "defineConfig",
+            "globalIgnores"
+          ],
+          "isDefault": false,
+          "isLocal": false
+        },
+        {
+          "pathOrModule": "eslint-config-next/core-web-vitals",
+          "symbols": [
+            "nextVitals"
+          ],
+          "isDefault": true,
+          "isLocal": false
+        },
+        {
+          "pathOrModule": "eslint-config-next/typescript",
+          "symbols": [
+            "nextTs"
+          ],
+          "isDefault": true,
+          "isLocal": false
+        }
+      ],
+      "exports": [
+        {
+          "name": "eslintConfig",
+          "kind": "default",
+          "isDefault": true
+        }
+      ],
+      "topSymbols": [],
+      "metadata": {
+        "functionSignatures": [],
+        "firstNLines": "import { defineConfig, globalIgnores } from \"eslint/config\";\r\nimport nextVitals from \"eslint-config-next/core-web-vitals\";\r\nimport nextTs from \"eslint-config-next/typescript\";\r\n\r\nconst eslintConfig = defineConfig([\r\n  ...nextVitals,\r\n  ...nextTs,\r\n  // Override default ignores of eslint-config-next.\r\n  globalIgnores([\r\n    // Default ignores of eslint-config-next:\r\n    \".next/**\",\r\n    \"out/**\",\r\n    \"build/**\",\r\n    \"next-env.d.ts\",\r\n  ]),\r\n]);\r\n\r\nexport default eslintConfig;\r\n",
+        "usedBy": [],
+        "dependsOn": []
+      },
+      "upperLevelSummary": "Configures project-wide linting by merging Next.js core vitals and TypeScript presets with custom global ignore paths. Exports the central eslintConfig object and depends on external Next.js configuration packages for its rule sets."
+    },
+    "lib\\calculator.ts": {
+      "path": "C:\\Users\\maggi\\OneDrive\\Documents\\GitHub\\nexhacks\\samples\\calculator\\lib\\calculator.ts",
+      "relativePath": "lib\\calculator.ts",
+      "name": "calculator.ts",
+      "lang": "typescript",
+      "imports": [],
+      "exports": [
+        {
+          "name": "add",
+          "kind": "function",
+          "isDefault": false
+        },
+        {
+          "name": "subtract",
+          "kind": "function",
+          "isDefault": false
+        },
+        {
+          "name": "multiply",
+          "kind": "function",
+          "isDefault": false
+        },
+        {
+          "name": "divide",
+          "kind": "function",
+          "isDefault": false
+        },
+        {
+          "name": "Operation",
+          "kind": "type",
+          "isDefault": false
+        },
+        {
+          "name": "calculate",
+          "kind": "function",
+          "isDefault": false
+        },
+        {
+          "name": "parseInput",
+          "kind": "function",
+          "isDefault": false
+        },
+        {
+          "name": "formatDisplay",
+          "kind": "function",
+          "isDefault": false
+        }
+      ],
+      "topSymbols": [
+        {
+          "name": "add",
+          "kind": "function",
+          "location": {
+            "start": {
+              "line": 12,
+              "column": 0
+            },
+            "end": {
+              "line": 14,
+              "column": 0
+            }
+          },
+          "exported": true
+        },
+        {
+          "name": "subtract",
+          "kind": "function",
+          "location": {
+            "start": {
+              "line": 22,
+              "column": 0
+            },
+            "end": {
+              "line": 24,
+              "column": 0
+            }
+          },
+          "exported": true
+        },
+        {
+          "name": "multiply",
+          "kind": "function",
+          "location": {
+            "start": {
+              "line": 32,
+              "column": 0
+            },
+            "end": {
+              "line": 34,
+              "column": 0
+            }
+          },
+          "exported": true
+        },
+        {
+          "name": "divide",
+          "kind": "function",
+          "location": {
+            "start": {
+              "line": 43,
+              "column": 0
+            },
+            "end": {
+              "line": 48,
+              "column": 0
+            }
+          },
+          "exported": true
+        },
+        {
+          "name": "calculate",
+          "kind": "function",
+          "location": {
+            "start": {
+              "line": 62,
+              "column": 0
+            },
+            "end": {
+              "line": 75,
+              "column": 0
+            }
+          },
+          "exported": true
+        },
+        {
+          "name": "parseInput",
+          "kind": "function",
+          "location": {
+            "start": {
+              "line": 82,
+              "column": 0
+            },
+            "end": {
+              "line": 88,
+              "column": 0
+            }
+          },
+          "exported": true
+        },
+        {
+          "name": "formatDisplay",
+          "kind": "function",
+          "location": {
+            "start": {
+              "line": 95,
+              "column": 0
+            },
+            "end": {
+              "line": 108,
+              "column": 0
+            }
+          },
+          "exported": true
+        }
+      ],
+      "metadata": {
+        "fileDocstring": "*\r\n * Calculator logic module\r\n * Contains pure mathematical functions for calculator operations",
+        "functionSignatures": [
+          {
+            "name": "add",
+            "signature": "export function add(a: number, b: number): number",
+            "exported": true
+          },
+          {
+            "name": "subtract",
+            "signature": "export function subtract(a: number, b: number): number",
+            "exported": true
+          },
+          {
+            "name": "multiply",
+            "signature": "export function multiply(a: number, b: number): number",
+            "exported": true
+          },
+          {
+            "name": "divide",
+            "signature": "export function divide(a: number, b: number): number",
+            "exported": true
+          },
+          {
+            "name": "calculate",
+            "signature": "export function calculate(a: number, operation: Operation, b: number): number",
+            "exported": true
+          },
+          {
+            "name": "parseInput",
+            "signature": "export function parseInput(input: string): number",
+            "exported": true
+          },
+          {
+            "name": "formatDisplay",
+            "signature": "export function formatDisplay(value: number): string",
+            "exported": true
+          }
+        ],
+        "firstNLines": "/**\r\n * Calculator logic module\r\n * Contains pure mathematical functions for calculator operations\r\n */\r\n\r\n/**\r\n * Adds two numbers together\r\n * @param a - First operand\r\n * @param b - Second operand\r\n * @returns Sum of a and b\r\n */\r\nexport function add(a: number, b: number): number {\r\n  return a + b;\r\n}\r\n\r\n/**\r\n * Subtracts the second number from the first\r\n * @param a - First operand\r\n * @param b - Second operand\r\n * @returns Difference of a and b\r\n */\r\nexport function subtract(a: number, b: number): number {\r\n  return a - b;\r\n}\r\n\r\n/**\r\n * Multiplies two numbers together\r\n * @param a - First operand\r\n * @param b - Second operand\r\n * @returns Product of a and b\r",
+        "usedBy": [],
+        "dependsOn": []
+      },
+      "upperLevelSummary": "Provides core calculator logic through pure mathematical functions, input parsing, and result formatting. Functions as an independent utility module with no internal dependencies or external consumers."
+    },
+    "next-env.d.ts": {
+      "path": "C:\\Users\\maggi\\OneDrive\\Documents\\GitHub\\nexhacks\\samples\\calculator\\next-env.d.ts",
+      "relativePath": "next-env.d.ts",
+      "name": "next-env.d.ts",
+      "lang": "typescript",
+      "imports": [],
+      "exports": [],
+      "topSymbols": [],
+      "metadata": {
+        "fileDocstring": "/ <reference types=\"next\" />",
+        "functionSignatures": [],
+        "firstNLines": "/// <reference types=\"next\" />\r\n/// <reference types=\"next/image-types/global\" />\r\n/// <reference path=\"./.next/types/routes.d.ts\" />\r\n\r\n// NOTE: This file should not be edited\r\n// see https://nextjs.org/docs/app/api-reference/config/typescript for more information.\r\n",
+        "usedBy": [],
+        "dependsOn": []
+      },
+      "upperLevelSummary": "Provides global TypeScript type definitions for Next.js core features, image types, and route declarations. Acts as an automatically managed configuration file that integrates framework-specific types into the project environment."
+    },
+    "next.config.ts": {
+      "path": "C:\\Users\\maggi\\OneDrive\\Documents\\GitHub\\nexhacks\\samples\\calculator\\next.config.ts",
+      "relativePath": "next.config.ts",
+      "name": "next.config.ts",
+      "lang": "typescript",
+      "imports": [
+        {
+          "pathOrModule": "next",
+          "symbols": [
+            "NextConfig"
+          ],
+          "isDefault": false,
+          "isLocal": false
+        }
+      ],
+      "exports": [
+        {
+          "name": "nextConfig",
+          "kind": "default",
+          "isDefault": true
+        }
+      ],
+      "topSymbols": [],
+      "metadata": {
+        "fileDocstring": "config options here",
+        "functionSignatures": [],
+        "firstNLines": "import type { NextConfig } from \"next\";\r\n\r\nconst nextConfig: NextConfig = {\r\n  /* config options here */\r\n};\r\n\r\nexport default nextConfig;\r\n",
+        "usedBy": [],
+        "dependsOn": []
+      },
+      "upperLevelSummary": "Defines framework-level configuration options and settings to customize the Next.js application. It exports a standalone configuration object that operates independently without local dependencies or internal dependents."
+    },
+    "package-lock.json": {
+      "path": "C:\\Users\\maggi\\OneDrive\\Documents\\GitHub\\nexhacks\\samples\\calculator\\package-lock.json",
+      "relativePath": "package-lock.json",
+      "name": "package-lock.json",
+      "lang": "json",
+      "imports": [],
+      "exports": [],
+      "topSymbols": [],
+      "metadata": {
+        "functionSignatures": [],
+        "firstNLines": "{\r\n    \"name\": \"calculator\",\r\n    \"version\": \"0.1.0\",\r\n    \"lockfileVersion\": 3,\r\n    \"requires\": true,\r\n    \"packages\": {\r\n        \"\": {\r\n            \"name\": \"calculator\",\r\n            \"version\": \"0.1.0\",\r\n            \"dependencies\": {\r\n                \"next\": \"16.1.3\",\r\n                \"react\": \"19.2.3\",\r\n                \"react-dom\": \"19.2.3\"\r\n            },\r\n            \"devDependencies\": {\r\n                \"@types/node\": \"^20\",\r\n                \"@types/react\": \"^19\",\r\n                \"@types/react-dom\": \"^19\",\r\n                \"eslint\": \"^9\",\r\n                \"eslint-config-next\": \"16.1.3\",\r\n                \"typescript\": \"^5\"\r\n            }\r\n        },\r\n        \"node_modules/@babel/code-frame\": {\r\n            \"version\": \"7.28.6\",\r\n            \"resolved\": \"https://registry.npmjs.org/@babel/code-frame/-/code-frame-7.28.6.tgz\",\r\n            \"integrity\": \"sha512-JYgintcMjRiCvS8mMECzaEn+m3PfoQiyqukOMCCVQtoJGYJw8j/8LBJEiqkHLkfwCcs74E3pbAUFNg7d9VNJ+Q==\",\r\n            \"dev\": true,\r\n            \"license\": \"MIT\",\r\n            \"dependencies\": {\r",
+        "usedBy": [],
+        "dependsOn": []
+      }
+    },
+    "package.json": {
+      "path": "C:\\Users\\maggi\\OneDrive\\Documents\\GitHub\\nexhacks\\samples\\calculator\\package.json",
+      "relativePath": "package.json",
+      "name": "package.json",
+      "lang": "json",
+      "imports": [],
+      "exports": [],
+      "topSymbols": [],
+      "metadata": {
+        "functionSignatures": [],
+        "firstNLines": "{\r\n    \"name\": \"calculator\",\r\n    \"version\": \"0.1.0\",\r\n    \"private\": true,\r\n    \"scripts\": {\r\n        \"dev\": \"next dev\",\r\n        \"build\": \"next build\",\r\n        \"start\": \"next start\",\r\n        \"lint\": \"eslint\"\r\n    },\r\n    \"dependencies\": {\r\n        \"next\": \"16.1.3\",\r\n        \"react\": \"19.2.3\",\r\n        \"react-dom\": \"19.2.3\"\r\n    },\r\n    \"devDependencies\": {\r\n        \"@types/node\": \"^20\",\r\n        \"@types/react\": \"^19\",\r\n        \"@types/react-dom\": \"^19\",\r\n        \"eslint\": \"^9\",\r\n        \"eslint-config-next\": \"16.1.3\",\r\n        \"typescript\": \"^5\"\r\n    }\r\n}",
+        "usedBy": [],
+        "dependsOn": []
+      }
+    },
+    "public\\capsules.json": {
+      "path": "C:\\Users\\maggi\\OneDrive\\Documents\\GitHub\\nexhacks\\samples\\calculator\\public\\capsules.json",
+      "relativePath": "public\\capsules.json",
+      "name": "capsules.json",
+      "lang": "json",
+      "imports": [],
+      "exports": [],
+      "topSymbols": [],
+      "metadata": {
+        "functionSignatures": [],
+        "firstNLines": "{\r\n  \"stats\": {\r\n    \"totalFiles\": 19,\r\n    \"totalDirectories\": 4,\r\n    \"totalEdges\": 11,\r\n    \"externalDependencies\": [\r\n      \"next\",\r\n      \"next/font/google\",\r\n      \"react\"\r\n    ],\r\n    \"entryPoints\": [\r\n      \"README.md\",\r\n      \"app/layout.tsx\",\r\n      \"app/page.tsx\",\r\n      \"next-env.d.ts\",\r\n      \"next.config.ts\",\r\n      \"package-lock.json\",\r\n      \"package.json\",\r\n      \"tsconfig.json\"\r\n    ]\r\n  },\r\n  \"files\": {\r\n    \"README.md\": {\r\n      \"path\": \"/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/README.md\",\r\n      \"relativePath\": \"README.md\",\r\n      \"name\": \"README.md\",\r\n      \"lang\": \"markdown\",\r\n      \"imports\": [],\r\n      \"exports\": [],\r\n      \"topSymbols\": [],\r",
         "usedBy": [],
         "dependsOn": []
       }
     },
     "README.md": {
-      "path": "/Users/wayne_tx/Desktop/nanoGPT/README.md",
+      "path": "C:\\Users\\maggi\\OneDrive\\Documents\\GitHub\\nexhacks\\samples\\calculator\\README.md",
       "relativePath": "README.md",
       "name": "README.md",
       "lang": "markdown",
       "imports": [],
       "exports": [],
       "topSymbols": [],
-      "summaryContext": {
+      "metadata": {
         "functionSignatures": [],
-        "firstNLines": "\n# nanoGPT\n\n![nanoGPT](assets/nanogpt.jpg)\n\n\n---\n\n**Update Nov 2025** nanoGPT has a new and improved cousin called [nanochat](https://github.com/karpathy/nanochat). It is very likely you meant to use/find nanochat instead. nanoGPT (this repo) is now very old and deprecated but I will leave it up for posterity.\n\n---\n\nThe simplest, fastest repository for training/finetuning medium-sized GPTs. It is a rewrite of [minGPT](https://github.com/karpathy/minGPT) that prioritizes teeth over education. Still under active development, but currently the file `train.py` reproduces GPT-2 (124M) on OpenWebText, running on a single 8XA100 40GB node in about 4 days of training. The code itself is plain and readable: `train.py` is a ~300-line boilerplate training loop and `model.py` a ~300-line GPT model definition, which can optionally load the GPT-2 weights from OpenAI. That's it.\n\n![repro124m](assets/gpt2_124M_loss.png)\n\nBecause the code is so simple, it is very easy to hack to your needs, train new models from scratch, or finetune pretrained checkpoints (e.g. biggest one currently available as a starting point would be the GPT-2 1.3B model from OpenAI).\n\n## install\n\n```\npip install torch numpy transformers datasets tiktoken wandb tqdm\n```\n\nDependencies:\n\n- [pytorch](https://pytorch.org) <3\n- [numpy](https://numpy.org/install/) <3\n-  `transformers` for huggingface transformers <3 (to load GPT-2 checkpoints)\n-  `datasets` for huggingface datasets <3 (if you want to download + preprocess OpenWebText)",
+        "firstNLines": "This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).\r\n\r\n## Getting Started\r\n\r\nFirst, run the development server:\r\n\r\n```bash\r\nnpm run dev\r\n# or\r\nyarn dev\r\n# or\r\npnpm dev\r\n# or\r\nbun dev\r\n```\r\n\r\nOpen [http://localhost:3000](http://localhost:3000) with your browser to see the result.\r\n\r\nYou can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.\r\n\r\nThis project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.\r\n\r\n## Learn More\r\n\r\nTo learn more about Next.js, take a look at the following resources:\r\n\r\n- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.\r\n- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.\r\n\r\nYou can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!\r",
         "usedBy": [],
         "dependsOn": []
       }
     },
-    "bench.py": {
-      "path": "/Users/wayne_tx/Desktop/nanoGPT/bench.py",
-      "relativePath": "bench.py",
-      "name": "bench.py",
-      "lang": "python",
+    "tsconfig.json": {
+      "path": "C:\\Users\\maggi\\OneDrive\\Documents\\GitHub\\nexhacks\\samples\\calculator\\tsconfig.json",
+      "relativePath": "tsconfig.json",
+      "name": "tsconfig.json",
+      "lang": "json",
       "imports": [],
       "exports": [],
       "topSymbols": [],
-      "summaryContext": {
+      "metadata": {
         "functionSignatures": [],
-        "firstNLines": "\"\"\"\nA much shorter version of train.py for benchmarking\n\"\"\"\nimport os\nfrom contextlib import nullcontext\nimport numpy as np\nimport time\nimport torch\nfrom model import GPTConfig, GPT\n\n# -----------------------------------------------------------------------------\nbatch_size = 12\nblock_size = 1024\nbias = False\nreal_data = True\nseed = 1337\ndevice = 'cuda' # examples: 'cpu', 'cuda', 'cuda:0', 'cuda:1', etc.\ndtype = 'bfloat16' if torch.cuda.is_available() and torch.cuda.is_bf16_supported() else 'float16' # 'float32' or 'bfloat16' or 'float16'\ncompile = True # use PyTorch 2.0 to compile the model to be faster\nprofile = False # use pytorch profiler, or just simple benchmarking?\nexec(open('configurator.py').read()) # overrides from command line or config file\n# -----------------------------------------------------------------------------\n\ntorch.manual_seed(seed)\ntorch.cuda.manual_seed(seed)\ntorch.backends.cuda.matmul.allow_tf32 = True # allow tf32 on matmul\ntorch.backends.cudnn.allow_tf32 = True # allow tf32 on cudnn\ndevice_type = 'cuda' if 'cuda' in device else 'cpu' # for later use in torch.autocast\nptdtype = {'float32': torch.float32, 'bfloat16': torch.bfloat16, 'float16': torch.float16}[dtype]\nctx = nullcontext() if device_type == 'cpu' else torch.amp.autocast(device_type=device_type, dtype=ptdtype)",
-        "usedBy": [],
-        "dependsOn": []
-      },
-      "summary": "This script functions as a streamlined version of the training logic specifically designed to benchmark the GPT model. It relies on the internal model module and standard libraries but operates independently without local dependents."
-    },
-    "config/eval_gpt2.py": {
-      "path": "/Users/wayne_tx/Desktop/nanoGPT/config/eval_gpt2.py",
-      "relativePath": "config/eval_gpt2.py",
-      "name": "eval_gpt2.py",
-      "lang": "python",
-      "imports": [],
-      "exports": [],
-      "topSymbols": [],
-      "summaryContext": {
-        "functionSignatures": [],
-        "firstNLines": "# evaluate the base gpt2\n# n_layer=12, n_head=12, n_embd=768\n# 124M parameters\nbatch_size = 8\neval_iters = 500 # use more iterations to get good estimate\neval_only = True\nwandb_log = False\ninit_from = 'gpt2'\n",
-        "usedBy": [],
-        "dependsOn": []
-      },
-      "summary": "This file configures hyperparameters for evaluating the base GPT-2 model with 124 million parameters. It operates independently without any local dependencies or connections to other files in the codebase."
-    },
-    "config/eval_gpt2_large.py": {
-      "path": "/Users/wayne_tx/Desktop/nanoGPT/config/eval_gpt2_large.py",
-      "relativePath": "config/eval_gpt2_large.py",
-      "name": "eval_gpt2_large.py",
-      "lang": "python",
-      "imports": [],
-      "exports": [],
-      "topSymbols": [],
-      "summaryContext": {
-        "functionSignatures": [],
-        "firstNLines": "# evaluate the base gpt2\n# n_layer=36, n_head=20, n_embd=1280\n# 774M parameters\nbatch_size = 8\neval_iters = 500 # use more iterations to get good estimate\neval_only = True\nwandb_log = False\ninit_from = 'gpt2-large'\n",
-        "usedBy": [],
-        "dependsOn": []
-      },
-      "summary": "This configuration file sets parameters for evaluating the GPT2-large model without training. It functions independently with no local dependencies or downstream connections."
-    },
-    "config/eval_gpt2_medium.py": {
-      "path": "/Users/wayne_tx/Desktop/nanoGPT/config/eval_gpt2_medium.py",
-      "relativePath": "config/eval_gpt2_medium.py",
-      "name": "eval_gpt2_medium.py",
-      "lang": "python",
-      "imports": [],
-      "exports": [],
-      "topSymbols": [],
-      "summaryContext": {
-        "functionSignatures": [],
-        "firstNLines": "# evaluate the base gpt2\n# n_layer=24, n_head=16, n_embd=1024\n# 350M parameters\nbatch_size = 8\neval_iters = 500 # use more iterations to get good estimate\neval_only = True\nwandb_log = False\ninit_from = 'gpt2-medium'\n",
-        "usedBy": [],
-        "dependsOn": []
-      },
-      "summary": "This configuration file defines settings to evaluate the GPT-2 medium model using pre-trained weights. It operates independently with no local dependencies or other files currently utilizing it."
-    },
-    "config/eval_gpt2_xl.py": {
-      "path": "/Users/wayne_tx/Desktop/nanoGPT/config/eval_gpt2_xl.py",
-      "relativePath": "config/eval_gpt2_xl.py",
-      "name": "eval_gpt2_xl.py",
-      "lang": "python",
-      "imports": [],
-      "exports": [],
-      "topSymbols": [],
-      "summaryContext": {
-        "functionSignatures": [],
-        "firstNLines": "# evaluate the base gpt2\n# n_layer=48, n_head=25, n_embd=1600\n# 1558M parameters\nbatch_size = 8\neval_iters = 500 # use more iterations to get good estimate\neval_only = True\nwandb_log = False\ninit_from = 'gpt2-xl'\n",
-        "usedBy": [],
-        "dependsOn": []
-      },
-      "summary": "This file defines configuration parameters for evaluating the GPT-2 XL model, including batch size and iteration settings. It operates independently within the codebase with no local dependencies or dependent modules."
-    },
-    "config/finetune_shakespeare.py": {
-      "path": "/Users/wayne_tx/Desktop/nanoGPT/config/finetune_shakespeare.py",
-      "relativePath": "config/finetune_shakespeare.py",
-      "name": "finetune_shakespeare.py",
-      "lang": "python",
-      "imports": [],
-      "exports": [],
-      "topSymbols": [],
-      "summaryContext": {
-        "functionSignatures": [],
-        "firstNLines": "import time\n\nout_dir = 'out-shakespeare'\neval_interval = 5\neval_iters = 40\nwandb_log = False # feel free to turn on\nwandb_project = 'shakespeare'\nwandb_run_name = 'ft-' + str(time.time())\n\ndataset = 'shakespeare'\ninit_from = 'gpt2-xl' # this is the largest GPT-2 model\n\n# only save checkpoints if the validation loss improves\nalways_save_checkpoint = False\n\n# the number of examples per iter:\n# 1 batch_size * 32 grad_accum * 1024 tokens = 32,768 tokens/iter\n# shakespeare has 301,966 tokens, so 1 epoch ~= 9.2 iters\nbatch_size = 1\ngradient_accumulation_steps = 32\nmax_iters = 20\n\n# finetune at constant LR\nlearning_rate = 3e-5\ndecay_lr = False\n",
-        "usedBy": [],
-        "dependsOn": []
-      },
-      "summary": "This configuration file defines hyperparameters and settings for fine-tuning a GPT-2 XL model on the Shakespeare dataset. It operates as a standalone script with no local dependencies and is not currently imported by any other files."
-    },
-    "config/train_gpt2.py": {
-      "path": "/Users/wayne_tx/Desktop/nanoGPT/config/train_gpt2.py",
-      "relativePath": "config/train_gpt2.py",
-      "name": "train_gpt2.py",
-      "lang": "python",
-      "imports": [],
-      "exports": [],
-      "topSymbols": [],
-      "summaryContext": {
-        "functionSignatures": [],
-        "firstNLines": "# config for training GPT-2 (124M) down to very nice loss of ~2.85 on 1 node of 8X A100 40GB\n# launch as the following (e.g. in a screen session) and wait ~5 days:\n# $ torchrun --standalone --nproc_per_node=8 train.py config/train_gpt2.py\n\nwandb_log = True\nwandb_project = 'owt'\nwandb_run_name='gpt2-124M'\n\n# these make the total batch size be ~0.5M\n# 12 batch size * 1024 block size * 5 gradaccum * 8 GPUs = 491,520\nbatch_size = 12\nblock_size = 1024\ngradient_accumulation_steps = 5 * 8\n\n# this makes total number of tokens be 300B\nmax_iters = 600000\nlr_decay_iters = 600000\n\n# eval stuff\neval_interval = 1000\neval_iters = 200\nlog_interval = 10\n\n# weight decay\nweight_decay = 1e-1\n",
-        "usedBy": [],
-        "dependsOn": []
-      },
-      "summary": "This file defines hyperparameters and logging settings for training a 124M GPT-2 model. It operates as a standalone configuration file passed to the training script without any local dependencies."
-    },
-    "config/train_shakespeare_char.py": {
-      "path": "/Users/wayne_tx/Desktop/nanoGPT/config/train_shakespeare_char.py",
-      "relativePath": "config/train_shakespeare_char.py",
-      "name": "train_shakespeare_char.py",
-      "lang": "python",
-      "imports": [],
-      "exports": [],
-      "topSymbols": [],
-      "summaryContext": {
-        "functionSignatures": [],
-        "firstNLines": "# train a miniature character-level shakespeare model\n# good for debugging and playing on macbooks and such\n\nout_dir = 'out-shakespeare-char'\neval_interval = 250 # keep frequent because we'll overfit\neval_iters = 200\nlog_interval = 10 # don't print too too often\n\n# we expect to overfit on this small dataset, so only save when val improves\nalways_save_checkpoint = False\n\nwandb_log = False # override via command line if you like\nwandb_project = 'shakespeare-char'\nwandb_run_name = 'mini-gpt'\n\ndataset = 'shakespeare_char'\ngradient_accumulation_steps = 1\nbatch_size = 64\nblock_size = 256 # context of up to 256 previous characters\n\n# baby GPT model :)\nn_layer = 6\nn_head = 6\nn_embd = 384\ndropout = 0.2\n\nlearning_rate = 1e-3 # with baby networks can afford to go a bit higher\nmax_iters = 5000\nlr_decay_iters = 5000 # make equal to max_iters usually\nmin_lr = 1e-4 # learning_rate / 10 usually",
-        "usedBy": [],
-        "dependsOn": []
-      },
-      "summary": "This file configures hyperparameters for training a small character-level model on the Shakespeare dataset to debug and observe overfitting. It functions as an isolated configuration script without local dependencies or dependents, defining output paths and logging settings for the training process."
-    },
-    "configurator.py": {
-      "path": "/Users/wayne_tx/Desktop/nanoGPT/configurator.py",
-      "relativePath": "configurator.py",
-      "name": "configurator.py",
-      "lang": "python",
-      "imports": [],
-      "exports": [],
-      "topSymbols": [],
-      "summaryContext": {
-        "functionSignatures": [],
-        "firstNLines": "\"\"\"\nPoor Man's Configurator. Probably a terrible idea. Example usage:\n$ python train.py config/override_file.py --batch_size=32\nthis will first run config/override_file.py, then override batch_size to 32\n\nThe code in this file will be run as follows from e.g. train.py:\n>>> exec(open('configurator.py').read())\n\nSo it's not a Python module, it's just shuttling this code away from train.py\nThe code in this script then overrides the globals()\n\nI know people are not going to love this, I just really dislike configuration\ncomplexity and having to prepend config. to every single variable. If someone\ncomes up with a better simple Python solution I am all ears.\n\"\"\"\n\nimport sys\nfrom ast import literal_eval\n\nfor arg in sys.argv[1:]:\n    if '=' not in arg:\n        # assume it's the name of a config file\n        assert not arg.startswith('--')\n        config_file = arg\n        print(f\"Overriding config with {config_file}:\")\n        with open(config_file) as f:\n            print(f.read())\n        exec(open(config_file).read())\n    else:\n        # assume it's a --key=value argument",
-        "usedBy": [],
-        "dependsOn": []
-      },
-      "summary": "This script provides a simple configuration mechanism by executing external files to directly override global variables without complex namespaces. It is not a standard module but is executed via `exec` within entry scripts like `train.py` to handle runtime configuration overrides."
-    },
-    "data/openwebtext/prepare.py": {
-      "path": "/Users/wayne_tx/Desktop/nanoGPT/data/openwebtext/prepare.py",
-      "relativePath": "data/openwebtext/prepare.py",
-      "name": "prepare.py",
-      "lang": "python",
-      "imports": [],
-      "exports": [],
-      "topSymbols": [],
-      "summaryContext": {
-        "functionSignatures": [],
-        "firstNLines": "# saves the openwebtext dataset to a binary file for training. following was helpful:\n# https://github.com/HazyResearch/flash-attention/blob/main/training/src/datamodules/language_modeling_hf.py\n\nimport os\nfrom tqdm import tqdm\nimport numpy as np\nimport tiktoken\nfrom datasets import load_dataset # huggingface datasets\n\n# number of workers in .map() call\n# good number to use is ~order number of cpu cores // 2\nnum_proc = 8\n\n# number of workers in load_dataset() call\n# best number might be different from num_proc above as it also depends on NW speed.\n# it is better than 1 usually though\nnum_proc_load_dataset = num_proc\n\nenc = tiktoken.get_encoding(\"gpt2\")\n\nif __name__ == '__main__':\n    # takes 54GB in huggingface .cache dir, about 8M documents (8,013,769)\n    dataset = load_dataset(\"openwebtext\", num_proc=num_proc_load_dataset)\n\n    # owt by default only contains the 'train' split, so create a test split\n    split_dataset = dataset[\"train\"].train_test_split(test_size=0.0005, seed=2357, shuffle=True)\n    split_dataset['val'] = split_dataset.pop('test') # rename the test split to val\n\n    # this results in:\n    # >>> split_dataset",
-        "usedBy": [],
-        "dependsOn": []
-      },
-      "summary": "This script prepares and saves the OpenWebText dataset to a binary file for training. It operates independently with no local dependencies or dependents."
-    },
-    "data/openwebtext/readme.md": {
-      "path": "/Users/wayne_tx/Desktop/nanoGPT/data/openwebtext/readme.md",
-      "relativePath": "data/openwebtext/readme.md",
-      "name": "readme.md",
-      "lang": "markdown",
-      "imports": [],
-      "exports": [],
-      "topSymbols": [],
-      "summaryContext": {
-        "functionSignatures": [],
-        "firstNLines": "\n## openwebtext dataset\n\nafter running `prepare.py` (preprocess) we get:\n\n- train.bin is ~17GB, val.bin ~8.5MB\n- train has ~9B tokens (9,035,582,198)\n- val has ~4M tokens (4,434,897)\n\nthis came from 8,013,769 documents in total.\n\nreferences:\n\n- OpenAI's WebText dataset is discussed in [GPT-2 paper](https://d4mucfpksywv.cloudfront.net/better-language-models/language_models_are_unsupervised_multitask_learners.pdf)\n- [OpenWebText](https://skylion007.github.io/OpenWebTextCorpus/) dataset\n",
+        "firstNLines": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2017\",\n    \"lib\": [\n      \"dom\",\n      \"dom.iterable\",\n      \"esnext\"\n    ],\n    \"allowJs\": true,\n    \"skipLibCheck\": true,\n    \"strict\": true,\n    \"noEmit\": true,\n    \"esModuleInterop\": true,\n    \"module\": \"esnext\",\n    \"moduleResolution\": \"bundler\",\n    \"resolveJsonModule\": true,\n    \"isolatedModules\": true,\n    \"jsx\": \"preserve\",\n    \"incremental\": true,\n    \"plugins\": [\n      {\n        \"name\": \"next\"\n      }\n    ],\n    \"paths\": {\n      \"@/*\": [\n        \"./*\"\n      ]\n    }\n  },",
         "usedBy": [],
         "dependsOn": []
       }
-    },
-    "data/shakespeare/prepare.py": {
-      "path": "/Users/wayne_tx/Desktop/nanoGPT/data/shakespeare/prepare.py",
-      "relativePath": "data/shakespeare/prepare.py",
-      "name": "prepare.py",
-      "lang": "python",
-      "imports": [],
-      "exports": [],
-      "topSymbols": [],
-      "summaryContext": {
-        "functionSignatures": [],
-        "firstNLines": "import os\nimport requests\nimport tiktoken\nimport numpy as np\n\n# download the tiny shakespeare dataset\ninput_file_path = os.path.join(os.path.dirname(__file__), 'input.txt')\nif not os.path.exists(input_file_path):\n    data_url = 'https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt'\n    with open(input_file_path, 'w', encoding='utf-8') as f:\n        f.write(requests.get(data_url).text)\n\nwith open(input_file_path, 'r', encoding='utf-8') as f:\n    data = f.read()\nn = len(data)\ntrain_data = data[:int(n*0.9)]\nval_data = data[int(n*0.9):]\n\n# encode with tiktoken gpt2 bpe\nenc = tiktoken.get_encoding(\"gpt2\")\ntrain_ids = enc.encode_ordinary(train_data)\nval_ids = enc.encode_ordinary(val_data)\nprint(f\"train has {len(train_ids):,} tokens\")\nprint(f\"val has {len(val_ids):,} tokens\")\n\n# export to bin files\ntrain_ids = np.array(train_ids, dtype=np.uint16)\nval_ids = np.array(val_ids, dtype=np.uint16)\ntrain_ids.tofile(os.path.join(os.path.dirname(__file__), 'train.bin'))\nval_ids.tofile(os.path.join(os.path.dirname(__file__), 'val.bin'))",
-        "usedBy": [],
-        "dependsOn": []
-      },
-      "summary": "This script downloads the tiny Shakespeare dataset and reads the raw text data for processing. It functions as a standalone utility with no local dependencies, exports, or dependent files."
-    },
-    "data/shakespeare/readme.md": {
-      "path": "/Users/wayne_tx/Desktop/nanoGPT/data/shakespeare/readme.md",
-      "relativePath": "data/shakespeare/readme.md",
-      "name": "readme.md",
-      "lang": "markdown",
-      "imports": [],
-      "exports": [],
-      "topSymbols": [],
-      "summaryContext": {
-        "functionSignatures": [],
-        "firstNLines": "\n# tiny shakespeare\n\nTiny shakespeare, of the good old char-rnn fame :)\n\nAfter running `prepare.py`:\n\n- train.bin has 301,966 tokens\n- val.bin has 36,059 tokens\n",
-        "usedBy": [],
-        "dependsOn": []
-      }
-    },
-    "data/shakespeare_char/prepare.py": {
-      "path": "/Users/wayne_tx/Desktop/nanoGPT/data/shakespeare_char/prepare.py",
-      "relativePath": "data/shakespeare_char/prepare.py",
-      "name": "prepare.py",
-      "lang": "python",
-      "imports": [],
-      "exports": [],
-      "topSymbols": [],
-      "summaryContext": {
-        "functionSignatures": [],
-        "firstNLines": "\"\"\"\nPrepare the Shakespeare dataset for character-level language modeling.\nSo instead of encoding with GPT-2 BPE tokens, we just map characters to ints.\nWill save train.bin, val.bin containing the ids, and meta.pkl containing the\nencoder and decoder and some other related info.\n\"\"\"\nimport os\nimport pickle\nimport requests\nimport numpy as np\n\n# download the tiny shakespeare dataset\ninput_file_path = os.path.join(os.path.dirname(__file__), 'input.txt')\nif not os.path.exists(input_file_path):\n    data_url = 'https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt'\n    with open(input_file_path, 'w') as f:\n        f.write(requests.get(data_url).text)\n\nwith open(input_file_path, 'r') as f:\n    data = f.read()\nprint(f\"length of dataset in characters: {len(data):,}\")\n\n# get all the unique characters that occur in this text\nchars = sorted(list(set(data)))\nvocab_size = len(chars)\nprint(\"all the unique characters:\", ''.join(chars))\nprint(f\"vocab size: {vocab_size:,}\")\n\n# create a mapping from characters to integers\nstoi = { ch:i for i,ch in enumerate(chars) }",
-        "usedBy": [],
-        "dependsOn": []
-      },
-      "summary": "This script prepares the tiny Shakespeare dataset for character-level language modeling by downloading the text and converting it into binary train and validation files. It operates as a standalone utility with no local dependencies or dependents to generate the necessary data artifacts."
-    },
-    "data/shakespeare_char/readme.md": {
-      "path": "/Users/wayne_tx/Desktop/nanoGPT/data/shakespeare_char/readme.md",
-      "relativePath": "data/shakespeare_char/readme.md",
-      "name": "readme.md",
-      "lang": "markdown",
-      "imports": [],
-      "exports": [],
-      "topSymbols": [],
-      "summaryContext": {
-        "functionSignatures": [],
-        "firstNLines": "\n# tiny shakespeare, character-level\n\nTiny shakespeare, of the good old char-rnn fame :) Treated on character-level.\n\nAfter running `prepare.py`:\n\n- train.bin has 1,003,854 tokens\n- val.bin has 111,540 tokens\n",
-        "usedBy": [],
-        "dependsOn": []
-      }
-    },
-    "model.py": {
-      "path": "/Users/wayne_tx/Desktop/nanoGPT/model.py",
-      "relativePath": "model.py",
-      "name": "model.py",
-      "lang": "python",
-      "imports": [],
-      "exports": [],
-      "topSymbols": [],
-      "summaryContext": {
-        "functionSignatures": [],
-        "firstNLines": "\"\"\"\nFull definition of a GPT Language Model, all of it in this single file.\nReferences:\n1) the official GPT-2 TensorFlow implementation released by OpenAI:\nhttps://github.com/openai/gpt-2/blob/master/src/model.py\n2) huggingface/transformers PyTorch implementation:\nhttps://github.com/huggingface/transformers/blob/main/src/transformers/models/gpt2/modeling_gpt2.py\n\"\"\"\n\nimport math\nimport inspect\nfrom dataclasses import dataclass\n\nimport torch\nimport torch.nn as nn\nfrom torch.nn import functional as F\n\nclass LayerNorm(nn.Module):\n    \"\"\" LayerNorm but with an optional bias. PyTorch doesn't support simply bias=False \"\"\"\n\n    def __init__(self, ndim, bias):\n        super().__init__()\n        self.weight = nn.Parameter(torch.ones(ndim))\n        self.bias = nn.Parameter(torch.zeros(ndim)) if bias else None\n\n    def forward(self, input):\n        return F.layer_norm(input, self.weight.shape, self.weight, self.bias, 1e-5)\n\nclass CausalSelfAttention(nn.Module):\n",
-        "usedBy": [],
-        "dependsOn": []
-      },
-      "summary": "This file provides a complete implementation of a GPT Language Model. It operates independently with no local dependencies or connections to other codebase modules."
-    },
-    "sample.py": {
-      "path": "/Users/wayne_tx/Desktop/nanoGPT/sample.py",
-      "relativePath": "sample.py",
-      "name": "sample.py",
-      "lang": "python",
-      "imports": [],
-      "exports": [],
-      "topSymbols": [],
-      "summaryContext": {
-        "functionSignatures": [],
-        "firstNLines": "\"\"\"\nSample from a trained model\n\"\"\"\nimport os\nimport pickle\nfrom contextlib import nullcontext\nimport torch\nimport tiktoken\nfrom model import GPTConfig, GPT\n\n# -----------------------------------------------------------------------------\ninit_from = 'resume' # either 'resume' (from an out_dir) or a gpt2 variant (e.g. 'gpt2-xl')\nout_dir = 'out' # ignored if init_from is not 'resume'\nstart = \"\\n\" # or \"<|endoftext|>\" or etc. Can also specify a file, use as: \"FILE:prompt.txt\"\nnum_samples = 10 # number of samples to draw\nmax_new_tokens = 500 # number of tokens generated in each sample\ntemperature = 0.8 # 1.0 = no change, < 1.0 = less random, > 1.0 = more random, in predictions\ntop_k = 200 # retain only the top_k most likely tokens, clamp others to have 0 probability\nseed = 1337\ndevice = 'cuda' # examples: 'cpu', 'cuda', 'cuda:0', 'cuda:1', etc.\ndtype = 'bfloat16' if torch.cuda.is_available() and torch.cuda.is_bf16_supported() else 'float16' # 'float32' or 'bfloat16' or 'float16'\ncompile = False # use PyTorch 2.0 to compile the model to be faster\nexec(open('configurator.py').read()) # overrides from command line or config file\n# -----------------------------------------------------------------------------\n\ntorch.manual_seed(seed)\ntorch.cuda.manual_seed(seed)\ntorch.backends.cuda.matmul.allow_tf32 = True # allow tf32 on matmul\ntorch.backends.cudnn.allow_tf32 = True # allow tf32 on cudnn\ndevice_type = 'cuda' if 'cuda' in device else 'cpu' # for later use in torch.autocast",
-        "usedBy": [],
-        "dependsOn": []
-      },
-      "summary": "This script generates text samples from a trained GPT model by loading configurations and defining sampling parameters. It imports architecture definitions from the model module but functions as a standalone script with no exports."
-    },
-    "train.py": {
-      "path": "/Users/wayne_tx/Desktop/nanoGPT/train.py",
-      "relativePath": "train.py",
-      "name": "train.py",
-      "lang": "python",
-      "imports": [],
-      "exports": [],
-      "topSymbols": [],
-      "summaryContext": {
-        "functionSignatures": [],
-        "firstNLines": "\"\"\"\nThis training script can be run both on a single gpu in debug mode,\nand also in a larger training run with distributed data parallel (ddp).\n\nTo run on a single GPU, example:\n$ python train.py --batch_size=32 --compile=False\n\nTo run with DDP on 4 gpus on 1 node, example:\n$ torchrun --standalone --nproc_per_node=4 train.py\n\nTo run with DDP on 4 gpus across 2 nodes, example:\n- Run on the first (master) node with example IP 123.456.123.456:\n$ torchrun --nproc_per_node=8 --nnodes=2 --node_rank=0 --master_addr=123.456.123.456 --master_port=1234 train.py\n- Run on the worker node:\n$ torchrun --nproc_per_node=8 --nnodes=2 --node_rank=1 --master_addr=123.456.123.456 --master_port=1234 train.py\n(If your cluster does not have Infiniband interconnect prepend NCCL_IB_DISABLE=1)\n\"\"\"\n\nimport os\nimport time\nimport math\nimport pickle\nfrom contextlib import nullcontext\n\nimport numpy as np\nimport torch\nfrom torch.nn.parallel import DistributedDataParallel as DDP\nfrom torch.distributed import init_process_group, destroy_process_group\n\nfrom model import GPTConfig, GPT",
-        "usedBy": [],
-        "dependsOn": []
-      },
-      "summary": "This script trains a model and supports execution on both single GPUs and distributed data parallel environments. It functions as a standalone entry point with no local dependencies or dependents."
     }
   }
 }

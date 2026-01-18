@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import ReactFlow, {
   ReactFlowProvider,
   useNodesState,
@@ -11,7 +11,7 @@ import ReactFlow, {
   Node,
   Edge,
   NodeProps,
-  Panel
+  addEdge
 } from 'reactflow';
 import {
   forceSimulation,
@@ -45,6 +45,13 @@ interface CapsuleFile {
   exports: { name: string; kind: string }[];
   imports: { pathOrModule: string; isLocal: boolean }[];
   topSymbols?: SymbolData[];
+  metadata?: {
+    usedBy?: string[];
+    dependsOn?: string[];
+    fileDocstring?: string;
+    firstNLines?: string;
+    functionSignatures?: { name: string; signature: string }[];
+  };
   summaryContext?: {
     usedBy: string[];
     dependsOn: string[];
@@ -89,10 +96,24 @@ interface FileNodeData {
   isDirectory?: boolean;
   isRoot?: boolean;
   fileCount?: number;
-  depth?: number;
+  trafficScore?: number;
+  // New: For highlighting/dimming
+  isDimmed?: boolean;
+  isHighlight?: boolean;
+  isGlobalConnecting?: boolean;
+}
+
+interface StickyNodeData {
+  content: string;
+  color: string;
+  onChange: (text: string) => void;
+  onDelete: () => void;
+  isConnecting: boolean;
+  onToggleConnect: () => void;
 }
 
 type FileNode = Node<FileNodeData>;
+type StickyNode = Node<StickyNodeData>;
 
 // --- LANG COLORS ---
 const langColors: Record<string, { bg: string; border: string; icon: string }> = {
@@ -107,20 +128,98 @@ const langColors: Record<string, { bg: string; border: string; icon: string }> =
   'other': { bg: '#1a1a1a', border: '#555', icon: '📄' },
 };
 
-// --- CUSTOM NODE COMPONENT ---
+// --- STICKY NOTE NODE ---
+const StickyNoteNode: React.FC<NodeProps<StickyNodeData>> = ({ data }) => {
+  return (
+    <div style={{
+      background: data.color || '#fefcbf',
+      borderRadius: '8px',
+      width: '240px',
+      boxShadow: data.isConnecting
+        ? '0 0 0 4px #4299e1, 0 10px 20px rgba(0,0,0,0.2)'
+        : '0 4px 6px rgba(0,0,0,0.3), 0 10px 20px rgba(0,0,0,0.1)',
+      border: '1px solid rgba(0,0,0,0.1)',
+      display: 'flex',
+      flexDirection: 'column',
+      fontFamily: 'system-ui, -apple-system, sans-serif'
+    }}>
+      <Handle type="target" position={Position.Top} style={{ top: '50%', left: '50%', opacity: 0 }} />
+      <Handle type="source" position={Position.Bottom} style={{ top: '50%', left: '50%', opacity: 0 }} />
+
+      <div style={{
+        height: '32px',
+        background: 'rgba(0,0,0,0.05)',
+        borderBottom: '1px solid rgba(0,0,0,0.05)',
+        display: 'flex',
+        justifyContent: 'space-between',
+        padding: '0 8px',
+        alignItems: 'center',
+        borderTopLeftRadius: '8px',
+        borderTopRightRadius: '8px',
+        cursor: 'grab'
+      }}>
+        <button
+          className="nodrag"
+          onClick={(e) => { e.stopPropagation(); data.onToggleConnect(); }}
+          style={{
+            background: data.isConnecting ? '#4299e1' : 'rgba(0,0,0,0.1)',
+            color: data.isConnecting ? '#fff' : '#555',
+            border: 'none',
+            borderRadius: '4px',
+            padding: '2px 8px',
+            fontSize: '11px',
+            fontWeight: 'bold',
+            cursor: 'pointer'
+          }}
+        >
+          {data.isConnecting ? 'Done' : '🔗 Connect'}
+        </button>
+
+        <button
+          className="nodrag"
+          onClick={data.onDelete}
+          style={{ background: 'transparent', border: 'none', color: '#555', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px' }}
+        >
+          ✕
+        </button>
+      </div>
+
+      <textarea
+        className="nodrag"
+        value={data.content}
+        onChange={(e) => data.onChange(e.target.value)}
+        placeholder="Type here..."
+        style={{
+          background: 'transparent',
+          border: 'none',
+          width: '100%',
+          minHeight: '140px',
+          padding: '16px',
+          fontSize: '14px',
+          lineHeight: '1.5',
+          color: '#333',
+          outline: 'none',
+          resize: 'none',
+          fontFamily: 'inherit'
+        }}
+      />
+    </div>
+  );
+};
+
+// --- CAPSULE NODE ---
 const CapsuleNode: React.FC<NodeProps<FileNodeData>> = ({ data }) => {
   const [expanded, setExpanded] = useState(false);
-  const [activeTab, setActiveTab] = useState<'summary' | 'structure' | 'code'>('summary');
+  const [activeTab, setActiveTab] = useState<'summary' | 'structure'>('summary');
 
-  const getColors = () => {
+  const colors = useMemo(() => {
     if (data.isRoot) return langColors.root;
     if (data.isDirectory) return langColors.directory;
     return langColors[data.lang] || langColors.other;
-  };
-
-  const colors = getColors();
+  }, [data.isRoot, data.isDirectory, data.lang]);
 
   const toggleExpand = (e: React.MouseEvent) => {
+    if (data.isGlobalConnecting) return;
     e.stopPropagation();
     setExpanded(!expanded);
   };
@@ -129,22 +228,37 @@ const CapsuleNode: React.FC<NodeProps<FileNodeData>> = ({ data }) => {
     e.stopPropagation();
   };
 
+  const opacity = data.isDimmed ? 0.15 : 1;
+  const borderStyle = data.isHighlight
+    ? '3px solid #f6e05e'
+    : `3px solid ${expanded ? '#fff' : colors.border}`;
+
+  const boxShadow = data.isHighlight
+    ? '0 0 30px rgba(246, 224, 94, 0.6)'
+    : (expanded ? '0 40px 80px rgba(0,0,0,0.9)' : '0 8px 25px rgba(0,0,0,0.6)');
+
+  // Dynamic width based on label length
+  const labelLength = data.label.length;
+  const baseWidth = data.isRoot ? 340 : data.isDirectory ? 300 : 280;
+  const dynamicWidth = Math.max(baseWidth, Math.min(labelLength * 14 + 100, 500));
+
   return (
     <div
       onClick={toggleExpand}
       style={{
+        opacity,
         padding: expanded ? '0' : '20px 24px',
         borderRadius: '24px',
         background: colors.bg,
         color: '#fff',
-        border: `3px solid ${expanded ? '#fff' : colors.border}`,
-        boxShadow: expanded ? '0 40px 80px rgba(0,0,0,0.9)' : '0 8px 25px rgba(0,0,0,0.6)',
-        width: expanded ? 600 : (data.isRoot ? 340 : 300),
+        border: borderStyle,
+        boxShadow: boxShadow,
+        width: expanded ? 600 : dynamicWidth,
         fontFamily: 'system-ui, -apple-system, sans-serif',
-        cursor: expanded ? 'default' : 'pointer',
+        cursor: data.isGlobalConnecting ? 'crosshair' : (expanded ? 'default' : 'pointer'),
         position: 'relative',
-        zIndex: expanded ? 100000 : 1000,
-        transition: 'width 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s'
+        zIndex: expanded ? 100000 : (data.isHighlight ? 5000 : 1000),
+        transition: 'opacity 0.2s, width 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s'
       }}
     >
       <Handle type="target" position={Position.Top} style={{ top: '50%', left: '50%', opacity: 0 }} />
@@ -158,17 +272,16 @@ const CapsuleNode: React.FC<NodeProps<FileNodeData>> = ({ data }) => {
             {(data.isDirectory || data.isRoot) && (
               <div style={{ fontSize: '16px', opacity: 0.7, fontWeight: '500' }}>{data.fileCount} items</div>
             )}
+            {data.isHighlight && (
+              <div style={{ color: '#f6e05e', fontSize: '12px', fontWeight: 'bold', marginTop: '4px' }}>MATCH</div>
+            )}
           </div>
         </div>
       )}
 
       {expanded && (
         <div style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-
-          {/* HEADER: DRAGGABLE (No 'nodrag' class) */}
-          <div
-            style={{ padding: '24px', background: 'rgba(0,0,0,0.2)', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'grab' }}
-          >
+          <div style={{ padding: '24px', background: 'rgba(0,0,0,0.2)', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'grab' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
               <span style={{ fontSize: '32px' }}>{colors.icon}</span>
               <span style={{ fontWeight: 'bold', fontSize: '24px' }}>{data.label}</span>
@@ -182,15 +295,11 @@ const CapsuleNode: React.FC<NodeProps<FileNodeData>> = ({ data }) => {
             </button>
           </div>
 
-          {/* TABS: DRAGGABLE */}
           <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.1)', cursor: 'grab' }}>
-            {[
-              { id: 'summary', label: 'Summary' },
-              { id: 'structure', label: 'Structure' }
-            ].map(tab => (
+            {[{ id: 'summary', label: 'Summary' }, { id: 'structure', label: 'Structure' }].map(tab => (
               <button
                 key={tab.id}
-                onClick={(e) => { e.stopPropagation(); setActiveTab(tab.id as 'summary' | 'structure' | 'code'); }}
+                onClick={(e) => { e.stopPropagation(); setActiveTab(tab.id as 'summary' | 'structure'); }}
                 className="nodrag"
                 style={{
                   flex: 1,
@@ -209,12 +318,7 @@ const CapsuleNode: React.FC<NodeProps<FileNodeData>> = ({ data }) => {
             ))}
           </div>
 
-          {/* CONTENT: NOT DRAGGABLE (Allows Text Selection) */}
-          <div
-            className="nodrag nowheel"
-            onWheel={handleScroll}
-            style={{ padding: '24px', maxHeight: '500px', overflowY: 'auto', background: '#0a0a0a', cursor: 'text' }}
-          >
+          <div className="nodrag nowheel" onWheel={handleScroll} style={{ padding: '24px', maxHeight: '500px', overflowY: 'auto', background: '#0a0a0a', cursor: 'text' }}>
             {activeTab === 'summary' && (
               <div style={{ animation: 'fadeIn 0.2s' }}>
                 {data.relativePath && (
@@ -284,10 +388,179 @@ const CapsuleNode: React.FC<NodeProps<FileNodeData>> = ({ data }) => {
                 )}
               </div>
             )}
-
           </div>
         </div>
       )}
+    </div>
+  );
+};
+
+// --- SIDEBAR COMPONENT ---
+interface SearchResult {
+  id: string;
+  label: string;
+  lang: string;
+  matchType: string; // 'name' | 'summary' | 'symbol'
+}
+
+const Sidebar = ({
+  capsules,
+  onSearch,
+  onToggleStructure,
+  showStructure,
+  fileTypes,
+  toggleFileType,
+  searchResults,
+  onClickResult,
+  onAddSticky,
+  onRefresh,
+  onSettings
+}: {
+  capsules: CapsulesData | null;
+  onSearch: (term: string) => void;
+  onToggleStructure: (show: boolean) => void;
+  showStructure: boolean;
+  fileTypes: Record<string, boolean>;
+  toggleFileType: (type: string) => void;
+  searchResults: SearchResult[];
+  onClickResult: (id: string) => void;
+  onAddSticky: () => void;
+  onRefresh: () => void;
+  onSettings: () => void;
+}) => {
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setSearchTerm(val);
+    onSearch(val);
+  };
+
+  return (
+    <div style={{
+      width: '280px',
+      height: '100vh',
+      background: '#111',
+      borderRight: '1px solid #333',
+      display: 'flex',
+      flexDirection: 'column',
+      zIndex: 20,
+      flexShrink: 0
+    }}>
+      <div style={{ padding: '16px', borderBottom: '1px solid #222', flexShrink: 0 }}>
+        <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#fff', marginBottom: '4px' }}>
+          🚀 Nexhacks
+        </div>
+        <div style={{ fontSize: '12px', color: '#666' }}>
+          {capsules?.stats.totalFiles || 0} Files • {capsules?.stats.totalEdges || 0} Connections
+        </div>
+      </div>
+
+      <div style={{ padding: '16px', flexShrink: 0 }}>
+        <input
+          type="text"
+          placeholder="Search files..."
+          value={searchTerm}
+          onChange={handleSearch}
+          style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', background: '#222', border: '1px solid #333', color: '#fff', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }}
+        />
+      </div>
+
+      <div style={{ padding: '0 16px 16px 16px', flexShrink: 0 }}>
+        <div style={{ fontSize: '11px', color: '#666', marginBottom: '8px', textTransform: 'uppercase', fontWeight: 'bold' }}>Tools</div>
+
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+          <button onClick={onAddSticky} style={{ flex: 1, padding: '10px', background: '#fefcbf', color: '#333', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>
+            + Note
+          </button>
+          <button onClick={onRefresh} style={{ flex: 1, padding: '10px', background: '#2d3748', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>
+            🔄 Refresh
+          </button>
+        </div>
+
+        <div style={{ fontSize: '11px', color: '#666', marginBottom: '8px', textTransform: 'uppercase', fontWeight: 'bold' }}>View</div>
+
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', background: '#222', padding: '8px', borderRadius: '6px' }}>
+          <span style={{ fontSize: '13px', color: '#ccc' }}>Folder Structure</span>
+          <input type="checkbox" checked={showStructure} onChange={(e) => onToggleStructure(e.target.checked)} style={{ cursor: 'pointer' }} />
+        </div>
+
+
+
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+          {Object.keys(fileTypes).map(type => (
+            <button key={type} onClick={() => toggleFileType(type)} style={{ fontSize: '10px', padding: '4px 8px', borderRadius: '12px', border: '1px solid #333', background: fileTypes[type] ? langColors[type]?.bg || '#333' : 'transparent', color: fileTypes[type] ? '#fff' : '#555', cursor: 'pointer', opacity: fileTypes[type] ? 1 : 0.5 }}>
+              {type === 'sticky' ? 'Notes' : type}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Search Results */}
+      {searchTerm && searchResults.length > 0 && (
+        <div style={{ padding: '0 16px 16px 16px', flexShrink: 0 }}>
+          <div style={{ fontSize: '11px', color: '#666', marginBottom: '8px', textTransform: 'uppercase', fontWeight: 'bold' }}>
+            Results ({searchResults.length})
+          </div>
+          <div style={{ maxHeight: '200px', overflowY: 'auto', background: '#0e0e0e', borderRadius: '8px', border: '1px solid #222' }}>
+            {searchResults.slice(0, 15).map(result => (
+              <button
+                key={result.id}
+                onClick={() => onClickResult(result.id)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  width: '100%',
+                  padding: '10px 12px',
+                  background: 'transparent',
+                  border: 'none',
+                  borderBottom: '1px solid #1a1a1a',
+                  color: '#fff',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  fontSize: '12px'
+                }}
+              >
+                <span style={{ opacity: 0.7 }}>{langColors[result.lang]?.icon || '📄'}</span>
+                <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{result.label}</span>
+                <span style={{ fontSize: '9px', background: '#333', padding: '2px 6px', borderRadius: '4px', color: '#888' }}>{result.matchType}</span>
+              </button>
+            ))}
+            {searchResults.length > 15 && (
+              <div style={{ padding: '8px 12px', color: '#666', fontSize: '11px', textAlign: 'center' }}>
+                +{searchResults.length - 15} more results
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {searchTerm && searchResults.length === 0 && (
+        <div style={{ padding: '0 16px 16px 16px', color: '#666', fontSize: '12px' }}>
+          No files found matching "{searchTerm}"
+        </div>
+      )}
+
+      {capsules?.stats.externalDependencies && capsules.stats.externalDependencies.length > 0 && (
+        <div style={{ padding: '16px', borderTop: '1px solid #222', background: '#0e0e0e', flexShrink: 0 }}>
+          <div style={{ fontSize: '10px', color: '#555', marginBottom: '8px', textTransform: 'uppercase', fontWeight: 'bold' }}>Dependencies</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', maxHeight: '80px', overflowY: 'auto' }}>
+            {capsules.stats.externalDependencies.slice(0, 12).map(dep => (
+              <span key={dep} style={{ fontSize: '10px', background: '#222', padding: '2px 6px', borderRadius: '4px', color: '#aaa' }}>{dep}</span>
+            ))}
+            {capsules.stats.externalDependencies.length > 12 && (
+              <span style={{ fontSize: '10px', color: '#666' }}>+{capsules.stats.externalDependencies.length - 12} more</span>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div style={{ padding: '16px', borderTop: '1px solid #222', flexShrink: 0 }}>
+        <button onClick={onSettings} style={{ width: '100%', padding: '8px', background: '#333', color: '#ccc', border: '1px solid #444', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>
+          ⚙️ Settings
+        </button>
+      </div>
     </div>
   );
 };
@@ -299,7 +572,9 @@ const prepareGraphData = (data: CapsulesData) => {
   const filesByDir: Record<string, CapsuleFile[]> = { '.': [] };
 
   Object.values(data.files).forEach(file => {
-    const parts = file.relativePath.split('/');
+    // Handle both / and \\ path separators
+    const normalizedPath = file.relativePath.replace(/\\/g, '/');
+    const parts = normalizedPath.split('/');
     if (parts.length === 1) {
       filesByDir['.'].push(file);
     } else {
@@ -345,12 +620,12 @@ const prepareGraphData = (data: CapsulesData) => {
         target: dirId,
         type: 'straight',
         style: { stroke: '#48bb78', strokeWidth: 12, opacity: 0.8 },
+        data: { isStructural: true }
       });
     }
 
     files.forEach(file => {
       const fileId = file.relativePath;
-
       const importCount = file.imports.length || 0;
       const usedByCount = file.summaryContext?.usedBy?.length || 0;
       const trafficScore = importCount + usedByCount;
@@ -369,7 +644,8 @@ const prepareGraphData = (data: CapsulesData) => {
           exports: file.exports.map(e => e.name),
           imports: file.imports.map(i => i.pathOrModule),
           topSymbols: file.topSymbols,
-          previewCode: file.summaryContext?.firstNLines
+          previewCode: file.summaryContext?.firstNLines,
+          trafficScore
         },
         position: { x: 0, y: 0 }
       });
@@ -391,24 +667,32 @@ const prepareGraphData = (data: CapsulesData) => {
     });
   });
 
+  // Create dependency edges from usedBy relationships (in metadata)
   Object.entries(data.files).forEach(([path, file]) => {
-    if (file.summaryContext?.usedBy) {
-      file.summaryContext.usedBy.forEach(usedByPath => {
-        if (nodes.find(n => n.id === usedByPath)) {
-          const traffic = (file.summaryContext?.usedBy?.length || 1);
-          const depWidth = Math.min(Math.max(6, traffic * 3), 18);
+    // usedBy is in metadata, not summaryContext
+    const usedByList = file.metadata?.usedBy || file.summaryContext?.usedBy || [];
+    if (usedByList.length > 0) {
+      usedByList.forEach((usedByPath: string) => {
+        // Normalize the usedBy path to match node IDs
+        const normalizedUsedBy = usedByPath.replace(/\\/g, '/');
+        const normalizedPath = path.replace(/\\/g, '/');
+
+        // Find if the source node exists (the file that imports this one)
+        if (nodes.find(n => n.id.replace(/\\/g, '/') === normalizedUsedBy)) {
+          const traffic = usedByList.length;
+          const depWidth = Math.min(Math.max(4, traffic * 2), 12);
 
           edges.push({
-            id: `dep-${usedByPath}->${path}`,
-            source: usedByPath,
-            target: path,
+            id: `dep-${normalizedUsedBy}->${normalizedPath}`,
+            source: usedByPath, // Use original path as source
+            target: path,       // Use original path as target
             type: 'straight',
             animated: true,
             style: {
               stroke: '#63b3ed',
               strokeWidth: depWidth,
               opacity: 1,
-              strokeDasharray: '5 5'
+              strokeDasharray: '8 4'
             },
             markerEnd: { type: MarkerType.ArrowClosed, color: '#63b3ed' },
             data: { isDependency: true }
@@ -424,14 +708,17 @@ const prepareGraphData = (data: CapsulesData) => {
 // --- FORCE LAYOUT ENGINE ---
 const applyForceLayout = (nodes: FileNode[], edges: Edge[]) => {
   const simulationNodes = nodes.map(node => ({ ...node, x: 0, y: 0 }));
-  const simulationEdges = edges.map(edge => ({ ...edge, source: edge.source, target: edge.target }));
+
+  const nodeIds = new Set(nodes.map(n => n.id));
+  const validEdges = edges.filter(e => nodeIds.has(e.source as string) && nodeIds.has(e.target as string));
+  const simulationEdges = validEdges.map(edge => ({ ...edge, source: edge.source, target: edge.target }));
 
   const filesPerDir: Record<string, number> = {};
   const inDegree: Record<string, number> = {};
 
-  edges.forEach(e => {
+  validEdges.forEach(e => {
     if (e.data?.isDependency) {
-      inDegree[e.target] = (inDegree[e.target] || 0) + 1;
+      inDegree[e.target as string] = (inDegree[e.target as string] || 0) + 1;
     }
   });
 
@@ -508,7 +795,18 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-  const nodeTypes = useMemo(() => ({ capsule: CapsuleNode }), []);
+
+  const nodeTypes = useMemo(() => ({
+    capsule: CapsuleNode,
+    sticky: StickyNoteNode
+  }), []);
+
+  const [showStructure, setShowStructure] = useState(true);
+  const [fileTypes, setFileTypes] = useState<Record<string, boolean>>({});
+  const [connectingNodeId, setConnectingNodeId] = useState<string | null>(null);
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+
+  const graphStructureRef = useRef<{ edges: Edge[], nodes: FileNode[] }>({ edges: [], nodes: [] });
 
   // Listen for messages from extension
   useEffect(() => {
@@ -528,7 +826,16 @@ export default function App() {
       if (message.type === 'setCapsules') {
         const data: CapsulesData = message.data;
         setCapsules(data);
+
+        const types: Record<string, boolean> = {};
+        types['directory'] = true;
+        types['sticky'] = true;
+        Object.values(data.files).forEach(f => { types[f.lang] = true; });
+        setFileTypes(types);
+
         const { nodes: rawNodes, edges: rawEdges } = prepareGraphData(data);
+        graphStructureRef.current = { edges: rawEdges, nodes: rawNodes };
+
         const { nodes: layoutedNodes, edges: layoutedEdges } = applyForceLayout(rawNodes, rawEdges);
         setNodes(layoutedNodes);
         setEdges(layoutedEdges);
@@ -538,29 +845,18 @@ export default function App() {
       if (message.type === 'updateFileSummary') {
         const { relativePath, summary } = message.data;
 
-        // Update capsules state
         setCapsules(prev => {
           if (!prev) return prev;
           const updatedFiles = { ...prev.files };
           if (updatedFiles[relativePath]) {
-            updatedFiles[relativePath] = {
-              ...updatedFiles[relativePath],
-              summary
-            };
+            updatedFiles[relativePath] = { ...updatedFiles[relativePath], summary };
           }
           return { ...prev, files: updatedFiles };
         });
 
-        // Update nodes state
         setNodes(prev => prev.map(node => {
           if (node.data.relativePath === relativePath) {
-            return {
-              ...node,
-              data: {
-                ...node.data,
-                summary
-              }
-            };
+            return { ...node, data: { ...node.data, summary } };
           }
           return node;
         }));
@@ -568,8 +864,6 @@ export default function App() {
     };
 
     window.addEventListener('message', handleMessage);
-
-    // Request capsules data from extension
     vscode.postMessage({ type: 'requestCapsules' });
 
     return () => window.removeEventListener('message', handleMessage);
@@ -583,24 +877,154 @@ export default function App() {
     vscode.postMessage({ type: 'setApiKey' });
   };
 
-  const handleNodeClick = (_event: React.MouseEvent, node: FileNode) => {
-    // Only open files, not directories or root
-    if (node.data.relativePath && !node.data.isDirectory && !node.data.isRoot) {
-      vscode.postMessage({ type: 'openFile', relativePath: node.data.relativePath });
-    }
+  const handleAddSticky = () => {
+    const id = `sticky-${Date.now()}`;
+    const newSticky: StickyNode = {
+      id,
+      type: 'sticky',
+      position: { x: 0, y: 0 },
+      data: {
+        content: '',
+        color: '#fefcbf',
+        isConnecting: false,
+        onToggleConnect: () => {
+          setConnectingNodeId(prev => prev === id ? null : id);
+        },
+        onChange: (text) => {
+          setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, content: text } } : n));
+        },
+        onDelete: () => {
+          setNodes(nds => nds.filter(n => n.id !== id));
+          setEdges(eds => eds.filter(e => e.source !== id && e.target !== id));
+        }
+      }
+    };
+    setNodes(nds => [newSticky, ...nds]);
   };
+
+  const handleNodeClick = useCallback((_event: React.MouseEvent, node: Node) => {
+    if (connectingNodeId && connectingNodeId !== node.id) {
+      const edgeId = `link-${connectingNodeId}-${node.id}`;
+      const reverseEdgeId = `link-${node.id}-${connectingNodeId}`;
+      const exists = edges.some(e => e.id === edgeId || e.id === reverseEdgeId);
+
+      if (exists) {
+        setEdges(eds => eds.filter(e => e.id !== edgeId && e.id !== reverseEdgeId));
+      } else {
+        const newEdge: Edge = {
+          id: edgeId,
+          source: connectingNodeId,
+          target: node.id,
+          type: 'straight',
+          animated: true,
+          style: { stroke: '#f6e05e', strokeWidth: 2, strokeDasharray: '5 5' }
+        };
+        setEdges(eds => addEdge(newEdge, eds));
+      }
+    }
+  }, [connectingNodeId, edges, setEdges]);
+
+  const handleSearch = useCallback((term: string) => {
+    const lowerTerm = term.toLowerCase();
+    const results: SearchResult[] = [];
+
+    setNodes((nds) => nds.map((node) => {
+      if (node.type === 'sticky') return node;
+      const data = node.data as FileNodeData;
+      if (!lowerTerm) return { ...node, data: { ...data, isDimmed: false, isHighlight: false } };
+
+      // Match on label
+      const matchLabel = data.label.toLowerCase().includes(lowerTerm);
+      // Match on summary
+      const matchSummary = data.summary?.toLowerCase().includes(lowerTerm);
+      // Match on topSymbols (function/class names)
+      const matchSymbol = data.topSymbols?.some(sym =>
+        sym.name.toLowerCase().includes(lowerTerm)
+      );
+      // Match on path
+      const matchPath = data.relativePath?.toLowerCase().includes(lowerTerm);
+
+      const isMatch = matchLabel || matchSummary || matchSymbol || matchPath;
+
+      // Build results list
+      if (isMatch && !data.isDirectory && !data.isRoot) {
+        let matchType = 'name';
+        if (matchSymbol && !matchLabel) matchType = 'symbol';
+        else if (matchSummary && !matchLabel && !matchSymbol) matchType = 'summary';
+        else if (matchPath && !matchLabel) matchType = 'path';
+
+        results.push({
+          id: node.id,
+          label: data.label,
+          lang: data.lang,
+          matchType
+        });
+      }
+
+      return { ...node, data: { ...data, isDimmed: !isMatch, isHighlight: !!isMatch } };
+    }));
+
+    setSearchResults(results);
+  }, [setNodes]);
+
+  const handleClickResult = useCallback((nodeId: string) => {
+    // Find the node and center view on it
+    const node = nodes.find(n => n.id === nodeId);
+    if (node) {
+      // Clear other highlights, highlight this one
+      setNodes(nds => nds.map(n => ({
+        ...n,
+        data: {
+          ...(n.data as FileNodeData),
+          isHighlight: n.id === nodeId,
+          isDimmed: n.id !== nodeId && (n.data as FileNodeData).isDimmed
+        }
+      })));
+    }
+  }, [nodes, setNodes]);
+
+  const toggleFileType = (type: string) => setFileTypes(prev => ({ ...prev, [type]: !prev[type] }));
+
+  // Apply filters and color mode
+  useEffect(() => {
+    setNodes(nds => nds.map(node => {
+      if (node.type === 'sticky') {
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            isConnecting: node.id === connectingNodeId,
+            onToggleConnect: () => setConnectingNodeId(prev => prev === node.id ? null : node.id)
+          },
+          hidden: fileTypes['sticky'] === false
+        };
+      }
+
+      const data = node.data as FileNodeData;
+      const typeKey = data.isDirectory ? 'directory' : data.lang;
+      if (!data.isRoot && typeKey && !fileTypes[typeKey]) {
+        return { ...node, hidden: true };
+      }
+
+      return {
+        ...node,
+        hidden: false,
+        data: {
+          ...data,
+          isGlobalConnecting: !!connectingNodeId
+        }
+      };
+    }));
+
+    setEdges(eds => eds.map(edge => ({
+      ...edge,
+      hidden: edge.data?.isStructural && !showStructure
+    })));
+  }, [showStructure, fileTypes, connectingNodeId, setNodes, setEdges]);
 
   if (loading) {
     return (
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '100vh',
-        background: '#0a0a0a',
-        color: '#fff',
-        fontSize: '18px'
-      }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#0a0a0a', color: '#fff', fontSize: '18px' }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔍</div>
           Scanning workspace...
@@ -611,32 +1035,11 @@ export default function App() {
 
   if (error) {
     return (
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '100vh',
-        background: '#0a0a0a',
-        color: '#ff6b6b',
-        gap: '16px'
-      }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#0a0a0a', color: '#ff6b6b', gap: '16px' }}>
         <div style={{ fontSize: '48px' }}>⚠️</div>
         <div style={{ fontSize: '20px' }}>Error</div>
         <div style={{ color: '#888' }}>{error}</div>
-        <button
-          onClick={handleRefresh}
-          style={{
-            marginTop: '16px',
-            padding: '10px 20px',
-            background: '#007acc',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            fontSize: '14px'
-          }}
-        >
+        <button onClick={handleRefresh} style={{ marginTop: '16px', padding: '10px 20px', background: '#007acc', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px' }}>
           Retry
         </button>
       </div>
@@ -644,70 +1047,37 @@ export default function App() {
   }
 
   return (
-    <div style={{ width: '100vw', height: '100vh', background: '#0a0a0a' }}>
-      <ReactFlowProvider>
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onNodeClick={handleNodeClick}
-          nodeTypes={nodeTypes}
-          fitView
-          minZoom={0.05}
-        >
-          <Background color="#1a1a1a" gap={50} />
-          <Controls style={{ background: '#1a1a1a' }} />
-          <Panel position="top-left" style={{ background: 'rgba(0,0,0,0.8)', padding: '16px', borderRadius: '12px', color: '#fff' }}>
-            <div style={{ fontWeight: 'bold', fontSize: '18px' }}>🏙️ City Map Layout</div>
-            <div style={{ fontSize: '14px', color: '#aaa', marginBottom: '8px' }}>
-              {capsules?.stats.totalFiles} Files • {capsules?.stats.totalDirectories} Folders
-            </div>
-            {capsules?.stats.externalDependencies && (
-              <div style={{ borderTop: '1px solid #333', paddingTop: '8px' }}>
-                <div style={{ fontSize: '12px', color: '#888', marginBottom: '4px', textTransform: 'uppercase' }}>Tech Stack</div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                  {capsules.stats.externalDependencies.map(dep => (
-                    <span key={dep} style={{ fontSize: '12px', background: '#222', padding: '4px 8px', borderRadius: '4px', color: '#ccc' }}>
-                      {dep}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-            <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
-              <button
-                onClick={handleRefresh}
-                style={{
-                  padding: '6px 12px',
-                  background: '#333',
-                  color: '#ccc',
-                  border: '1px solid #555',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontSize: '12px'
-                }}
-              >
-                🔄 Refresh
-              </button>
-              <button
-                onClick={handleSettings}
-                style={{
-                  padding: '6px 12px',
-                  background: '#333',
-                  color: '#ccc',
-                  border: '1px solid #555',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontSize: '12px'
-                }}
-              >
-                ⚙️ Settings
-              </button>
-            </div>
-          </Panel>
-        </ReactFlow>
-      </ReactFlowProvider>
+    <div style={{ display: 'flex', width: '100vw', height: '100vh', background: '#0a0a0a' }}>
+      <Sidebar
+        capsules={capsules}
+        onSearch={handleSearch}
+        showStructure={showStructure}
+        onToggleStructure={setShowStructure}
+        fileTypes={fileTypes}
+        toggleFileType={toggleFileType}
+        searchResults={searchResults}
+        onClickResult={handleClickResult}
+        onAddSticky={handleAddSticky}
+        onRefresh={handleRefresh}
+        onSettings={handleSettings}
+      />
+      <div style={{ flex: 1, position: 'relative' }}>
+        <ReactFlowProvider>
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onNodeClick={handleNodeClick}
+            nodeTypes={nodeTypes}
+            fitView
+            minZoom={0.05}
+          >
+            <Background color="#1a1a1a" gap={50} />
+            <Controls style={{ background: '#1a1a1a' }} />
+          </ReactFlow>
+        </ReactFlowProvider>
+      </div>
     </div>
   );
 }
