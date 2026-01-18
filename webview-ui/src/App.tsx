@@ -8,13 +8,18 @@ import ReactFlow, {
   Position,
   Controls,
   Background,
-  MiniMap,
   Node,
   Edge,
   NodeProps,
   Panel
 } from 'reactflow';
-import dagre from '@dagrejs/dagre';
+import {
+  forceSimulation,
+  forceLink,
+  forceManyBody,
+  forceCollide,
+  forceRadial
+} from 'd3-force';
 import 'reactflow/dist/style.css';
 
 // VS Code API
@@ -27,16 +32,24 @@ declare function acquireVsCodeApi(): {
 const vscode = acquireVsCodeApi();
 
 // --- TYPES ---
+interface SymbolData {
+  name: string;
+  kind: string;
+  location?: { start: { line: number } };
+}
+
 interface CapsuleFile {
   relativePath: string;
   name: string;
   lang: string;
   exports: { name: string; kind: string }[];
   imports: { pathOrModule: string; isLocal: boolean }[];
+  topSymbols?: SymbolData[];
   summaryContext?: {
     usedBy: string[];
     dependsOn: string[];
     fileDocstring?: string;
+    firstNLines?: string;
     functionSignatures?: { name: string; signature: string }[];
   };
   summary?: string;
@@ -47,6 +60,7 @@ interface CapsulesData {
     totalFiles: number;
     totalDirectories: number;
     totalEdges: number;
+    externalDependencies?: string[];
   };
   files: Record<string, CapsuleFile>;
 }
@@ -56,61 +70,25 @@ interface FileNodeData {
   lang: string;
   summary?: string;
   exports: string[];
+  imports: string[];
+  topSymbols?: SymbolData[];
+  previewCode?: string;
   isDirectory?: boolean;
   isRoot?: boolean;
   fileCount?: number;
+  depth?: number;
 }
 
 type FileNode = Node<FileNodeData>;
 
 // --- LANG COLORS ---
 const langColors: Record<string, { bg: string; border: string; icon: string }> = {
-  // JavaScript/TypeScript
   'react-typescript': { bg: '#1a365d', border: '#4299e1', icon: '⚛️' },
   'typescript': { bg: '#1e3a5f', border: '#3178c6', icon: '📘' },
   'javascript': { bg: '#3d3d00', border: '#f7df1e', icon: '📒' },
-  'react-javascript': { bg: '#3d3d00', border: '#f7df1e', icon: '⚛️' },
-
-  // Python
-  'python': { bg: '#1a3d4d', border: '#3776ab', icon: '🐍' },
-
-  // Go
-  'go': { bg: '#1a3d3d', border: '#00add8', icon: '🔷' },
-
-  // Rust
-  'rust': { bg: '#3d1a1a', border: '#ce422b', icon: '🦀' },
-
-  // Java/Kotlin
-  'java': { bg: '#3d2a1a', border: '#ed8b00', icon: '☕' },
-  'kotlin': { bg: '#2d1a3d', border: '#7f52ff', icon: '🟣' },
-
-  // C/C++/C#
-  'c': { bg: '#1a2a3d', border: '#a8b9cc', icon: '🔵' },
-  'cpp': { bg: '#1a2a3d', border: '#00599c', icon: '🔷' },
-  'csharp': { bg: '#2d1a3d', border: '#512bd4', icon: '🟪' },
-
-  // Ruby/PHP
-  'ruby': { bg: '#3d1a1a', border: '#cc342d', icon: '💎' },
-  'php': { bg: '#2a2a3d', border: '#777bb4', icon: '🐘' },
-
-  // Swift
-  'swift': { bg: '#3d2a1a', border: '#f05138', icon: '🦅' },
-
-  // Shell
-  'shell': { bg: '#1a1a1a', border: '#4eaa25', icon: '💻' },
-
-  // Web
   'css': { bg: '#1a1a4e', border: '#264de4', icon: '🎨' },
-  'scss': { bg: '#2d1a3d', border: '#cf649a', icon: '🎨' },
-  'html': { bg: '#3d2a1a', border: '#e34c26', icon: '🌐' },
-  'vue': { bg: '#1a3d2a', border: '#42b883', icon: '💚' },
-
-  // Config/Data
   'json': { bg: '#1a1a1a', border: '#555', icon: '📄' },
-  'yaml': { bg: '#1a1a1a', border: '#cb171e', icon: '⚙️' },
   'markdown': { bg: '#1a2a1a', border: '#083fa1', icon: '📝' },
-
-  // Special
   'directory': { bg: '#2d1f3d', border: '#9f7aea', icon: '📁' },
   'root': { bg: '#1a3d1a', border: '#48bb78', icon: '🏠' },
   'other': { bg: '#1a1a1a', border: '#555', icon: '📄' },
@@ -118,6 +96,9 @@ const langColors: Record<string, { bg: string; border: string; icon: string }> =
 
 // --- CUSTOM NODE COMPONENT ---
 const CapsuleNode: React.FC<NodeProps<FileNodeData>> = ({ data }) => {
+  const [expanded, setExpanded] = useState(false);
+  const [activeTab, setActiveTab] = useState<'summary' | 'structure' | 'code'>('summary');
+
   const getColors = () => {
     if (data.isRoot) return langColors.root;
     if (data.isDirectory) return langColors.directory;
@@ -125,81 +106,158 @@ const CapsuleNode: React.FC<NodeProps<FileNodeData>> = ({ data }) => {
   };
 
   const colors = getColors();
-  const nodeWidth = data.isRoot ? 200 : data.isDirectory ? 180 : 200;
+
+  const toggleExpand = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setExpanded(!expanded);
+  };
+
+  const handleScroll = (e: React.WheelEvent) => {
+    e.stopPropagation();
+  };
 
   return (
-    <div style={{
-      padding: data.isRoot ? '14px 18px' : '10px 14px',
-      borderRadius: data.isDirectory || data.isRoot ? '12px' : '8px',
-      background: colors.bg,
-      color: '#fff',
-      border: `2px solid ${colors.border}`,
-      boxShadow: data.isRoot
-        ? '0 8px 24px rgba(72, 187, 120, 0.3)'
-        : '0 4px 12px rgba(0,0,0,0.4)',
-      width: nodeWidth,
-      fontFamily: 'system-ui, sans-serif',
-      fontSize: '12px'
-    }}>
-      <Handle type="target" position={Position.Top} style={{ background: colors.border }} />
+    <div
+      onClick={toggleExpand}
+      style={{
+        padding: expanded ? '0' : '20px 24px',
+        borderRadius: '24px',
+        background: colors.bg,
+        color: '#fff',
+        border: `3px solid ${expanded ? '#fff' : colors.border}`,
+        boxShadow: expanded ? '0 40px 80px rgba(0,0,0,0.9)' : '0 8px 25px rgba(0,0,0,0.6)',
+        width: expanded ? 600 : (data.isRoot ? 340 : 300),
+        fontFamily: 'system-ui, -apple-system, sans-serif',
+        cursor: expanded ? 'default' : 'pointer',
+        position: 'relative',
+        zIndex: expanded ? 100000 : 1000,
+        transition: 'width 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s'
+      }}
+    >
+      <Handle type="target" position={Position.Top} style={{ top: '50%', left: '50%', opacity: 0 }} />
+      <Handle type="source" position={Position.Bottom} style={{ top: '50%', left: '50%', opacity: 0 }} />
 
-      <div style={{
-        fontWeight: 'bold',
-        marginBottom: '4px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '6px',
-        fontSize: data.isRoot ? '14px' : '12px'
-      }}>
-        <span>{colors.icon}</span>
-        <span style={{ wordBreak: 'break-word' }}>{data.label}</span>
-      </div>
-
-      {(data.isDirectory || data.isRoot) && data.fileCount !== undefined && (
-        <div style={{ fontSize: '10px', opacity: 0.7 }}>
-          {data.fileCount} file{data.fileCount !== 1 ? 's' : ''}
+      {!expanded && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div style={{ fontSize: '42px' }}>{colors.icon}</div>
+          <div>
+            <div style={{ fontWeight: '800', fontSize: '24px', lineHeight: '1.1', marginBottom: '4px' }}>{data.label}</div>
+            {(data.isDirectory || data.isRoot) && (
+              <div style={{ fontSize: '16px', opacity: 0.7, fontWeight: '500' }}>{data.fileCount} items</div>
+            )}
+          </div>
         </div>
       )}
 
-      {!data.isDirectory && !data.isRoot && data.lang && (
-        <div style={{ fontSize: '10px', opacity: 0.6, marginBottom: '4px' }}>
-          {data.lang}
+      {expanded && (
+        <div style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+
+          {/* HEADER: DRAGGABLE (No 'nodrag' class) */}
+          <div
+            style={{ padding: '24px', background: 'rgba(0,0,0,0.2)', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'grab' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <span style={{ fontSize: '32px' }}>{colors.icon}</span>
+              <span style={{ fontWeight: 'bold', fontSize: '24px' }}>{data.label}</span>
+            </div>
+            <button
+              onClick={(e) => { e.stopPropagation(); setExpanded(false); }}
+              className="nodrag"
+              style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: '32px' }}
+            >
+              ×
+            </button>
+          </div>
+
+          {/* TABS: DRAGGABLE */}
+          <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.1)', cursor: 'grab' }}>
+            {[
+              { id: 'summary', label: 'Summary' },
+              { id: 'structure', label: 'Structure' },
+              { id: 'code', label: 'Code' }
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={(e) => { e.stopPropagation(); setActiveTab(tab.id as 'summary' | 'structure' | 'code'); }}
+                className="nodrag"
+                style={{
+                  flex: 1,
+                  padding: '16px',
+                  background: activeTab === tab.id ? 'rgba(255,255,255,0.05)' : 'transparent',
+                  border: 'none',
+                  color: activeTab === tab.id ? '#fff' : '#888',
+                  borderBottom: activeTab === tab.id ? `4px solid ${colors.border}` : '4px solid transparent',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                  fontWeight: '700'
+                }}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* CONTENT: NOT DRAGGABLE (Allows Text Selection) */}
+          <div
+            className="nodrag nowheel"
+            onWheel={handleScroll}
+            style={{ padding: '24px', maxHeight: '500px', overflowY: 'auto', background: '#0a0a0a', cursor: 'text' }}
+          >
+            {activeTab === 'summary' && (
+              <div style={{ animation: 'fadeIn 0.2s' }}>
+                <div style={{ fontSize: '18px', lineHeight: '1.6', color: '#ddd', marginBottom: '24px' }}>
+                  {data.summary || "No summary available."}
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div style={{ padding: '12px', background: '#1a1a1a', borderRadius: '12px' }}>
+                    <div style={{ fontSize: '13px', color: '#666', textTransform: 'uppercase', marginBottom: '6px' }}>Type</div>
+                    <div style={{ fontSize: '16px', color: colors.border, fontWeight: 'bold' }}>{data.lang}</div>
+                  </div>
+                  <div style={{ padding: '12px', background: '#1a1a1a', borderRadius: '12px' }}>
+                    <div style={{ fontSize: '13px', color: '#666', textTransform: 'uppercase', marginBottom: '6px' }}>Imports</div>
+                    <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{data.imports.length} modules</div>
+                  </div>
+                </div>
+              </div>
+            )}
+            {activeTab === 'structure' && (
+              <div style={{ animation: 'fadeIn 0.2s' }}>
+                {data.topSymbols && data.topSymbols.length > 0 ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {data.topSymbols.map((sym, i) => (
+                      <div key={i} style={{ padding: '12px', background: '#1a1a1a', borderRadius: '8px', borderLeft: `5px solid ${colors.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '16px', fontWeight: '600' }}>{sym.name}</span>
+                        <span style={{ fontSize: '12px', color: '#888', background: '#111', padding: '4px 8px', borderRadius: '6px' }}>{sym.kind}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ color: '#666', fontStyle: 'italic', fontSize: '16px' }}>No symbols detected.</div>
+                )}
+              </div>
+            )}
+            {activeTab === 'code' && (
+              <div style={{ animation: 'fadeIn 0.2s' }}>
+                {data.previewCode ? (
+                  <pre style={{ margin: 0, padding: '20px', background: '#111', borderRadius: '12px', fontSize: '14px', fontFamily: 'monospace', color: '#ccc', overflowX: 'auto', lineHeight: '1.5' }}>
+                    {data.previewCode}
+                  </pre>
+                ) : (
+                  <div style={{ color: '#666', fontStyle: 'italic', fontSize: '16px' }}>No code preview available.</div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       )}
-
-      {data.summary && (
-        <div style={{
-          fontSize: '10px',
-          opacity: 0.85,
-          marginTop: '6px',
-          padding: '6px',
-          background: 'rgba(0,0,0,0.2)',
-          borderRadius: '4px',
-          lineHeight: '1.4',
-          maxHeight: '60px',
-          overflow: 'hidden'
-        }}>
-          {data.summary.slice(0, 120)}{data.summary.length > 120 ? '...' : ''}
-        </div>
-      )}
-
-      {data.exports && data.exports.length > 0 && (
-        <div style={{ fontSize: '9px', marginTop: '6px', opacity: 0.6 }}>
-          ↗ {data.exports.slice(0, 2).join(', ')}{data.exports.length > 2 ? ` +${data.exports.length - 2}` : ''}
-        </div>
-      )}
-
-      <Handle type="source" position={Position.Bottom} style={{ background: colors.border }} />
     </div>
   );
 };
 
-// --- HIERARCHICAL LAYOUT ---
-const createHierarchicalLayout = (data: CapsulesData) => {
+// --- DATA PREPARATION ---
+const prepareGraphData = (data: CapsulesData) => {
   const nodes: FileNode[] = [];
   const edges: Edge[] = [];
-
-  // Group files by directory
   const filesByDir: Record<string, CapsuleFile[]> = { '.': [] };
 
   Object.values(data.files).forEach(file => {
@@ -213,60 +271,44 @@ const createHierarchicalLayout = (data: CapsulesData) => {
     }
   });
 
-  // Create root node
   const rootId = 'root';
   nodes.push({
     id: rootId,
     type: 'capsule',
-    data: {
-      label: 'Project Root',
-      lang: 'root',
-      isRoot: true,
-      fileCount: Object.keys(data.files).length,
-      exports: [],
-    },
+    data: { label: 'Project Root', lang: 'root', isRoot: true, fileCount: Object.keys(data.files).length, exports: [], imports: [] },
     position: { x: 0, y: 0 }
   });
 
-  // Process each directory
-  const dirNames = Object.keys(filesByDir).sort((a, b) => {
-    if (a === '.') return -1;
-    if (b === '.') return 1;
-    return a.localeCompare(b);
-  });
-
-  dirNames.forEach(dir => {
+  Object.keys(filesByDir).forEach(dir => {
     const files = filesByDir[dir];
     const dirId = dir === '.' ? 'root-files' : `dir-${dir}`;
 
-    // Create directory node (except for root files which connect directly)
     if (dir !== '.') {
       nodes.push({
         id: dirId,
         type: 'capsule',
-        data: {
-          label: dir + '/',
-          lang: 'directory',
-          isDirectory: true,
-          fileCount: files.length,
-          exports: [],
-        },
+        data: { label: dir + '/', lang: 'directory', isDirectory: true, fileCount: files.length, exports: [], imports: [] },
         position: { x: 0, y: 0 }
       });
 
-      // Edge from root to directory
       edges.push({
         id: `${rootId}->${dirId}`,
         source: rootId,
         target: dirId,
-        type: 'smoothstep',
-        style: { stroke: '#48bb78', strokeWidth: 2 },
+        type: 'straight',
+        style: { stroke: '#48bb78', strokeWidth: 12, opacity: 0.8 },
       });
     }
 
-    // Create file nodes
     files.forEach(file => {
       const fileId = file.relativePath;
+
+      const importCount = file.imports.length || 0;
+      const usedByCount = file.summaryContext?.usedBy?.length || 0;
+      const trafficScore = importCount + usedByCount;
+
+      const structuralWidth = Math.min(Math.max(6, trafficScore * 2.0), 20);
+      const structuralOpacity = Math.min(Math.max(0.2, trafficScore * 0.15), 1.0);
 
       nodes.push({
         id: fileId,
@@ -274,38 +316,53 @@ const createHierarchicalLayout = (data: CapsulesData) => {
         data: {
           label: file.name,
           lang: file.lang,
-          summary: file.summary || file.summaryContext?.fileDocstring?.slice(0, 100),
+          summary: file.summary || file.summaryContext?.fileDocstring,
           exports: file.exports.map(e => e.name),
+          imports: file.imports.map(i => i.pathOrModule),
+          topSymbols: file.topSymbols,
+          previewCode: file.summaryContext?.firstNLines
         },
         position: { x: 0, y: 0 }
       });
 
-      // Edge from directory/root to file
       const parentId = dir === '.' ? rootId : dirId;
+
       edges.push({
         id: `${parentId}->${fileId}`,
         source: parentId,
         target: fileId,
-        type: 'smoothstep',
-        style: { stroke: '#555', strokeWidth: 1 },
+        type: 'straight',
+        style: {
+          stroke: '#888',
+          strokeWidth: structuralWidth,
+          opacity: structuralOpacity
+        },
+        data: { isStructural: true }
       });
     });
   });
 
-  // Create dependency edges (from usedBy)
-  Object.entries(data.files).forEach(([, file]) => {
+  Object.entries(data.files).forEach(([path, file]) => {
     if (file.summaryContext?.usedBy) {
       file.summaryContext.usedBy.forEach(usedByPath => {
-        // Only add if both nodes exist
         if (nodes.find(n => n.id === usedByPath)) {
+          const traffic = (file.summaryContext?.usedBy?.length || 1);
+          const depWidth = Math.min(Math.max(6, traffic * 3), 18);
+
           edges.push({
-            id: `dep-${usedByPath}->${file.relativePath}`,
+            id: `dep-${usedByPath}->${path}`,
             source: usedByPath,
-            target: file.relativePath,
-            type: 'smoothstep',
+            target: path,
+            type: 'straight',
             animated: true,
-            style: { stroke: '#4299e1', strokeWidth: 1.5 },
-            markerEnd: { type: MarkerType.ArrowClosed, color: '#4299e1', width: 12, height: 12 },
+            style: {
+              stroke: '#63b3ed',
+              strokeWidth: depWidth,
+              opacity: 1,
+              strokeDasharray: '5 5'
+            },
+            markerEnd: { type: MarkerType.ArrowClosed, color: '#63b3ed' },
+            data: { isDependency: true }
           });
         }
       });
@@ -315,44 +372,84 @@ const createHierarchicalLayout = (data: CapsulesData) => {
   return { nodes, edges };
 };
 
-// --- APPLY DAGRE LAYOUT ---
-const applyDagreLayout = (nodes: FileNode[], edges: Edge[]) => {
-  const g = new dagre.graphlib.Graph();
-  g.setGraph({
-    rankdir: 'TB',
-    ranksep: 80,
-    nodesep: 40,
-    marginx: 50,
-    marginy: 50
-  });
-  g.setDefaultEdgeLabel(() => ({}));
+// --- FORCE LAYOUT ENGINE ---
+const applyForceLayout = (nodes: FileNode[], edges: Edge[]) => {
+  const simulationNodes = nodes.map(node => ({ ...node, x: 0, y: 0 }));
+  const simulationEdges = edges.map(edge => ({ ...edge, source: edge.source, target: edge.target }));
 
-  nodes.forEach(node => {
-    const width = node.data.isRoot ? 200 : node.data.isDirectory ? 180 : 200;
-    const height = node.data.summary ? 130 : 80;
-    g.setNode(node.id, { width, height });
+  const filesPerDir: Record<string, number> = {};
+  const inDegree: Record<string, number> = {};
+
+  edges.forEach(e => {
+    if (e.data?.isDependency) {
+      inDegree[e.target] = (inDegree[e.target] || 0) + 1;
+    }
   });
 
-  // Only use structural edges for layout (not dependency edges)
-  edges
-    .filter(e => !e.id.startsWith('dep-'))
-    .forEach(edge => g.setEdge(edge.source, edge.target));
-
-  dagre.layout(g);
-
-  const layoutedNodes = nodes.map(node => {
-    const n = g.node(node.id);
-    const width = node.data.isRoot ? 200 : node.data.isDirectory ? 180 : 200;
-    return {
-      ...node,
-      position: {
-        x: n.x - width / 2,
-        y: n.y - 40
-      }
-    };
+  simulationNodes.forEach(node => {
+    if (!node.data.isRoot && !node.data.isDirectory) {
+      const parts = node.id.split('/');
+      const dir = parts.length > 1 ? parts[0] : '.';
+      filesPerDir[dir] = (filesPerDir[dir] || 0) + 1;
+    }
   });
 
-  return { nodes: layoutedNodes, edges };
+  const totalTrackedFiles = Object.values(filesPerDir).reduce((a, b) => a + b, 0);
+  const dirAngles: Record<string, { mid: number }> = {};
+  let currentAngle = 0;
+
+  Object.entries(filesPerDir).forEach(([dir, count]) => {
+    const sliceSize = (count / Math.max(1, totalTrackedFiles)) * (2 * Math.PI);
+    dirAngles[dir] = { mid: currentAngle + (sliceSize / 2) };
+    currentAngle += sliceSize;
+  });
+
+  const simulation = forceSimulation(simulationNodes as any)
+    .force('charge', forceManyBody().strength(-5000))
+    .force('collide', forceCollide().radius(250).strength(0.8))
+    .force('radial', forceRadial((d: any) => {
+      if (d.data.isRoot) return 0;
+      if (inDegree[d.id] && inDegree[d.id] > 2) return 350;
+      if (d.data.isDirectory) return 500;
+      return 950;
+    }, 0, 0).strength(0.7))
+    .force('link', forceLink(simulationEdges as any)
+      .id((d: any) => d.id)
+      .distance((d: any) => d.data?.isDependency ? 100 : 350)
+      .strength((d: any) => d.data?.isDependency ? 0.8 : 0.1)
+    )
+    .force('sector', (alpha) => {
+      simulationNodes.forEach((d: any) => {
+        if (d.data.isRoot) return;
+        if (inDegree[d.id] && inDegree[d.id] > 2) return;
+
+        let dir = '.';
+        if (d.data.isDirectory) {
+          dir = d.data.label.replace('/', '');
+          if (d.id === 'root-files') dir = '.';
+        } else {
+          const parts = d.id.split('/');
+          dir = parts.length > 1 ? parts[0] : '.';
+        }
+
+        const angles = dirAngles[dir];
+        if (angles) {
+          const radius = Math.sqrt(d.x * d.x + d.y * d.y) || 100;
+          const targetX = Math.cos(angles.mid) * radius;
+          const targetY = Math.sin(angles.mid) * radius;
+          d.vx += (targetX - d.x) * 0.15 * alpha;
+          d.vy += (targetY - d.y) * 0.15 * alpha;
+        }
+      });
+    })
+    .stop();
+
+  simulation.tick(600);
+
+  return {
+    nodes: simulationNodes.map((node: any) => ({ ...node, position: { x: node.x, y: node.y } })),
+    edges
+  };
 };
 
 // --- MAIN COMPONENT ---
@@ -360,7 +457,6 @@ export default function App() {
   const [capsules, setCapsules] = useState<CapsulesData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const nodeTypes = useMemo(() => ({ capsule: CapsuleNode }), []);
@@ -383,8 +479,8 @@ export default function App() {
       if (message.type === 'setCapsules') {
         const data: CapsulesData = message.data;
         setCapsules(data);
-        const { nodes: rawNodes, edges: rawEdges } = createHierarchicalLayout(data);
-        const { nodes: layoutedNodes, edges: layoutedEdges } = applyDagreLayout(rawNodes, rawEdges);
+        const { nodes: rawNodes, edges: rawEdges } = prepareGraphData(data);
+        const { nodes: layoutedNodes, edges: layoutedEdges } = applyForceLayout(rawNodes, rawEdges);
         setNodes(layoutedNodes);
         setEdges(layoutedEdges);
         setLoading(false);
@@ -470,37 +566,27 @@ export default function App() {
           onEdgesChange={onEdgesChange}
           nodeTypes={nodeTypes}
           fitView
-          fitViewOptions={{ padding: 0.2 }}
-          minZoom={0.1}
-          maxZoom={2}
+          minZoom={0.05}
         >
-          <Background color="#1a1a1a" gap={20} />
-          <Controls style={{ background: '#1a1a1a', borderRadius: '8px' }} />
-          <MiniMap
-            nodeColor={(node) => {
-              const data = node.data as FileNodeData;
-              if (data.isRoot) return langColors.root.border;
-              if (data.isDirectory) return langColors.directory.border;
-              return (langColors[data.lang] || langColors.other).border;
-            }}
-            maskColor="rgba(0, 0, 0, 0.85)"
-            style={{ background: '#1a1a1a', borderRadius: '8px' }}
-          />
-
-          {/* Title Panel */}
-          <Panel position="top-left" style={{
-            background: 'rgba(0,0,0,0.8)',
-            padding: '16px 20px',
-            borderRadius: '12px',
-            color: '#fff',
-            backdropFilter: 'blur(10px)'
-          }}>
-            <div style={{ fontWeight: 'bold', fontSize: '16px', marginBottom: '8px' }}>
-              📊 Codebase Visualization
+          <Background color="#1a1a1a" gap={50} />
+          <Controls style={{ background: '#1a1a1a' }} />
+          <Panel position="top-left" style={{ background: 'rgba(0,0,0,0.8)', padding: '16px', borderRadius: '12px', color: '#fff' }}>
+            <div style={{ fontWeight: 'bold', fontSize: '18px' }}>🏙️ City Map Layout</div>
+            <div style={{ fontSize: '14px', color: '#aaa', marginBottom: '8px' }}>
+              {capsules?.stats.totalFiles} Files • {capsules?.stats.totalDirectories} Folders
             </div>
-            <div style={{ fontSize: '12px', color: '#aaa' }}>
-              {capsules?.stats.totalFiles} files • {capsules?.stats.totalDirectories} directories • {capsules?.stats.totalEdges} dependencies
-            </div>
+            {capsules?.stats.externalDependencies && (
+              <div style={{ borderTop: '1px solid #333', paddingTop: '8px' }}>
+                <div style={{ fontSize: '12px', color: '#888', marginBottom: '4px', textTransform: 'uppercase' }}>Tech Stack</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                  {capsules.stats.externalDependencies.map(dep => (
+                    <span key={dep} style={{ fontSize: '12px', background: '#222', padding: '4px 8px', borderRadius: '4px', color: '#ccc' }}>
+                      {dep}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
             <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
               <button
                 onClick={handleRefresh}
@@ -530,28 +616,6 @@ export default function App() {
               >
                 ⚙️ Settings
               </button>
-            </div>
-          </Panel>
-
-          {/* Legend Panel */}
-          <Panel position="top-right" style={{
-            background: 'rgba(0,0,0,0.8)',
-            padding: '12px 16px',
-            borderRadius: '12px',
-            fontSize: '11px',
-            color: '#aaa',
-            backdropFilter: 'blur(10px)'
-          }}>
-            <div style={{ marginBottom: '8px', fontWeight: 'bold', color: '#fff' }}>Legend</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <div><span style={{ color: langColors.root.border }}>●</span> Project Root</div>
-              <div><span style={{ color: langColors.directory.border }}>●</span> Directory</div>
-              <div><span style={{ color: langColors['react-typescript'].border }}>●</span> React Component</div>
-              <div><span style={{ color: langColors.typescript.border }}>●</span> TypeScript</div>
-              <div><span style={{ color: langColors.css.border }}>●</span> CSS</div>
-              <div style={{ marginTop: '8px', borderTop: '1px solid #333', paddingTop: '8px' }}>
-                <div style={{ color: '#4299e1' }}>→ Import dependency</div>
-              </div>
             </div>
           </Panel>
         </ReactFlow>
