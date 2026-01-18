@@ -283,16 +283,16 @@ const CodeBlockCard: React.FC<{
 
               {riskAnalysis.bestPractices.length > 0 && (
                 <div className="space-y-2">
-                  <div className="text-[11px] font-semibold text-emerald-300">💡 Suggestions</div>
+                  <div className="text-[11px] font-semibold text-foreground">💡 Suggestions</div>
                   {riskAnalysis.bestPractices.map((bp, i) => (
                     <div
                       key={i}
-                      className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 p-3"
+                      className="rounded-lg border border-border/70 bg-muted/60 p-3 text-foreground"
                     >
-                      <div className="text-xs font-semibold text-emerald-200">{bp.practice}</div>
-                      <div className="text-xs text-emerald-100/80">{bp.suggestion}</div>
+                      <div className="text-xs font-semibold">{bp.practice}</div>
+                      <div className="text-xs text-muted-foreground">{bp.suggestion}</div>
                       {bp.reference && (
-                        <div className="text-[10px] text-emerald-100/60">📚 {bp.reference}</div>
+                        <div className="text-[10px] text-muted-foreground">📚 {bp.reference}</div>
                       )}
                     </div>
                   ))}
@@ -856,7 +856,7 @@ const prepareGraphData = (data: CapsulesData) => {
         label: file.name,
         lang: file.lang,
         relativePath: file.relativePath,
-        summary: file.lowerLevelSummary || file.upperLevelSummary || file.metadata?.fileDocstring,
+        summary: file.upperLevelSummary || file.metadata?.fileDocstring || file.lowerLevelSummary,
         exports: file.exports.map(e => e.name),
         imports: file.imports.map(i => i.pathOrModule),
         topSymbols: file.topSymbols,
@@ -1211,7 +1211,6 @@ export default function App() {
               data: {
                 ...node.data,
                 structure,
-                summary: lowerLevelSummary || node.data.summary,
                 lowerLevelSummary,
                 lowerLevelSummaryVersion: version,
                 fullCapsule: node.data.fullCapsule ? {
