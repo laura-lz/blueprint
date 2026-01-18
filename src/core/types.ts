@@ -59,16 +59,30 @@ export interface FileCapsule {
     metrics?: FileMetrics;
 
     /** Summary context for LLM-based summaries */
-    summaryContext?: SummaryContext;
+    metadata?: Metadata;
 
-    /** Generated 2-line summary */
-    summary?: string;
+    /** Generated 2-line summary (upper level) */
+    upperLevelSummary?: string;
+
+    /** Deep analysis summary (lower level, added via CLI --file or --deep-all) */
+    lowerLevelSummary?: string;
+
+    /** Code structure analysis (lower level, added via CLI --file or --deep-all) */
+    structure?: CodeBlockSummary[];
+}
+
+export interface CodeBlockSummary {
+    name: string;
+    type: "function" | "class" | "block";
+    startLine: number;
+    endLine: number;
+    summary: string;
 }
 
 /**
  * Context for generating file summaries with limited content
  */
-export interface SummaryContext {
+export interface Metadata {
     /** File-level docstring (first comment block) */
     fileDocstring?: string;
 
@@ -83,6 +97,35 @@ export interface SummaryContext {
 
     /** Local files this one imports (dependencies) */
     dependsOn: string[];
+}
+
+/**
+ * Directory Capsule
+ */
+export interface DirectoryCapsule {
+    /** Absolute path */
+    path: string;
+
+    /** Path relative to project root */
+    relativePath: string;
+
+    /** Directory name */
+    name: string;
+
+    /** Files in this directory (paths) */
+    files: string[];
+
+    /** Subdirectories (paths) */
+    subdirectories: string[];
+
+    /** AI-generated summary */
+    upperLevelSummary?: string;
+
+    /** Summary context/metadata */
+    metadata?: {
+        fileCount: number;
+        subdirCount: number;
+    };
 }
 
 export interface FunctionSignatureInfo {

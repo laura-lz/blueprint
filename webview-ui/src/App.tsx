@@ -53,6 +53,17 @@ interface CapsuleFile {
     functionSignatures?: { name: string; signature: string }[];
   };
   summary?: string;
+  upperLevelSummary?: string;
+  lowerLevelSummary?: string;
+}
+
+interface DirectoryCapsule {
+  path: string;
+  relativePath: string;
+  name: string;
+  files: string[];
+  subdirectories: string[];
+  upperLevelSummary?: string;
 }
 
 interface CapsulesData {
@@ -63,6 +74,7 @@ interface CapsulesData {
     externalDependencies?: string[];
   };
   files: Record<string, CapsuleFile>;
+  directories: Record<string, DirectoryCapsule>;
 }
 
 interface FileNodeData {
@@ -174,8 +186,7 @@ const CapsuleNode: React.FC<NodeProps<FileNodeData>> = ({ data }) => {
           <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.1)', cursor: 'grab' }}>
             {[
               { id: 'summary', label: 'Summary' },
-              { id: 'structure', label: 'Structure' },
-              { id: 'code', label: 'Code' }
+              { id: 'structure', label: 'Structure' }
             ].map(tab => (
               <button
                 key={tab.id}
@@ -214,16 +225,18 @@ const CapsuleNode: React.FC<NodeProps<FileNodeData>> = ({ data }) => {
                 <div style={{ fontSize: '18px', lineHeight: '1.6', color: '#ddd', marginBottom: '24px' }}>
                   {data.summary || "No summary available."}
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  <div style={{ padding: '12px', background: '#1a1a1a', borderRadius: '12px' }}>
-                    <div style={{ fontSize: '13px', color: '#666', textTransform: 'uppercase', marginBottom: '6px' }}>Type</div>
-                    <div style={{ fontSize: '16px', color: colors.border, fontWeight: 'bold' }}>{data.lang}</div>
+                {!data.isDirectory && !data.isRoot && (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                    <div style={{ padding: '12px', background: '#1a1a1a', borderRadius: '12px' }}>
+                      <div style={{ fontSize: '13px', color: '#666', textTransform: 'uppercase', marginBottom: '6px' }}>Type</div>
+                      <div style={{ fontSize: '16px', color: colors.border, fontWeight: 'bold' }}>{data.lang}</div>
+                    </div>
+                    <div style={{ padding: '12px', background: '#1a1a1a', borderRadius: '12px' }}>
+                      <div style={{ fontSize: '13px', color: '#666', textTransform: 'uppercase', marginBottom: '6px' }}>Imports</div>
+                      <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{data.imports.length} modules</div>
+                    </div>
                   </div>
-                  <div style={{ padding: '12px', background: '#1a1a1a', borderRadius: '12px' }}>
-                    <div style={{ fontSize: '13px', color: '#666', textTransform: 'uppercase', marginBottom: '6px' }}>Imports</div>
-                    <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{data.imports.length} modules</div>
-                  </div>
-                </div>
+                )}
                 {data.relativePath && !data.isDirectory && !data.isRoot && (
                   <button
                     onClick={(e) => {
@@ -265,21 +278,13 @@ const CapsuleNode: React.FC<NodeProps<FileNodeData>> = ({ data }) => {
                     ))}
                   </div>
                 ) : (
-                  <div style={{ color: '#666', fontStyle: 'italic', fontSize: '16px' }}>No symbols detected.</div>
+                  <div style={{ color: '#666', fontStyle: 'italic', fontSize: '16px' }}>
+                    {data.isDirectory ? "Folder structure view not implemented yet." : "No symbols detected."}
+                  </div>
                 )}
               </div>
             )}
-            {activeTab === 'code' && (
-              <div style={{ animation: 'fadeIn 0.2s' }}>
-                {data.previewCode ? (
-                  <pre style={{ margin: 0, padding: '20px', background: '#111', borderRadius: '12px', fontSize: '14px', fontFamily: 'monospace', color: '#ccc', overflowX: 'auto', lineHeight: '1.5' }}>
-                    {data.previewCode}
-                  </pre>
-                ) : (
-                  <div style={{ color: '#666', fontStyle: 'italic', fontSize: '16px' }}>No code preview available.</div>
-                )}
-              </div>
-            )}
+
           </div>
         </div>
       )}
@@ -317,10 +322,20 @@ const prepareGraphData = (data: CapsulesData) => {
     const dirId = dir === '.' ? 'root-files' : `dir-${dir}`;
 
     if (dir !== '.') {
+      const dirCapsule = data.directories && data.directories[dir];
       nodes.push({
         id: dirId,
         type: 'capsule',
-        data: { label: dir + '/', lang: 'directory', isDirectory: true, fileCount: files.length, exports: [], imports: [] },
+        data: {
+          label: dir + '/',
+          lang: 'directory',
+          isDirectory: true,
+          fileCount: files.length,
+          exports: [],
+          imports: [],
+          summary: dirCapsule?.upperLevelSummary || "Folder containing " + files.length + " files.",
+          relativePath: dir
+        },
         position: { x: 0, y: 0 }
       });
 
@@ -350,7 +365,7 @@ const prepareGraphData = (data: CapsulesData) => {
           label: file.name,
           lang: file.lang,
           relativePath: file.relativePath,
-          summary: file.summary || file.summaryContext?.fileDocstring,
+          summary: file.lowerLevelSummary || file.upperLevelSummary || file.summaryContext?.fileDocstring,
           exports: file.exports.map(e => e.name),
           imports: file.imports.map(i => i.pathOrModule),
           topSymbols: file.topSymbols,

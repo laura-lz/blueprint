@@ -17,7 +17,7 @@ import type {
     ExportEntry,
     TopSymbol,
     Language,
-    SummaryContext,
+    Metadata,
 } from "./types.js";
 import { scanDirectory, readFileContent, type FileInfo } from "./scanner.js";
 import { parseFileWithContext, getFirstNLines, type ParsedFile, type ImportInfo, type ExportInfo as ParserExportInfo } from "./parser.js";
@@ -92,7 +92,7 @@ function buildFileCapsule(
     }
 
     // Build summary context for LLM-based summaries
-    const summaryContext: SummaryContext = {
+    const metadata: Metadata = {
         fileDocstring: parsed.fileDocstring,
         functionSignatures: parsed.functionSignatures.map((sig: { name: string; signature: string; jsdoc?: string; exported: boolean }) => ({
             name: sig.name,
@@ -115,7 +115,7 @@ function buildFileCapsule(
         imports,
         exports,
         topSymbols,
-        summaryContext,
+        metadata,
     };
 }
 
@@ -355,8 +355,8 @@ export async function buildUpperLevelGraph(rootDir: string): Promise<UpperLevelG
     // Populate usedBy in summaryContext (reverse dependency)
     for (const edge of edges) {
         const targetNode = nodes.get(edge.to);
-        if (targetNode?.capsule.summaryContext) {
-            targetNode.capsule.summaryContext.usedBy.push(
+        if (targetNode?.capsule.metadata) {
+            targetNode.capsule.metadata.usedBy.push(
                 nodes.get(edge.from)?.capsule.relativePath || edge.from
             );
         }

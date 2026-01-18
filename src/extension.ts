@@ -3,7 +3,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
-import { createUpperLevelAPI, OpenRouterClient, type FileCapsule, type ExportEntry } from './core/index.js';
+import { createUpperLevelAPI, GeminiClient, type FileCapsule, type DirectoryCapsule, type ExportEntry } from './core/index.js';
 
 let canvasPanel: vscode.WebviewPanel | undefined;
 
@@ -17,6 +17,7 @@ interface CapsulesData {
 		entryPoints: string[];
 	};
 	files: Record<string, FileCapsule>;
+	directories: Record<string, DirectoryCapsule>;
 }
 
 let capsulesCache: CapsulesData | null = null;
@@ -218,7 +219,54 @@ async function sendCapsulesDataToWebview(webview: vscode.Webview) {
 				}
 			}
 
-			capsulesCache = { stats, files };
+			// Build directories map
+			const directories: Record<string, DirectoryCapsule> = {};
+			// We need to access the internal directories map from api's graph exposed implicitly or rebuild it
+			// Since IUpperLevelAPI doesn't expose directories directly, we rebuild it from files
+			for (const file of Object.values(files)) {
+				const dirPath = path.dirname(file.path);
+				const dirRelativePath = path.dirname(file.relativePath);
+
+				if (!directories[dirRelativePath]) {
+					directories[dirRelativePath] = {
+						path: dirPath,
+						relativePath: dirRelativePath,
+						name: path.basename(dirPath),
+						files: [],
+						subdirectories: [],
+						metadata: { fileCount: 0, subdirCount: 0 }
+					};
+				}
+
+				directories[dirRelativePath].files.push(file.relativePath);
+				directories[dirRelativePath].metadata!.fileCount++;
+			}
+
+			// Link subdirectories
+			const dirKeys = Object.keys(directories).sort();
+			for (const dirRel of dirKeys) {
+				if (dirRel === '.') continue;
+				const parentDir = path.dirname(dirRel);
+				if (directories[parentDir]) {
+					directories[parentDir].subdirectories.push(dirRel);
+					directories[parentDir].metadata!.subdirCount++;
+				}
+			}
+
+			// Ensure root directory exists if not already
+			if (!directories['.']) {
+				directories['.'] = {
+					path: rootPath,
+					relativePath: '.',
+					name: path.basename(rootPath),
+					files: [],
+					subdirectories: dirKeys.filter(d => path.dirname(d) === '.' && d !== '.'),
+					metadata: { fileCount: 0, subdirCount: 0 }
+				};
+				directories['.'].metadata!.subdirCount = directories['.'].subdirectories.length;
+			}
+
+			capsulesCache = { stats, files, directories };
 			console.log(`[Nexhacks] Scan complete in ${Date.now() - startTime}ms. Total files: ${Object.keys(files).length}`);
 
 			// PHASE 1: Send initial capsules immediately (without AI summaries)
@@ -233,6 +281,9 @@ async function sendCapsulesDataToWebview(webview: vscode.Webview) {
 			const provider = config.get<string>('llmProvider') || 'openrouter';
 			const apiKey = config.get<string>('llmApiKey');
 			const model = config.get<string>('llmModel') || 'google/gemini-2.0-flash-001';
+			
+			console.log("apiKey", apiKey);
+			console.log("model", model);
 
 			if (apiKey && apiKey.length > 0) {
 				console.log(`[Nexhacks] 🤖 Generating AI summaries using ${provider}...`);
@@ -242,15 +293,15 @@ async function sendCapsulesDataToWebview(webview: vscode.Webview) {
 					? 'https://api.openai.com/v1'
 					: 'https://openrouter.ai/api/v1';
 
-				const client = new OpenRouterClient({ apiKey, baseUrl, model });
+				const client = new GeminiClient({ apiKey, baseUrl, model });
 
 				let summarized = 0;
 
 				// Generate AI summaries in background and stream updates
 				for (const [relativePath, capsule] of Object.entries(files)) {
 					// Skip if summary already exists (e.g. from partial run) or non-code
-					if (capsule.summary ||
-						!capsule.summaryContext ||
+					if (capsule.upperLevelSummary ||
+						!capsule.metadata ||
 						['json', 'css', 'markdown', 'yaml'].includes(capsule.lang)) {
 						continue;
 					}
@@ -259,16 +310,16 @@ async function sendCapsulesDataToWebview(webview: vscode.Webview) {
 						const summary = await client.generateCapsuleSummary(
 							relativePath,
 							{
-								fileDocstring: capsule.summaryContext.fileDocstring,
-								functionSignatures: capsule.summaryContext.functionSignatures,
-								firstNLines: capsule.summaryContext.firstNLines,
-								usedBy: capsule.summaryContext.usedBy,
-								dependsOn: capsule.summaryContext.dependsOn,
+								fileDocstring: capsule.metadata.fileDocstring,
+								functionSignatures: capsule.metadata.functionSignatures,
+								firstNLines: capsule.metadata.firstNLines,
+								usedBy: capsule.metadata.usedBy,
+								dependsOn: capsule.metadata.dependsOn,
 								exports: capsule.exports.map((e: ExportEntry) => e.name),
 							}
 						);
 
-						capsule.summary = summary;
+						capsule.upperLevelSummary = summary;
 						summarized++;
 
 						// Send incremental update to webview
@@ -287,8 +338,32 @@ async function sendCapsulesDataToWebview(webview: vscode.Webview) {
 
 				console.log(`[Nexhacks] ✅ Generated ${summarized} AI summaries`);
 
+				// Build Directory Summaries
+				console.log('[Nexhacks] 📂 Generating Directory summaries...');
+				for (const [dirRelPath, dirCapsule] of Object.entries(directories)) {
+					// Prepare simple file list for context
+					const fileContexts = dirCapsule.files.map(fPath => ({
+						name: path.basename(fPath),
+						summary: files[fPath]?.upperLevelSummary || "No summary"
+					}));
+
+					try {
+						const summary = await client.generateDirectorySummary(
+							dirRelPath,
+							fileContexts,
+							dirCapsule.subdirectories
+						);
+						dirCapsule.upperLevelSummary = summary;
+
+						// Optional: Send update for directory (if UI handles it)
+						// webview.postMessage({ type: 'updateDirectorySummary', ... });
+					} catch (error) {
+						console.warn(`[Nexhacks] Failed to summarize directory ${dirRelPath}`);
+					}
+				}
+
 				// Update cache with summaries
-				capsulesCache = { stats, files };
+				capsulesCache = { stats, files, directories };
 			} else {
 				console.log('[Nexhacks] No API key configured, skipping AI summaries');
 			}

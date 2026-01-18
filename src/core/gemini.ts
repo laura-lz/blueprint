@@ -1,15 +1,17 @@
 /**
- * OpenRouter API client for LLM integration
- * Compatible with OpenAI-style API format
+ * Gemini API client for LLM integration
+ * Compatible with OpenAI/OpenRouter-style API format
  */
 
-export interface OpenRouterConfig {
+export interface GeminiConfig {
     apiKey: string;
     baseUrl?: string;
     model?: string;
     siteUrl?: string;
     siteName?: string;
 }
+
+export type OpenRouterConfig = GeminiConfig;
 
 export interface Message {
     role: "system" | "user" | "assistant";
@@ -32,20 +34,20 @@ export interface ChatCompletionResponse {
     };
 }
 
-const DEFAULT_MODEL = "z-ai/glm-4.7";
+const DEFAULT_MODEL = "google/gemini-2.0-flash-001";
 const DEFAULT_BASE_URL = "https://openrouter.ai/api/v1";
 
 /**
- * OpenRouter client for generating AI-powered summaries
+ * Gemini client for generating AI-powered summaries
  */
-export class OpenRouterClient {
+export class GeminiClient {
     private apiKey: string;
     private baseUrl: string;
     private model: string;
     private siteUrl: string;
     private siteName: string;
 
-    constructor(config: OpenRouterConfig) {
+    constructor(config: GeminiConfig) {
         this.apiKey = config.apiKey;
         this.baseUrl = config.baseUrl || DEFAULT_BASE_URL;
         this.model = config.model || DEFAULT_MODEL;
@@ -54,7 +56,7 @@ export class OpenRouterClient {
     }
 
     /**
-     * Sends a chat completion request to OpenRouter
+     * Sends a chat completion request to Gemini (via OpenRouter or direct)
      */
     async chat(messages: Message[]): Promise<string> {
         const response = await fetch(`${this.baseUrl}/chat/completions`, {
@@ -73,7 +75,7 @@ export class OpenRouterClient {
 
         if (!response.ok) {
             const error = await response.text();
-            throw new Error(`OpenRouter API error: ${response.status} - ${error}`);
+            throw new Error(`Gemini API error: ${response.status} - ${error}`);
         }
 
         const data = await response.json() as ChatCompletionResponse;
@@ -188,7 +190,9 @@ ${context.firstNLines.split("\n").slice(0, 15).join("\n")}
 
 Respond with ONLY 2 sentences:
 1. What this file does (purpose)
-2. How it fits into the codebase (dependencies/usage)`;
+2. How it fits into the codebase (dependencies/usage)
+
+Write for optimal readability and understanding; the output does not have to be full sentences.`;
 
         return this.chat([
             {
@@ -203,6 +207,100 @@ Respond with ONLY 2 sentences:
     }
 
     /**
+     * Generates a concise summary for a directory
+     */
+    async generateDirectorySummary(
+        dirPath: string,
+        files: { name: string; summary: string }[],
+        subdirectories: string[]
+    ): Promise<string> {
+        const fileList = files
+            .map(f => `- ${f.name}: ${f.summary}`)
+            .join("\n");
+
+        const prompt = `Generate a concise summary for this directory based on its contents.
+
+Directory: ${dirPath}
+
+Files:
+${fileList}
+
+Subdirectories: ${subdirectories.join(", ") || "None"}
+
+Respond with a 2-sentence summary:
+1. What is the primary purpose of this directory?
+2. What are the key functionalities contained within?`;
+
+        return this.chat([
+            {
+                role: "system",
+                content: "You are a code documentation expert. Generate extremely concise 2-sentence directory summaries.",
+            },
+            {
+                role: "user",
+                content: prompt,
+            },
+        ]);
+    }
+
+    /**
+     * Generates a deep analysis for a single file including block-level summaries
+     */
+    async generateDeepAnalysis(
+        filePath: string,
+        fileContent: string
+    ): Promise<{ lowerLevelSummary: string; structure: any[] }> {
+        const prompt = `Analyze this code file in detail.
+
+File: ${filePath}
+
+Code:
+\`\`\`
+${fileContent.slice(0, 8000)}${fileContent.length > 8000 ? "\n... (truncated)" : ""}
+\`\`\`
+
+Provide a JSON response with the following structure:
+{
+  "lowerLevelSummary": "A comprehensive paragraph summarizing the file's purpose, key algorithms, and role.",
+  "structure": [
+    {
+      "name": "Function/Class Name",
+      "type": "function" | "class" | "block",
+      "startLine": <number>,
+      "endLine": <number>,
+      "summary": "Detailed explanation of what this block does."
+    }
+  ]
+}
+
+Identify the main functions, classes, and logical blocks. Estimate start/end lines based on the provided code.
+Respond ONLY with the JSON object.`;
+
+        const response = await this.chat([
+            {
+                role: "system",
+                content: "You are a senior code analyst. detailed analysis in JSON format.",
+            },
+            {
+                role: "user",
+                content: prompt,
+            },
+        ]);
+
+        try {
+            // Strip markdown code fences if present
+            const cleanJson = response.replace(/```json/g, "").replace(/```/g, "").trim();
+            return JSON.parse(cleanJson);
+        } catch (e) {
+            console.error("Failed to parse deep analysis JSON:", e);
+            return {
+                lowerLevelSummary: "Failed to generate deep analysis.",
+                structure: []
+            };
+        }
+    }
+
+    /**
      * Check if the client is properly configured
      */
     isConfigured(): boolean {
@@ -211,32 +309,17 @@ Respond with ONLY 2 sentences:
 }
 
 /**
- * Create a mock client for testing without API key
+ * Factory function to create Gemini client
  */
-export function createMockClient(): OpenRouterClient {
-    return {
-        chat: async () => "Mock response - No API key configured",
-        generateFileSummary: async (filePath: string) =>
-            `**Purpose**: This file (${filePath.split("/").pop()}) contains code that needs an OpenRouter API key for detailed analysis.\n\n**Key Components**: See exports list.\n\n**Dependencies**: See imports list.\n\n**Usage**: Configure OPENROUTER_API_KEY for AI-powered summaries.`,
-        generateArchitectureOverview: async () =>
-            "Architecture overview requires an OpenRouter API key. Configure OPENROUTER_API_KEY environment variable.",
-        isConfigured: () => false,
-    } as unknown as OpenRouterClient;
-}
+export function createGeminiClient(apiKey?: string): GeminiClient {
+    const key = apiKey || process.env.GEMINI_API_KEY || "";
 
-/**
- * Factory function to create OpenRouter client
- */
-export function createOpenRouterClient(apiKey?: string): OpenRouterClient {
-    const key = apiKey || process.env.OPENROUTER_API_KEY;
-
-    if (!key) {
-        console.warn("No OpenRouter API key found. Using mock client.");
-        return createMockClient();
-    }
-
-    return new OpenRouterClient({
+    return new GeminiClient({
         apiKey: key,
-        model: process.env.OPENROUTER_MODEL || DEFAULT_MODEL,
+        model: process.env.GEMINI_MODEL || DEFAULT_MODEL,
     });
 }
+
+// Re-export with OpenRouter-compatible names for backward compatibility
+export { GeminiClient as OpenRouterClient };
+export { createGeminiClient as createOpenRouterClient };

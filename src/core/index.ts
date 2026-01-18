@@ -46,20 +46,13 @@ export {
     type ComponentGraph,
 } from "./analyzer.js";
 
-// Generator
+// Gemini (formerly OpenRouter)
 export {
-    generateWiki,
-    generateMermaidDiagram,
-    wikiToFile,
-    type WikiOptions,
-    type GeneratedWiki,
-} from "./generator.js";
-
-// OpenRouter
-export {
+    GeminiClient,
     OpenRouterClient,
+    createGeminiClient,
     createOpenRouterClient,
-    createMockClient,
+    type GeminiConfig,
     type OpenRouterConfig,
     type Message,
-} from "./openrouter.js";
+} from "./gemini.js";

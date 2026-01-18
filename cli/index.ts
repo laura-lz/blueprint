@@ -71,7 +71,7 @@ async function main() {
 
             for (const [, capsule] of capsules) {
                 // Skip non-code files
-                if (!capsule.summaryContext ||
+                if (!capsule.metadata ||
                     ["json", "css", "markdown"].includes(capsule.lang)) {
                     continue;
                 }
@@ -85,16 +85,16 @@ async function main() {
                     const summary = await client.generateCapsuleSummary(
                         capsule.relativePath,
                         {
-                            fileDocstring: capsule.summaryContext.fileDocstring,
-                            functionSignatures: capsule.summaryContext.functionSignatures,
-                            firstNLines: capsule.summaryContext.firstNLines,
-                            usedBy: capsule.summaryContext.usedBy,
-                            dependsOn: capsule.summaryContext.dependsOn,
+                            fileDocstring: capsule.metadata.fileDocstring,
+                            functionSignatures: capsule.metadata.functionSignatures,
+                            firstNLines: capsule.metadata.firstNLines,
+                            usedBy: capsule.metadata.usedBy,
+                            dependsOn: capsule.metadata.dependsOn,
                             exports: capsule.exports.map((e: ExportEntry) => e.name),
                         }
                     );
 
-                    capsule.summary = summary;
+                    capsule.upperLevelSummary = summary;
                 } catch (error) {
                     console.warn(`   ⚠️ Failed to summarize ${capsule.relativePath}`);
                 }
