@@ -24,7 +24,7 @@
       "package-lock.json"
     ]
   },
-  "rootSummary": "This directory serves as the root for a TypeScript-based calculator application built using the Next.js framework. It contains the essential configuration files, UI components, and core logic needed to develop, build, and deploy the web application.",
+  "rootSummary": "Root directory for a Next.js calculator application containing core application logic, UI components, and project configuration.",
   "files": {
     ".nexhacks/capsules.json": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/.nexhacks/capsules.json",
@@ -40,7 +40,7 @@
         "usedBy": [],
         "dependsOn": []
       },
-      "upperLevelSummary": "Provides project statistics and metadata detailing file counts, directory structure, and external dependencies. Operates as an independent data store for project analysis without any internal dependencies or dependents."
+      "upperLevelSummary": "Stores project structure statistics and external dependency metadata as a standalone analysis file."
     },
     "README.md": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/README.md",
@@ -56,7 +56,7 @@
         "usedBy": [],
         "dependsOn": []
       },
-      "upperLevelSummary": "This file provides project documentation and setup instructions for a Next.js application initialized via create-next-app. It serves as a standalone developer guide with no functional integration or dependencies within the codebase."
+      "upperLevelSummary": "Documentation file providing project overview and development setup instructions for this Next.js application."
     },
     "app/globals.css": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/app/globals.css",
@@ -74,7 +74,7 @@
         ],
         "dependsOn": []
       },
-      "upperLevelSummary": "This file defines global CSS variables and base reset styles to establish the application's core visual theme and layout. It is imported by the root layout file to provide consistent styling across the entire application."
+      "upperLevelSummary": "Defines global CSS variables and base reset styles applied across the application via the root layout."
     },
     "app/layout.tsx": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/app/layout.tsx",
@@ -164,7 +164,7 @@
           "./globals.css"
         ]
       },
-      "upperLevelSummary": "This root layout defines the global metadata and base structure for the entire Next.js application. It imports global CSS styles and acts as the top-level wrapper for all child pages and components."
+      "upperLevelSummary": "This root layout component defines the application's global metadata, fonts, and styles for all pages."
     },
     "app/page.module.css": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/app/page.module.css",
@@ -180,7 +180,7 @@
         "usedBy": [],
         "dependsOn": []
       },
-      "upperLevelSummary": "This CSS module defines layout and typography styles for the application's primary landing page elements. It serves as a standalone styling asset with no current internal dependencies or external consumers."
+      "upperLevelSummary": "Defines layout and typography styles for the main application page as an isolated CSS module."
     },
     "app/page.tsx": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/app/page.tsx",
@@ -244,7 +244,7 @@
           "./Visualizer"
         ]
       },
-      "upperLevelSummary": "Defines the Home page component that renders the main calculator interface within a centered layout. Serves as the primary application entry point and integrates the Calculator component alongside the Visualizer module."
+      "upperLevelSummary": "Serves as the main entry point for the home route by rendering a centered layout that integrates the Calculator and Visualizer components."
     },
     "components/Button.module.css": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/components/Button.module.css",
@@ -262,7 +262,7 @@
         ],
         "dependsOn": []
       },
-      "upperLevelSummary": "This CSS module defines the layout, typography, and interactive styling for a button element. It is imported and applied exclusively within the Button.tsx component."
+      "upperLevelSummary": "Provides layout and appearance styles for the Button component used in components/Button.tsx."
     },
     "components/Button.tsx": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/components/Button.tsx",
@@ -324,7 +324,7 @@
           "./Button.module.css"
         ]
       },
-      "upperLevelSummary": "Defines a calculator button component that supports multiple visual variants and custom click interactions. It imports styles from a local CSS module and is utilized by the ButtonGrid component."
+      "upperLevelSummary": "Exports a styled calculator button component with multiple visual variants for use within ButtonGrid.tsx."
     },
     "components/ButtonGrid.module.css": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/components/ButtonGrid.module.css",
@@ -342,7 +342,7 @@
         ],
         "dependsOn": []
       },
-      "upperLevelSummary": "Defines a responsive four-column grid layout with variable spacing for button organization. Provides modular styling used exclusively by the ButtonGrid component."
+      "upperLevelSummary": "Provides responsive four-column grid styles used by the ButtonGrid component to manage button layout and spacing."
     },
     "components/ButtonGrid.tsx": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/components/ButtonGrid.tsx",
@@ -408,7 +408,7 @@
           "./ButtonGrid.module.css"
         ]
       },
-      "upperLevelSummary": "This component renders a 4x5 grid of interactive calculator buttons to handle user input events. It is integrated into the Calculator component and depends on the Button component and local CSS modules."
+      "upperLevelSummary": "Arranges Button components into a 4x5 grid layout for the Calculator component using local styles and a click event handler."
     },
     "components/Calculator.module.css": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/components/Calculator.module.css",
@@ -426,7 +426,7 @@
         ],
         "dependsOn": []
       },
-      "upperLevelSummary": "This module defines the visual styles, layout, and responsive design for the calculator's primary container and interface elements. It is imported and utilized by the Calculator component to apply scoped CSS classes."
+      "upperLevelSummary": "Provides the visual styling and responsive layout definitions for the Calculator component."
     },
     "components/Calculator.tsx": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/components/Calculator.tsx",
@@ -520,7 +520,7 @@
           "./Calculator.module.css"
         ]
       },
-      "upperLevelSummary": "Manages state and orchestrates calculation logic for the main user interface. Coordinates the display and button grid components while utilizing internal utility functions and modular styling."
+      "upperLevelSummary": "This main calculator component manages state and logic by orchestrating the Display and ButtonGrid subcomponents through the core calculator library."
     },
     "components/Display.module.css": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/components/Display.module.css",
@@ -538,7 +538,7 @@
         ],
         "dependsOn": []
       },
-      "upperLevelSummary": "Provides visual styles and layout configurations for a display container and its history section. The module is consumed exclusively by the Display component and has no external dependencies."
+      "upperLevelSummary": "Defines CSS module styles for the layout and appearance of the Display component used in components/Display.tsx."
     },
     "components/Display.tsx": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/components/Display.tsx",
@@ -595,7 +595,7 @@
           "./Display.module.css"
         ]
       },
-      "upperLevelSummary": "This component renders the calculator's visual interface to display the current numeric value and calculation history. It is used by the Calculator component and depends on a local CSS module for styling."
+      "upperLevelSummary": "Renders the calculator's current value and calculation history for the Calculator component using styles from Display.module.css."
     },
     "eslint.config.mjs": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/eslint.config.mjs",
@@ -643,7 +643,7 @@
         "usedBy": [],
         "dependsOn": []
       },
-      "upperLevelSummary": "This file defines the project's ESLint configuration by combining Next.js web vitals and TypeScript rules with specific global ignore patterns. It exports the `eslintConfig` object for use by the linting engine and functions independently of other local codebase files."
+      "upperLevelSummary": "Configures project-wide linting by extending Next.js and TypeScript presets with custom global file exclusions."
     },
     "lib/calculator.ts": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/lib/calculator.ts",
@@ -845,7 +845,7 @@
         ],
         "dependsOn": []
       },
-      "upperLevelSummary": "This module provides pure mathematical functions, input parsing, and display formatting for calculator operations. It serves as a standalone utility used by the Calculator component and has no local dependencies."
+      "upperLevelSummary": "Provides pure mathematical and formatting functions used by the Calculator component to perform arithmetic operations and process input."
     },
     "next-env.d.ts": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/next-env.d.ts",
@@ -871,7 +871,7 @@
           "./.next/dev/types/routes.d.ts"
         ]
       },
-      "upperLevelSummary": "This file provides global TypeScript type definitions for Next.js core features and image handling. It integrates the development environment with the framework by importing generated route types from the local build directory."
+      "upperLevelSummary": "Provides TypeScript type definitions for Next.js core features, image types, and development routes to ensure type safety across the application."
     },
     "next.config.ts": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/next.config.ts",
@@ -903,7 +903,7 @@
         "usedBy": [],
         "dependsOn": []
       },
-      "upperLevelSummary": "Defines the build and runtime configuration options for the Next.js application. Exports the nextConfig object as a standalone module with no local dependencies or internal dependents."
+      "upperLevelSummary": "Defines and exports the `nextConfig` object to provide configuration settings for the Next.js framework."
     },
     "package-lock.json": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/package-lock.json",
@@ -919,7 +919,7 @@
         "usedBy": [],
         "dependsOn": []
       },
-      "upperLevelSummary": "This file locks the exact versions of project dependencies to ensure consistent and reproducible builds across environments. It tracks the dependency tree for the calculator application, managing core requirements like Next.js and React."
+      "upperLevelSummary": "Locks exact dependency versions to ensure consistent and reproducible builds for the calculator application."
     },
     "package.json": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/package.json",
@@ -935,7 +935,7 @@
         "usedBy": [],
         "dependsOn": []
       },
-      "upperLevelSummary": "This file defines the metadata and execution scripts for a Next.js-based calculator application. It manages core external dependencies like React and Next.js to facilitate project development and deployment."
+      "upperLevelSummary": "Defines project metadata, build scripts, and external dependencies for the Next.js-based calculator application."
     },
     "public/capsules.json": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/public/capsules.json",
@@ -951,7 +951,7 @@
         "usedBy": [],
         "dependsOn": []
       },
-      "upperLevelSummary": "This JSON file stores metadata and structural statistics about the project, including file counts and external dependencies. It acts as a standalone public asset with no internal dependencies or consumers in the codebase."
+      "upperLevelSummary": "A static JSON asset providing structural metadata and dependency statistics for the project's codebase."
     },
     "tsconfig.json": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/tsconfig.json",
@@ -967,7 +967,7 @@
         "usedBy": [],
         "dependsOn": []
       },
-      "upperLevelSummary": "Configures TypeScript compiler settings for strict type-checking and ES2017 target compatibility. Acts as the central build configuration for the project with no local dependencies or exports."
+      "upperLevelSummary": "Defines TypeScript compiler options and strict type-checking rules for the project as a standalone configuration without internal dependencies."
     }
   }
 }

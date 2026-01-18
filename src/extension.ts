@@ -658,8 +658,7 @@ async function sendCapsulesDataToWebview(webview: vscode.Webview) {
 				const processFile = async ([relativePath, capsule]: [string, FileCapsule]) => {
 					// Skip if summary already exists or non-code
 					if (capsule.upperLevelSummary ||
-						!capsule.metadata ||
-						['json', 'css', 'markdown', 'yaml'].includes(capsule.lang)) {
+						!capsule.metadata) {
 						return;
 					}
 

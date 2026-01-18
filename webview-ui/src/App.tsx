@@ -631,6 +631,9 @@ const CapsuleNode: React.FC<NodeProps<FileNodeData>> = ({ data }) => {
   };
   const colors = getColors();
 
+  // Check if this node is on a highlighted path
+  const isOnPath = (data as any).isOnPath;
+
   return (
     <div
       style={{
@@ -638,27 +641,32 @@ const CapsuleNode: React.FC<NodeProps<FileNodeData>> = ({ data }) => {
         borderRadius: '24px',
         background: colors.bg,
         color: '#fff',
-        border: `3px solid ${colors.border}`,
-        boxShadow: '0 8px 25px rgba(0,0,0,0.6)',
+        border: isOnPath ? `4px solid #48bb78` : `3px solid ${colors.border}`,
+        boxShadow: isOnPath
+          ? '0 0 30px rgba(72, 187, 120, 0.6), 0 8px 25px rgba(0,0,0,0.6)'
+          : '0 8px 25px rgba(0,0,0,0.6)',
         width: 320,
         fontFamily: 'system-ui, -apple-system, sans-serif',
         cursor: 'pointer',
-        transition: 'transform 0.2s, box-shadow 0.2s',
+        transition: 'transform 0.2s, box-shadow 0.2s, border 0.2s',
         display: 'flex',
         flexDirection: 'column',
-        gap: '16px'
+        gap: '16px',
+        transform: isOnPath ? 'scale(1.05)' : 'scale(1)'
       }}
       className="capsule-node-hover"
     >
       <Handle type="target" position={Position.Top} style={{ top: '50%', left: '50%', opacity: 0 }} />
       <Handle type="source" position={Position.Bottom} style={{ top: '50%', left: '50%', opacity: 0 }} />
 
-      {/* BODY: Summary */}
-      <div style={{ flex: 1 }}>
-        <div style={{ fontSize: '24px', lineHeight: '1.5', color: '#fff', fontWeight: '500' }}>
-          {data.summary || "No summary available."}
+      {/* BODY: Summary (hidden for root) */}
+      {!data.isRoot && (
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: '24px', lineHeight: '1.5', color: '#fff', fontWeight: '500' }}>
+            {data.summary || "No summary available."}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* FOOTER: Icon + Label */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '12px' }}>
@@ -1086,6 +1094,67 @@ export default function App() {
     })));
   };
 
+  // Calculate path from root to a file and highlight all nodes/edges on that path
+  const handleHoverResult = (nodeId: string | null) => {
+    if (!nodeId) {
+      // Clear all path highlights
+      setNodes(nds => nds.map(n => ({
+        ...n,
+        data: { ...n.data as FileNodeData, isOnPath: false }
+      })));
+      setEdges(eds => eds.map(e => ({
+        ...e,
+        style: {
+          ...e.style,
+          stroke: e.data?.isDependency ? '#63b3ed' : '#888',
+          opacity: e.data?.isDependency ? 1 : (e.style?.opacity || 0.5)
+        }
+      })));
+      return;
+    }
+
+    // Calculate path: root -> directory (if any) -> file
+    const pathNodeIds = new Set<string>();
+    const pathEdgeIds = new Set<string>();
+
+    pathNodeIds.add(nodeId); // The file itself
+    pathNodeIds.add('root'); // Always include root
+
+    // Find the parts of the path
+    const parts = nodeId.split('/');
+    if (parts.length > 1) {
+      // File is in a directory
+      const dirId = `dir-${parts[0]}`;
+      pathNodeIds.add(dirId);
+      pathEdgeIds.add(`root->${dirId}`);
+      pathEdgeIds.add(`${dirId}->${nodeId}`);
+    } else {
+      // File is in root
+      pathEdgeIds.add(`root->${nodeId}`);
+    }
+
+    // Highlight nodes on path
+    setNodes(nds => nds.map(n => ({
+      ...n,
+      data: { ...n.data as FileNodeData, isOnPath: pathNodeIds.has(n.id) }
+    })));
+
+    // Highlight edges on path
+    setEdges(eds => eds.map(e => {
+      const isOnPath = pathEdgeIds.has(e.id);
+      return {
+        ...e,
+        style: {
+          ...e.style,
+          stroke: isOnPath ? '#48bb78' : (e.data?.isDependency ? '#63b3ed' : '#888'),
+          opacity: isOnPath ? 1 : 0.2,
+          strokeWidth: isOnPath ? 16 : (e.style?.strokeWidth || 6)
+        },
+        animated: isOnPath || e.data?.isDependency
+      };
+    }));
+  };
+
   const toggleFileType = (type: string) => {
     setFileTypes(prev => ({ ...prev, [type]: !prev[type] }));
   };
@@ -1147,6 +1216,7 @@ export default function App() {
         toggleFileType={toggleFileType}
         searchResults={searchResults}
         onClickResult={handleClickResult}
+        onHoverResult={handleHoverResult}
         onAddSticky={handleAddSticky}
         onRefresh={handleRefresh}
         onSettings={handleSettings}

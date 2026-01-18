@@ -28,6 +28,7 @@ export interface SidebarProps {
     toggleFileType: (type: string) => void;
     searchResults: SearchResult[];
     onClickResult: (id: string) => void;
+    onHoverResult: (id: string | null) => void;
     onAddSticky: () => void;
     onRefresh: () => void;
     onSettings: () => void;
@@ -56,6 +57,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     toggleFileType,
     searchResults,
     onClickResult,
+    onHoverResult,
     onAddSticky,
     onRefresh,
     onSettings
@@ -142,6 +144,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                             <button
                                 key={result.id}
                                 onClick={() => onClickResult(result.id)}
+                                onMouseEnter={() => onHoverResult(result.id)}
+                                onMouseLeave={() => onHoverResult(null)}
                                 style={{
                                     display: 'flex',
                                     alignItems: 'center',
@@ -154,7 +158,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                                     color: '#fff',
                                     cursor: 'pointer',
                                     textAlign: 'left',
-                                    fontSize: '12px'
+                                    fontSize: '12px',
+                                    transition: 'background 0.15s'
                                 }}
                             >
                                 <span style={{ opacity: 0.7 }}>{langColors[result.lang]?.icon || '📄'}</span>
