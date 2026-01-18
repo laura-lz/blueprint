@@ -1,0 +1,7 @@
+packages:
+  - "**"
+  - "!**/output/**"
+  - "!**/samples/**"
+
+onlyBuiltDependencies:
+  - esbuild

@@ -1,0 +1,1229 @@
+{
+  "stats": {
+    "totalFiles": 22,
+    "totalDirectories": 6,
+    "totalEdges": 11,
+    "externalDependencies": [
+      "eslint-config-next/core-web-vitals",
+      "eslint-config-next/typescript",
+      "eslint/config",
+      "next",
+      "next/font/google",
+      "react"
+    ],
+    "entryPoints": [
+      ".nexhacks/capsules.json",
+      "README.md",
+      "app/layout.tsx",
+      "app/page.tsx",
+      "eslint.config.mjs",
+      "next-env.d.ts",
+      "next.config.ts",
+      "package-lock.json",
+      "package.json",
+      "public/capsules.json"
+    ]
+  },
+  "rootSummary": "Root directory for a Next.js calculator application containing project configurations, UI components, and core application logic.",
+  "files": {
+    ".nexhacks/capsules.json": {
+      "path": "/Users/laurazhang/code/nexhacks/samples/calculator/.nexhacks/capsules.json",
+      "relativePath": ".nexhacks/capsules.json",
+      "name": "capsules.json",
+      "lang": "json",
+      "imports": [],
+      "exports": [],
+      "topSymbols": [],
+      "metadata": {
+        "functionSignatures": [],
+        "firstNLines": "{\n  \"stats\": {\n    \"totalFiles\": 21,\n    \"totalDirectories\": 6,\n    \"totalEdges\": 9,\n    \"externalDependencies\": [\n      \"eslint-config-next/core-web-vitals\",\n      \"eslint-config-next/typescript\",\n      \"eslint/config\",\n      \"next\",\n      \"next/font/google\",\n      \"react\"\n    ],\n    \"entryPoints\": [\n      \".nexhacks/capsules.json\",\n      \"README.md\",\n      \"app/layout.tsx\",\n      \"app/page.module.css\",\n      \"app/page.tsx\",\n      \"components/Calculator.tsx\",\n      \"eslint.config.mjs\",\n      \"next.config.ts\",\n      \"package-lock.json\",\n      \"package.json\"\n    ]\n  },\n  \"files\": {\n    \".nexhacks/capsules.json\": {\n      \"path\": \"/Users/wayne_tx/Desktop/nexhacks/samples/calculator/.nexhacks/capsules.json\",\n      \"relativePath\": \".nexhacks/capsules.json\",",
+        "usedBy": [],
+        "dependsOn": []
+      },
+      "upperLevelSummary": "A metadata configuration storing project statistics and dependency mappings for codebase analysis within the Nexhacks toolset."
+    },
+    "README.md": {
+      "path": "/Users/laurazhang/code/nexhacks/samples/calculator/README.md",
+      "relativePath": "README.md",
+      "name": "README.md",
+      "lang": "markdown",
+      "imports": [],
+      "exports": [],
+      "topSymbols": [],
+      "metadata": {
+        "functionSignatures": [],
+        "firstNLines": "This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).\n\n## Getting Started\n\nFirst, run the development server:\n\n```bash\nnpm run dev\n# or\nyarn dev\n# or\npnpm dev\n# or\nbun dev\n```\n\nOpen [http://localhost:3000](http://localhost:3000) with your browser to see the result.\n\nYou can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.\n\nThis project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.\n\n## Learn More\n\nTo learn more about Next.js, take a look at the following resources:\n\n- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.\n- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.\n\nYou can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!",
+        "usedBy": [],
+        "dependsOn": []
+      },
+      "upperLevelSummary": "Provides essential setup instructions and a project overview for the Next.js application to guide developer onboarding."
+    },
+    "app/globals.css": {
+      "path": "/Users/laurazhang/code/nexhacks/samples/calculator/app/globals.css",
+      "relativePath": "app/globals.css",
+      "name": "globals.css",
+      "lang": "css",
+      "imports": [],
+      "exports": [],
+      "topSymbols": [],
+      "metadata": {
+        "functionSignatures": [],
+        "firstNLines": ":root {\n  --background: #0a0a12;\n  --foreground: #ffffff;\n}\n\n* {\n  box-sizing: border-box;\n  padding: 0;\n  margin: 0;\n}\n\nhtml,\nbody {\n  max-width: 100vw;\n  overflow-x: hidden;\n  font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;\n}\n\nbody {\n  color: var(--foreground);\n  background: var(--background);\n  background-image:\n    radial-gradient(ellipse 80% 80% at 50% -20%, rgba(120, 119, 198, 0.15), transparent),\n    radial-gradient(ellipse 60% 60% at 80% 100%, rgba(255, 149, 0, 0.1), transparent);\n  min-height: 100vh;\n}\n\na {\n  color: inherit;\n  text-decoration: none;",
+        "usedBy": [
+          "app/layout.tsx"
+        ],
+        "dependsOn": []
+      },
+      "upperLevelSummary": "Defines global CSS variables and base reset styles imported by the root layout to establish the application's visual foundation."
+    },
+    "app/layout.tsx": {
+      "path": "/Users/laurazhang/code/nexhacks/samples/calculator/app/layout.tsx",
+      "relativePath": "app/layout.tsx",
+      "name": "layout.tsx",
+      "lang": "react-typescript",
+      "imports": [
+        {
+          "pathOrModule": "next",
+          "symbols": [
+            "Metadata"
+          ],
+          "isDefault": false,
+          "isLocal": false
+        },
+        {
+          "pathOrModule": "next/font/google",
+          "symbols": [
+            "Geist",
+            "Geist_Mono"
+          ],
+          "isDefault": false,
+          "isLocal": false
+        },
+        {
+          "pathOrModule": "./globals.css",
+          "symbols": [],
+          "isDefault": false,
+          "isLocal": true
+        }
+      ],
+      "exports": [
+        {
+          "name": "metadata",
+          "kind": "variable",
+          "isDefault": false
+        },
+        {
+          "name": "RootLayout",
+          "kind": "default",
+          "isDefault": true
+        }
+      ],
+      "topSymbols": [
+        {
+          "name": "RootLayout",
+          "kind": "function",
+          "location": {
+            "start": {
+              "line": 20,
+              "column": 0
+            },
+            "end": {
+              "line": 32,
+              "column": 0
+            }
+          },
+          "exported": true
+        },
+        {
+          "name": "metadata",
+          "kind": "const",
+          "location": {
+            "start": {
+              "line": 15,
+              "column": 0
+            },
+            "end": {
+              "line": 18,
+              "column": 0
+            }
+          },
+          "exported": true
+        }
+      ],
+      "metadata": {
+        "functionSignatures": [
+          {
+            "name": "RootLayout",
+            "signature": "export default function RootLayout(",
+            "exported": true
+          }
+        ],
+        "firstNLines": "import type { Metadata } from \"next\";\nimport { Geist, Geist_Mono } from \"next/font/google\";\nimport \"./globals.css\";\n\nconst geistSans = Geist({\n  variable: \"--font-geist-sans\",\n  subsets: [\"latin\"],\n});\n\nconst geistMono = Geist_Mono({\n  variable: \"--font-geist-mono\",\n  subsets: [\"latin\"],\n});\n\nexport const metadata: Metadata = {\n  title: \"Calculator | Nexhacks Sample\",\n  description: \"A modern calculator built with Next.js\",\n};\n\nexport default function RootLayout({\n  children,\n}: Readonly<{\n  children: React.ReactNode;\n}>) {\n  return (\n    <html lang=\"en\">\n      <body className={`${geistSans.variable} ${geistMono.variable}`}>\n        {children}\n      </body>\n    </html>",
+        "usedBy": [],
+        "dependsOn": [
+          "./globals.css"
+        ]
+      },
+      "upperLevelSummary": "Defines the application's root structure, global styles, and metadata as the primary layout for all pages.",
+      "lowerLevelSummary": "This file defines the root layout for a Next.js application, configuring global fonts and metadata. It wraps the application's children in HTML and body tags with applied font variables.",
+      "structure": [
+        {
+          "name": "geistSans",
+          "type": "block",
+          "startLine": 5,
+          "endLine": 8,
+          "summary": "Initializes the Geist sans-serif font with specific CSS variables and subsets."
+        },
+        {
+          "name": "geistMono",
+          "type": "block",
+          "startLine": 10,
+          "endLine": 13,
+          "summary": "Initializes the Geist Mono font with specific CSS variables and subsets."
+        },
+        {
+          "name": "metadata",
+          "type": "block",
+          "startLine": 15,
+          "endLine": 18,
+          "summary": "Defines the application's SEO metadata including the title and description."
+        },
+        {
+          "name": "RootLayout",
+          "type": "function",
+          "startLine": 20,
+          "endLine": 31,
+          "summary": "The root layout component that provides the basic HTML structure and applies global font styles."
+        }
+      ]
+    },
+    "app/page.module.css": {
+      "path": "/Users/laurazhang/code/nexhacks/samples/calculator/app/page.module.css",
+      "relativePath": "app/page.module.css",
+      "name": "page.module.css",
+      "lang": "css",
+      "imports": [],
+      "exports": [],
+      "topSymbols": [],
+      "metadata": {
+        "functionSignatures": [],
+        "firstNLines": ".main {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  min-height: 100vh;\n  padding: 24px;\n}\n\n.title {\n  font-size: 1.5rem;\n  font-weight: 500;\n  color: rgba(255, 255, 255, 0.6);\n  margin-bottom: 24px;\n  letter-spacing: 0.05em;\n  text-transform: uppercase;\n}",
+        "usedBy": [
+          "app/page.tsx"
+        ],
+        "dependsOn": []
+      },
+      "upperLevelSummary": "Defines layout and typography styles for the main landing page component imported by app/page.tsx."
+    },
+    "app/page.tsx": {
+      "path": "/Users/laurazhang/code/nexhacks/samples/calculator/app/page.tsx",
+      "relativePath": "app/page.tsx",
+      "name": "page.tsx",
+      "lang": "react-typescript",
+      "imports": [
+        {
+          "pathOrModule": "@/components/Calculator",
+          "symbols": [
+            "Calculator"
+          ],
+          "isDefault": true,
+          "isLocal": true
+        },
+        {
+          "pathOrModule": "./page.module.css",
+          "symbols": [
+            "styles"
+          ],
+          "isDefault": true,
+          "isLocal": true
+        }
+      ],
+      "exports": [
+        {
+          "name": "Home",
+          "kind": "default",
+          "isDefault": true
+        }
+      ],
+      "topSymbols": [
+        {
+          "name": "Home",
+          "kind": "function",
+          "location": {
+            "start": {
+              "line": 8,
+              "column": 0
+            },
+            "end": {
+              "line": 15,
+              "column": 0
+            }
+          },
+          "exported": true
+        }
+      ],
+      "metadata": {
+        "fileDocstring": "*\n * Home page component\n * Renders the calculator in a centered layout",
+        "functionSignatures": [
+          {
+            "name": "Home",
+            "signature": "export default function Home()",
+            "exported": true
+          }
+        ],
+        "firstNLines": "import Calculator from \"@/components/Calculator\";\nimport styles from \"./page.module.css\";\n\n/**\n * Home page component\n * Renders the calculator in a centered layout\n */\nexport default function Home() {\n  return (\n    <main className={styles.main}>\n      <h1 className={styles.title}>Calculator</h1>\n      <Calculator />\n    </main>\n  );\n}",
+        "usedBy": [],
+        "dependsOn": [
+          "@/components/Calculator",
+          "./page.module.css"
+        ]
+      },
+      "upperLevelSummary": "Acts as the application's primary home page entry point, integrating the core Calculator component into a styled layout.",
+      "lowerLevelSummary": "This file defines the main entry point for the application's home page. It sets up the primary layout using CSS modules and renders the Calculator component within a main HTML element.",
+      "structure": [
+        {
+          "name": "Home",
+          "type": "function",
+          "startLine": 7,
+          "endLine": 14,
+          "summary": "The main React component that renders the home page's structure and includes the Calculator component."
+        }
+      ]
+    },
+    "components/Button.module.css": {
+      "path": "/Users/laurazhang/code/nexhacks/samples/calculator/components/Button.module.css",
+      "relativePath": "components/Button.module.css",
+      "name": "Button.module.css",
+      "lang": "css",
+      "imports": [],
+      "exports": [],
+      "topSymbols": [],
+      "metadata": {
+        "functionSignatures": [],
+        "firstNLines": ".button {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    font-size: 1.5rem;\n    font-weight: 400;\n    border: none;\n    border-radius: 16px;\n    cursor: pointer;\n    transition: all 0.15s ease;\n    user-select: none;\n    aspect-ratio: 1;\n    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;\n}\n\n.button:active {\n    transform: scale(0.95);\n}\n\n/* Number buttons */\n.number {\n    background: linear-gradient(145deg, #2d2d44, #252538);\n    color: #ffffff;\n    box-shadow:\n        0 4px 15px rgba(0, 0, 0, 0.3),\n        inset 0 1px 0 rgba(255, 255, 255, 0.1);\n}\n\n.number:hover {\n    background: linear-gradient(145deg, #3a3a55, #2d2d44);",
+        "usedBy": [
+          "components/Button.tsx"
+        ],
+        "dependsOn": []
+      },
+      "upperLevelSummary": "Defines the layout and visual styles for the Button component used in components/Button.tsx."
+    },
+    "components/Button.tsx": {
+      "path": "/Users/laurazhang/code/nexhacks/samples/calculator/components/Button.tsx",
+      "relativePath": "components/Button.tsx",
+      "name": "Button.tsx",
+      "lang": "react-typescript",
+      "imports": [
+        {
+          "pathOrModule": "./Button.module.css",
+          "symbols": [
+            "styles"
+          ],
+          "isDefault": true,
+          "isLocal": true
+        }
+      ],
+      "exports": [
+        {
+          "name": "Button",
+          "kind": "default",
+          "isDefault": true
+        }
+      ],
+      "topSymbols": [
+        {
+          "name": "Button",
+          "kind": "function",
+          "location": {
+            "start": {
+              "line": 14,
+              "column": 0
+            },
+            "end": {
+              "line": 39,
+              "column": 0
+            }
+          },
+          "exported": true
+        }
+      ],
+      "metadata": {
+        "functionSignatures": [
+          {
+            "name": "Button",
+            "signature": "export default function Button(",
+            "exported": true
+          },
+          {
+            "name": "handleClick",
+            "signature": "const handleClick = () =>",
+            "exported": true
+          }
+        ],
+        "firstNLines": "import styles from \"./Button.module.css\";\n\ninterface ButtonProps {\n    value: string;\n    onClick: (value: string) => void;\n    variant?: \"number\" | \"operator\" | \"special\" | \"equals\";\n    wide?: boolean;\n}\n\n/**\n * Calculator button component\n * Supports multiple visual variants for different button types\n */\nexport default function Button({\n    value,\n    onClick,\n    variant = \"number\",\n    wide = false\n}: ButtonProps) {\n    const handleClick = () => {\n        onClick(value);\n    };\n\n    const classNames = [\n        styles.button,\n        styles[variant],\n        wide ? styles.wide : \"\"\n    ].filter(Boolean).join(\" \");\n\n    return (",
+        "usedBy": [
+          "components/ButtonGrid.tsx"
+        ],
+        "dependsOn": [
+          "./Button.module.css"
+        ]
+      },
+      "upperLevelSummary": "Exports a multi-variant calculator button component used in ButtonGrid.tsx and styled via Button.module.css.",
+      "lowerLevelSummary": "This file defines a reusable React Button component designed for a calculator interface. It utilizes CSS Modules for styling and accepts props for value, click handling, visual variants, and layout width.",
+      "structure": [
+        {
+          "name": "ButtonProps",
+          "type": "block",
+          "startLine": 3,
+          "endLine": 8,
+          "summary": "Defines the TypeScript interface for the component's props, including value, onClick callback, variant, and wide flag."
+        },
+        {
+          "name": "Button",
+          "type": "function",
+          "startLine": 14,
+          "endLine": 39,
+          "summary": "The main functional component that renders a styled button element with dynamic class names based on its props."
+        },
+        {
+          "name": "handleClick",
+          "type": "function",
+          "startLine": 20,
+          "endLine": 22,
+          "summary": "An internal helper function that invokes the provided onClick callback with the button's specific value."
+        }
+      ]
+    },
+    "components/ButtonGrid.module.css": {
+      "path": "/Users/laurazhang/code/nexhacks/samples/calculator/components/ButtonGrid.module.css",
+      "relativePath": "components/ButtonGrid.module.css",
+      "name": "ButtonGrid.module.css",
+      "lang": "css",
+      "imports": [],
+      "exports": [],
+      "topSymbols": [],
+      "metadata": {
+        "functionSignatures": [],
+        "firstNLines": ".grid {\n    display: grid;\n    grid-template-columns: repeat(4, 1fr);\n    gap: 12px;\n}\n\n@media (max-width: 480px) {\n    .grid {\n        gap: 8px;\n    }\n}",
+        "usedBy": [
+          "components/ButtonGrid.tsx"
+        ],
+        "dependsOn": []
+      },
+      "upperLevelSummary": "Defines grid layout and responsive styling for the ButtonGrid component."
+    },
+    "components/ButtonGrid.tsx": {
+      "path": "/Users/laurazhang/code/nexhacks/samples/calculator/components/ButtonGrid.tsx",
+      "relativePath": "components/ButtonGrid.tsx",
+      "name": "ButtonGrid.tsx",
+      "lang": "react-typescript",
+      "imports": [
+        {
+          "pathOrModule": "./Button",
+          "symbols": [
+            "Button"
+          ],
+          "isDefault": true,
+          "isLocal": true
+        },
+        {
+          "pathOrModule": "./ButtonGrid.module.css",
+          "symbols": [
+            "styles"
+          ],
+          "isDefault": true,
+          "isLocal": true
+        }
+      ],
+      "exports": [
+        {
+          "name": "ButtonGrid",
+          "kind": "default",
+          "isDefault": true
+        }
+      ],
+      "topSymbols": [
+        {
+          "name": "ButtonGrid",
+          "kind": "function",
+          "location": {
+            "start": {
+              "line": 12,
+              "column": 0
+            },
+            "end": {
+              "line": 48,
+              "column": 0
+            }
+          },
+          "exported": true
+        }
+      ],
+      "metadata": {
+        "functionSignatures": [
+          {
+            "name": "ButtonGrid",
+            "signature": "export default function ButtonGrid(",
+            "exported": true
+          }
+        ],
+        "firstNLines": "import Button from \"./Button\";\nimport styles from \"./ButtonGrid.module.css\";\n\ninterface ButtonGridProps {\n    onButtonClick: (value: string) => void;\n}\n\n/**\n * Calculator button grid component\n * Arranges buttons in a 4x5 grid layout\n */\nexport default function ButtonGrid({ onButtonClick }: ButtonGridProps) {\n    const buttons = [\n        { value: \"C\", variant: \"special\" as const },\n        { value: \"±\", variant: \"special\" as const },\n        { value: \"%\", variant: \"special\" as const },\n        { value: \"÷\", variant: \"operator\" as const },\n        { value: \"7\", variant: \"number\" as const },\n        { value: \"8\", variant: \"number\" as const },\n        { value: \"9\", variant: \"number\" as const },\n        { value: \"×\", variant: \"operator\" as const },\n        { value: \"4\", variant: \"number\" as const },\n        { value: \"5\", variant: \"number\" as const },\n        { value: \"6\", variant: \"number\" as const },\n        { value: \"-\", variant: \"operator\" as const },\n        { value: \"1\", variant: \"number\" as const },\n        { value: \"2\", variant: \"number\" as const },\n        { value: \"3\", variant: \"number\" as const },\n        { value: \"+\", variant: \"operator\" as const },\n        { value: \"0\", variant: \"number\" as const, wide: true },",
+        "usedBy": [
+          "components/Calculator.tsx"
+        ],
+        "dependsOn": [
+          "./Button",
+          "./ButtonGrid.module.css"
+        ]
+      },
+      "upperLevelSummary": "Arranges calculator buttons in a 4x5 grid for the Calculator component using individual Button components and local CSS modules.",
+      "lowerLevelSummary": "This component defines a grid layout for a calculator's buttons by mapping over an array of button configurations. It passes click handlers and styling properties to child Button components to build the interactive interface.",
+      "structure": [
+        {
+          "name": "ButtonGridProps",
+          "type": "block",
+          "startLine": 4,
+          "endLine": 6,
+          "summary": "Defines the interface for the component's props, specifically the click handler function."
+        },
+        {
+          "name": "ButtonGrid",
+          "type": "function",
+          "startLine": 11,
+          "endLine": 46,
+          "summary": "Main component that renders a grid of calculator buttons using a configuration array."
+        }
+      ]
+    },
+    "components/Calculator.module.css": {
+      "path": "/Users/laurazhang/code/nexhacks/samples/calculator/components/Calculator.module.css",
+      "relativePath": "components/Calculator.module.css",
+      "name": "Calculator.module.css",
+      "lang": "css",
+      "imports": [],
+      "exports": [],
+      "topSymbols": [],
+      "metadata": {
+        "functionSignatures": [],
+        "firstNLines": ".calculator {\n  background: linear-gradient(145deg, #1a1a2e, #16213e);\n  border-radius: 24px;\n  padding: 24px;\n  box-shadow: \n    0 25px 50px -12px rgba(0, 0, 0, 0.5),\n    0 0 0 1px rgba(255, 255, 255, 0.1),\n    inset 0 1px 0 rgba(255, 255, 255, 0.1);\n  backdrop-filter: blur(20px);\n  min-width: 320px;\n  max-width: 400px;\n}\n\n@media (max-width: 480px) {\n  .calculator {\n    min-width: 280px;\n    padding: 16px;\n    border-radius: 20px;\n  }\n}\n",
+        "usedBy": [
+          "components/Calculator.tsx"
+        ],
+        "dependsOn": []
+      },
+      "upperLevelSummary": "Provides responsive visual styling and layout definitions for the Calculator component."
+    },
+    "components/Calculator.tsx": {
+      "path": "/Users/laurazhang/code/nexhacks/samples/calculator/components/Calculator.tsx",
+      "relativePath": "components/Calculator.tsx",
+      "name": "Calculator.tsx",
+      "lang": "react-typescript",
+      "imports": [
+        {
+          "pathOrModule": "react",
+          "symbols": [
+            "useState",
+            "useCallback"
+          ],
+          "isDefault": false,
+          "isLocal": false
+        },
+        {
+          "pathOrModule": "@/lib/calculator",
+          "symbols": [
+            "calculate",
+            "parseInput",
+            "formatDisplay",
+            "Operation"
+          ],
+          "isDefault": false,
+          "isLocal": true
+        },
+        {
+          "pathOrModule": "./Display",
+          "symbols": [
+            "Display"
+          ],
+          "isDefault": true,
+          "isLocal": true
+        },
+        {
+          "pathOrModule": "./ButtonGrid",
+          "symbols": [
+            "ButtonGrid"
+          ],
+          "isDefault": true,
+          "isLocal": true
+        },
+        {
+          "pathOrModule": "./Calculator.module.css",
+          "symbols": [
+            "styles"
+          ],
+          "isDefault": true,
+          "isLocal": true
+        }
+      ],
+      "exports": [
+        {
+          "name": "Calculator",
+          "kind": "default",
+          "isDefault": true
+        }
+      ],
+      "topSymbols": [
+        {
+          "name": "Calculator",
+          "kind": "function",
+          "location": {
+            "start": {
+              "line": 13,
+              "column": 0
+            },
+            "end": {
+              "line": 172,
+              "column": 0
+            }
+          },
+          "exported": true
+        }
+      ],
+      "metadata": {
+        "functionSignatures": [
+          {
+            "name": "Calculator",
+            "signature": "export default function Calculator()",
+            "exported": true
+          }
+        ],
+        "firstNLines": "\"use client\";\n\nimport { useState, useCallback } from \"react\";\nimport { calculate, parseInput, formatDisplay, Operation } from \"@/lib/calculator\";\nimport Display from \"./Display\";\nimport ButtonGrid from \"./ButtonGrid\";\nimport styles from \"./Calculator.module.css\";\n\n/**\n * Main Calculator component\n * Manages state and orchestrates calculation logic\n */\nexport default function Calculator() {\n    const [display, setDisplay] = useState(\"0\");\n    const [previousValue, setPreviousValue] = useState<number | null>(null);\n    const [operation, setOperation] = useState<Operation | null>(null);\n    const [waitingForOperand, setWaitingForOperand] = useState(false);\n    const [history, setHistory] = useState(\"\");\n\n    /**\n     * Handles number button clicks\n     */\n    const handleNumber = useCallback((num: string) => {\n        if (waitingForOperand) {\n            setDisplay(num);\n            setWaitingForOperand(false);\n        } else {\n            setDisplay(display === \"0\" ? num : display + num);\n        }\n    }, [display, waitingForOperand]);",
+        "usedBy": [
+          "app/page.tsx"
+        ],
+        "dependsOn": [
+          "@/lib/calculator",
+          "./Display",
+          "./ButtonGrid",
+          "./Calculator.module.css"
+        ]
+      },
+      "upperLevelSummary": "Manages state and coordinates calculation logic across display and button components to provide the primary calculator interface for the main application page.",
+      "lowerLevelSummary": "A React component that implements calculator logic and state management. It utilizes hooks to handle numeric input, arithmetic operations, and UI updates, while delegating core math logic to external utility functions.",
+      "structure": [
+        {
+          "name": "Calculator",
+          "type": "function",
+          "startLine": 13,
+          "endLine": 175,
+          "summary": "Main component that manages the calculator state, input handlers, and renders the display and button grid."
+        },
+        {
+          "name": "handleNumber",
+          "type": "function",
+          "startLine": 23,
+          "endLine": 30,
+          "summary": "Updates the display with numeric input, handling initial zeros and operand transitions."
+        },
+        {
+          "name": "handleDecimal",
+          "type": "function",
+          "startLine": 35,
+          "endLine": 42,
+          "summary": "Adds a decimal point to the current display value if one is not already present."
+        },
+        {
+          "name": "handleOperator",
+          "type": "function",
+          "startLine": 47,
+          "endLine": 71,
+          "summary": "Processes arithmetic operators, triggering pending calculations and updating the operation state."
+        },
+        {
+          "name": "handleEquals",
+          "type": "function",
+          "startLine": 76,
+          "endLine": 95,
+          "summary": "Finalizes the current calculation, updates the display and history, and resets the operand state."
+        },
+        {
+          "name": "handleClear",
+          "type": "function",
+          "startLine": 100,
+          "endLine": 106,
+          "summary": "Resets the calculator state to its initial default values."
+        },
+        {
+          "name": "handleBackspace",
+          "type": "function",
+          "startLine": 111,
+          "endLine": 117,
+          "summary": "Removes the last character from the display string or resets it to zero."
+        },
+        {
+          "name": "handleToggleSign",
+          "type": "function",
+          "startLine": 122,
+          "endLine": 125,
+          "summary": "Inverts the sign of the current numerical value on the display."
+        },
+        {
+          "name": "handlePercent",
+          "type": "function",
+          "startLine": 130,
+          "endLine": 133,
+          "summary": "Converts the current display value to its percentage equivalent."
+        },
+        {
+          "name": "handleButtonClick",
+          "type": "function",
+          "startLine": 138,
+          "endLine": 167,
+          "summary": "A central dispatcher that routes button inputs to their specific logic handlers based on the character value."
+        }
+      ]
+    },
+    "components/Display.module.css": {
+      "path": "/Users/laurazhang/code/nexhacks/samples/calculator/components/Display.module.css",
+      "relativePath": "components/Display.module.css",
+      "name": "Display.module.css",
+      "lang": "css",
+      "imports": [],
+      "exports": [],
+      "topSymbols": [],
+      "metadata": {
+        "functionSignatures": [],
+        "firstNLines": ".display {\n    background: linear-gradient(180deg, #0f0f1a, #1a1a2e);\n    border-radius: 16px;\n    padding: 20px 24px;\n    margin-bottom: 20px;\n    min-height: 100px;\n    display: flex;\n    flex-direction: column;\n    justify-content: flex-end;\n    align-items: flex-end;\n    border: 1px solid rgba(255, 255, 255, 0.05);\n    box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.3);\n}\n\n.history {\n    font-size: 0.875rem;\n    color: rgba(255, 255, 255, 0.4);\n    min-height: 1.25rem;\n    margin-bottom: 8px;\n    font-family: 'SF Mono', 'Fira Code', monospace;\n}\n\n.value {\n    font-size: 2.5rem;\n    font-weight: 300;\n    color: #ffffff;\n    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;\n    letter-spacing: -0.02em;\n    word-break: break-all;\n    text-align: right;",
+        "usedBy": [
+          "components/Display.tsx"
+        ],
+        "dependsOn": []
+      },
+      "upperLevelSummary": "Defines visual styling and layout properties for the Display component to manage its appearance in the user interface."
+    },
+    "components/Display.tsx": {
+      "path": "/Users/laurazhang/code/nexhacks/samples/calculator/components/Display.tsx",
+      "relativePath": "components/Display.tsx",
+      "name": "Display.tsx",
+      "lang": "react-typescript",
+      "imports": [
+        {
+          "pathOrModule": "./Display.module.css",
+          "symbols": [
+            "styles"
+          ],
+          "isDefault": true,
+          "isLocal": true
+        }
+      ],
+      "exports": [
+        {
+          "name": "Display",
+          "kind": "default",
+          "isDefault": true
+        }
+      ],
+      "topSymbols": [
+        {
+          "name": "Display",
+          "kind": "function",
+          "location": {
+            "start": {
+              "line": 12,
+              "column": 0
+            },
+            "end": {
+              "line": 19,
+              "column": 0
+            }
+          },
+          "exported": true
+        }
+      ],
+      "metadata": {
+        "functionSignatures": [
+          {
+            "name": "Display",
+            "signature": "export default function Display(",
+            "exported": true
+          }
+        ],
+        "firstNLines": "import styles from \"./Display.module.css\";\n\ninterface DisplayProps {\n    value: string;\n    history: string;\n}\n\n/**\n * Calculator display component\n * Shows the current value and calculation history\n */\nexport default function Display({ value, history }: DisplayProps) {\n    return (\n        <div className={styles.display}>\n            <div className={styles.history}>{history}</div>\n            <div className={styles.value}>{value}</div>\n        </div>\n    );\n}\n",
+        "usedBy": [
+          "components/Calculator.tsx"
+        ],
+        "dependsOn": [
+          "./Display.module.css"
+        ]
+      },
+      "upperLevelSummary": "Renders the calculator's current value and history for the Calculator component using localized CSS styles.",
+      "lowerLevelSummary": "This React component renders a calculator-style display consisting of a history line and a current value line. It uses CSS modules for styling and defines a specific interface for its props.",
+      "structure": [
+        {
+          "name": "DisplayProps",
+          "type": "block",
+          "startLine": 3,
+          "endLine": 6,
+          "summary": "Defines the shape of the props for the Display component, including history and value strings."
+        },
+        {
+          "name": "Display",
+          "type": "function",
+          "startLine": 11,
+          "endLine": 18,
+          "summary": "Functional component that renders the calculation history and current input value within styled div elements."
+        }
+      ]
+    },
+    "eslint.config.mjs": {
+      "path": "/Users/laurazhang/code/nexhacks/samples/calculator/eslint.config.mjs",
+      "relativePath": "eslint.config.mjs",
+      "name": "eslint.config.mjs",
+      "lang": "javascript",
+      "imports": [
+        {
+          "pathOrModule": "eslint/config",
+          "symbols": [
+            "defineConfig",
+            "globalIgnores"
+          ],
+          "isDefault": false,
+          "isLocal": false
+        },
+        {
+          "pathOrModule": "eslint-config-next/core-web-vitals",
+          "symbols": [
+            "nextVitals"
+          ],
+          "isDefault": true,
+          "isLocal": false
+        },
+        {
+          "pathOrModule": "eslint-config-next/typescript",
+          "symbols": [
+            "nextTs"
+          ],
+          "isDefault": true,
+          "isLocal": false
+        }
+      ],
+      "exports": [
+        {
+          "name": "eslintConfig",
+          "kind": "default",
+          "isDefault": true
+        }
+      ],
+      "topSymbols": [],
+      "metadata": {
+        "functionSignatures": [],
+        "firstNLines": "import { defineConfig, globalIgnores } from \"eslint/config\";\nimport nextVitals from \"eslint-config-next/core-web-vitals\";\nimport nextTs from \"eslint-config-next/typescript\";\n\nconst eslintConfig = defineConfig([\n  ...nextVitals,\n  ...nextTs,\n  // Override default ignores of eslint-config-next.\n  globalIgnores([\n    // Default ignores of eslint-config-next:\n    \".next/**\",\n    \"out/**\",\n    \"build/**\",\n    \"next-env.d.ts\",\n  ]),\n]);\n\nexport default eslintConfig;\n",
+        "usedBy": [],
+        "dependsOn": []
+      },
+      "upperLevelSummary": "Configures project ESLint rules by integrating Next.js web vitals and TypeScript presets with custom global ignore patterns for build outputs.",
+      "lowerLevelSummary": "This file configures ESLint for a Next.js project using the modern flat configuration format. It combines Next.js Core Web Vitals and TypeScript rule sets while specifying global ignore patterns for build directories and environment files.",
+      "structure": [
+        {
+          "name": "eslintConfig",
+          "type": "block",
+          "startLine": 5,
+          "endLine": 16,
+          "summary": "Defines the primary ESLint configuration by merging Next.js presets and global ignore rules."
+        },
+        {
+          "name": "globalIgnores",
+          "type": "block",
+          "startLine": 9,
+          "endLine": 15,
+          "summary": "Specifies a list of directories and files, such as build outputs and environment declarations, to be excluded from linting."
+        }
+      ]
+    },
+    "lib/calculator.ts": {
+      "path": "/Users/laurazhang/code/nexhacks/samples/calculator/lib/calculator.ts",
+      "relativePath": "lib/calculator.ts",
+      "name": "calculator.ts",
+      "lang": "typescript",
+      "imports": [],
+      "exports": [
+        {
+          "name": "add",
+          "kind": "function",
+          "isDefault": false
+        },
+        {
+          "name": "subtract",
+          "kind": "function",
+          "isDefault": false
+        },
+        {
+          "name": "multiply",
+          "kind": "function",
+          "isDefault": false
+        },
+        {
+          "name": "divide",
+          "kind": "function",
+          "isDefault": false
+        },
+        {
+          "name": "Operation",
+          "kind": "type",
+          "isDefault": false
+        },
+        {
+          "name": "calculate",
+          "kind": "function",
+          "isDefault": false
+        },
+        {
+          "name": "parseInput",
+          "kind": "function",
+          "isDefault": false
+        },
+        {
+          "name": "formatDisplay",
+          "kind": "function",
+          "isDefault": false
+        }
+      ],
+      "topSymbols": [
+        {
+          "name": "add",
+          "kind": "function",
+          "location": {
+            "start": {
+              "line": 12,
+              "column": 0
+            },
+            "end": {
+              "line": 14,
+              "column": 0
+            }
+          },
+          "exported": true
+        },
+        {
+          "name": "subtract",
+          "kind": "function",
+          "location": {
+            "start": {
+              "line": 22,
+              "column": 0
+            },
+            "end": {
+              "line": 24,
+              "column": 0
+            }
+          },
+          "exported": true
+        },
+        {
+          "name": "multiply",
+          "kind": "function",
+          "location": {
+            "start": {
+              "line": 32,
+              "column": 0
+            },
+            "end": {
+              "line": 34,
+              "column": 0
+            }
+          },
+          "exported": true
+        },
+        {
+          "name": "divide",
+          "kind": "function",
+          "location": {
+            "start": {
+              "line": 43,
+              "column": 0
+            },
+            "end": {
+              "line": 48,
+              "column": 0
+            }
+          },
+          "exported": true
+        },
+        {
+          "name": "calculate",
+          "kind": "function",
+          "location": {
+            "start": {
+              "line": 62,
+              "column": 0
+            },
+            "end": {
+              "line": 75,
+              "column": 0
+            }
+          },
+          "exported": true
+        },
+        {
+          "name": "parseInput",
+          "kind": "function",
+          "location": {
+            "start": {
+              "line": 82,
+              "column": 0
+            },
+            "end": {
+              "line": 88,
+              "column": 0
+            }
+          },
+          "exported": true
+        },
+        {
+          "name": "formatDisplay",
+          "kind": "function",
+          "location": {
+            "start": {
+              "line": 95,
+              "column": 0
+            },
+            "end": {
+              "line": 108,
+              "column": 0
+            }
+          },
+          "exported": true
+        }
+      ],
+      "metadata": {
+        "fileDocstring": "*\n * Calculator logic module\n * Contains pure mathematical functions for calculator operations",
+        "functionSignatures": [
+          {
+            "name": "add",
+            "signature": "export function add(a: number, b: number): number",
+            "exported": true
+          },
+          {
+            "name": "subtract",
+            "signature": "export function subtract(a: number, b: number): number",
+            "exported": true
+          },
+          {
+            "name": "multiply",
+            "signature": "export function multiply(a: number, b: number): number",
+            "exported": true
+          },
+          {
+            "name": "divide",
+            "signature": "export function divide(a: number, b: number): number",
+            "exported": true
+          },
+          {
+            "name": "calculate",
+            "signature": "export function calculate(a: number, operation: Operation, b: number): number",
+            "exported": true
+          },
+          {
+            "name": "parseInput",
+            "signature": "export function parseInput(input: string): number",
+            "exported": true
+          },
+          {
+            "name": "formatDisplay",
+            "signature": "export function formatDisplay(value: number): string",
+            "exported": true
+          }
+        ],
+        "firstNLines": "/**\n * Calculator logic module\n * Contains pure mathematical functions for calculator operations\n */\n\n/**\n * Adds two numbers together\n * @param a - First operand\n * @param b - Second operand\n * @returns Sum of a and b\n */\nexport function add(a: number, b: number): number {\n  return a + b;\n}\n\n/**\n * Subtracts the second number from the first\n * @param a - First operand\n * @param b - Second operand\n * @returns Difference of a and b\n */\nexport function subtract(a: number, b: number): number {\n  return a - b;\n}\n\n/**\n * Multiplies two numbers together\n * @param a - First operand\n * @param b - Second operand\n * @returns Product of a and b",
+        "usedBy": [
+          "components/Calculator.tsx"
+        ],
+        "dependsOn": []
+      },
+      "upperLevelSummary": "Provides pure mathematical operations and input parsing utilities that serve as the core logic for the Calculator component.",
+      "lowerLevelSummary": "This file provides a comprehensive set of arithmetic utilities and helper functions for a calculator application. It includes basic mathematical operations, a main calculation dispatcher, input parsing logic, and specialized string formatting for display purposes.",
+      "structure": [
+        {
+          "name": "add",
+          "type": "function",
+          "startLine": 12,
+          "endLine": 14,
+          "summary": "Adds two numbers and returns the result."
+        },
+        {
+          "name": "subtract",
+          "type": "function",
+          "startLine": 22,
+          "endLine": 24,
+          "summary": "Subtracts the second number from the first and returns the result."
+        },
+        {
+          "name": "multiply",
+          "type": "function",
+          "startLine": 32,
+          "endLine": 34,
+          "summary": "Multiplies two numbers and returns the result."
+        },
+        {
+          "name": "divide",
+          "type": "function",
+          "startLine": 43,
+          "endLine": 48,
+          "summary": "Divides two numbers with error handling for division by zero."
+        },
+        {
+          "name": "Operation",
+          "type": "block",
+          "startLine": 53,
+          "endLine": 53,
+          "summary": "Defines the allowed mathematical operator symbols for calculations."
+        },
+        {
+          "name": "calculate",
+          "type": "function",
+          "startLine": 62,
+          "endLine": 75,
+          "summary": "Executes a mathematical operation on two numbers based on the specified operator."
+        },
+        {
+          "name": "parseInput",
+          "type": "function",
+          "startLine": 82,
+          "endLine": 88,
+          "summary": "Safely converts a string input into a floating-point number, defaulting to zero."
+        },
+        {
+          "name": "formatDisplay",
+          "type": "function",
+          "startLine": 95,
+          "endLine": 108,
+          "summary": "Formats a numeric value into a string suitable for a calculator display, handling precision and scientific notation."
+        }
+      ]
+    },
+    "next-env.d.ts": {
+      "path": "/Users/laurazhang/code/nexhacks/samples/calculator/next-env.d.ts",
+      "relativePath": "next-env.d.ts",
+      "name": "next-env.d.ts",
+      "lang": "typescript",
+      "imports": [],
+      "exports": [],
+      "topSymbols": [],
+      "metadata": {
+        "fileDocstring": "/ <reference types=\"next\" />",
+        "functionSignatures": [],
+        "firstNLines": "/// <reference types=\"next\" />\n/// <reference types=\"next/image-types/global\" />\n/// <reference path=\"./.next/types/routes.d.ts\" />\n\n// NOTE: This file should not be edited\n// see https://nextjs.org/docs/app/api-reference/config/typescript for more information.\n",
+        "usedBy": [],
+        "dependsOn": []
+      },
+      "upperLevelSummary": "Provides global TypeScript type definitions for Next.js features and routing to ensure project-wide environment compatibility and type safety.",
+      "lowerLevelSummary": "This is a Next.js environment declaration file used to ensure TypeScript recognizes Next.js specific types and features. Currently, the file contains only empty lines and does not define any functions, classes, or blocks.",
+      "structure": []
+    },
+    "next.config.ts": {
+      "path": "/Users/laurazhang/code/nexhacks/samples/calculator/next.config.ts",
+      "relativePath": "next.config.ts",
+      "name": "next.config.ts",
+      "lang": "typescript",
+      "imports": [
+        {
+          "pathOrModule": "next",
+          "symbols": [
+            "NextConfig"
+          ],
+          "isDefault": false,
+          "isLocal": false
+        }
+      ],
+      "exports": [
+        {
+          "name": "nextConfig",
+          "kind": "default",
+          "isDefault": true
+        }
+      ],
+      "topSymbols": [],
+      "metadata": {
+        "fileDocstring": "config options here",
+        "functionSignatures": [],
+        "firstNLines": "import type { NextConfig } from \"next\";\n\nconst nextConfig: NextConfig = {\n  /* config options here */\n};\n\nexport default nextConfig;\n",
+        "usedBy": [],
+        "dependsOn": []
+      },
+      "upperLevelSummary": "Defines and exports global configuration settings to customize the Next.js application's build and runtime behavior.",
+      "lowerLevelSummary": "This file defines the configuration settings for a Next.js application using TypeScript. It exports a nextConfig object that implements the NextConfig type, serving as the central point for customizing build and runtime behavior.",
+      "structure": [
+        {
+          "name": "nextConfig",
+          "type": "block",
+          "startLine": 3,
+          "endLine": 5,
+          "summary": "Defines the configuration object for the Next.js application."
+        }
+      ]
+    },
+    "package-lock.json": {
+      "path": "/Users/laurazhang/code/nexhacks/samples/calculator/package-lock.json",
+      "relativePath": "package-lock.json",
+      "name": "package-lock.json",
+      "lang": "json",
+      "imports": [],
+      "exports": [],
+      "topSymbols": [],
+      "metadata": {
+        "functionSignatures": [],
+        "firstNLines": "{\n    \"name\": \"calculator\",\n    \"version\": \"0.1.0\",\n    \"lockfileVersion\": 3,\n    \"requires\": true,\n    \"packages\": {\n        \"\": {\n            \"name\": \"calculator\",\n            \"version\": \"0.1.0\",\n            \"dependencies\": {\n                \"next\": \"16.1.3\",\n                \"react\": \"19.2.3\",\n                \"react-dom\": \"19.2.3\"\n            },\n            \"devDependencies\": {\n                \"@types/node\": \"^20\",\n                \"@types/react\": \"^19\",\n                \"@types/react-dom\": \"^19\",\n                \"eslint\": \"^9\",\n                \"eslint-config-next\": \"16.1.3\",\n                \"typescript\": \"^5\"\n            }\n        },\n        \"node_modules/@babel/code-frame\": {\n            \"version\": \"7.28.6\",\n            \"resolved\": \"https://registry.npmjs.org/@babel/code-frame/-/code-frame-7.28.6.tgz\",\n            \"integrity\": \"sha512-JYgintcMjRiCvS8mMECzaEn+m3PfoQiyqukOMCCVQtoJGYJw8j/8LBJEiqkHLkfwCcs74E3pbAUFNg7d9VNJ+Q==\",\n            \"dev\": true,\n            \"license\": \"MIT\",\n            \"dependencies\": {",
+        "usedBy": [],
+        "dependsOn": []
+      },
+      "upperLevelSummary": "Records the exact versions of all project dependencies and their sub-dependencies to ensure consistent and reproducible builds across different environments."
+    },
+    "package.json": {
+      "path": "/Users/laurazhang/code/nexhacks/samples/calculator/package.json",
+      "relativePath": "package.json",
+      "name": "package.json",
+      "lang": "json",
+      "imports": [],
+      "exports": [],
+      "topSymbols": [],
+      "metadata": {
+        "functionSignatures": [],
+        "firstNLines": "{\n    \"name\": \"calculator\",\n    \"version\": \"0.1.0\",\n    \"private\": true,\n    \"scripts\": {\n        \"dev\": \"next dev\",\n        \"build\": \"next build\",\n        \"start\": \"next start\",\n        \"lint\": \"eslint\"\n    },\n    \"dependencies\": {\n        \"next\": \"16.1.3\",\n        \"react\": \"19.2.3\",\n        \"react-dom\": \"19.2.3\"\n    },\n    \"devDependencies\": {\n        \"@types/node\": \"^20\",\n        \"@types/react\": \"^19\",\n        \"@types/react-dom\": \"^19\",\n        \"eslint\": \"^9\",\n        \"eslint-config-next\": \"16.1.3\",\n        \"typescript\": \"^5\"\n    }\n}",
+        "usedBy": [],
+        "dependsOn": []
+      },
+      "upperLevelSummary": "Defines project metadata, build scripts, and core dependencies for the Next.js-based calculator application."
+    },
+    "public/capsules.json": {
+      "path": "/Users/laurazhang/code/nexhacks/samples/calculator/public/capsules.json",
+      "relativePath": "public/capsules.json",
+      "name": "capsules.json",
+      "lang": "json",
+      "imports": [],
+      "exports": [],
+      "topSymbols": [],
+      "metadata": {
+        "functionSignatures": [],
+        "firstNLines": "{\n  \"stats\": {\n    \"totalFiles\": 22,\n    \"totalDirectories\": 6,\n    \"totalEdges\": 11,\n    \"externalDependencies\": [\n      \"eslint-config-next/core-web-vitals\",\n      \"eslint-config-next/typescript\",\n      \"eslint/config\",\n      \"next\",\n      \"next/font/google\",\n      \"react\"\n    ],\n    \"entryPoints\": [\n      \".nexhacks/capsules.json\",\n      \"README.md\",\n      \"app/layout.tsx\",\n      \"app/page.tsx\",\n      \"eslint.config.mjs\",\n      \"next-env.d.ts\",\n      \"next.config.ts\",\n      \"package-lock.json\",\n      \"package.json\",\n      \"public/capsules.json\"\n    ]\n  },\n  \"files\": {\n    \".nexhacks/capsules.json\": {\n      \"path\": \"/Users/laurazhang/code/nexhacks/samples/calculator/.nexhacks/capsules.json\",\n      \"relativePath\": \".nexhacks/capsules.json\",",
+        "usedBy": [],
+        "dependsOn": []
+      },
+      "upperLevelSummary": "This JSON asset provides project-wide statistics and external dependency metadata to serve as a public structural overview of the codebase."
+    },
+    "tsconfig.json": {
+      "path": "/Users/laurazhang/code/nexhacks/samples/calculator/tsconfig.json",
+      "relativePath": "tsconfig.json",
+      "name": "tsconfig.json",
+      "lang": "json",
+      "imports": [],
+      "exports": [],
+      "topSymbols": [],
+      "metadata": {
+        "functionSignatures": [],
+        "firstNLines": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2017\",\n    \"lib\": [\n      \"dom\",\n      \"dom.iterable\",\n      \"esnext\"\n    ],\n    \"allowJs\": true,\n    \"skipLibCheck\": true,\n    \"strict\": true,\n    \"noEmit\": true,\n    \"esModuleInterop\": true,\n    \"module\": \"esnext\",\n    \"moduleResolution\": \"bundler\",\n    \"resolveJsonModule\": true,\n    \"isolatedModules\": true,\n    \"jsx\": \"preserve\",\n    \"incremental\": true,\n    \"plugins\": [\n      {\n        \"name\": \"next\"\n      }\n    ],\n    \"paths\": {\n      \"@/*\": [\n        \"./*\"\n      ]\n    }\n  },",
+        "usedBy": [],
+        "dependsOn": []
+      },
+      "upperLevelSummary": "Configures TypeScript compiler settings and environment rules to enforce strict type checking and modern module resolution."
+    }
+  }
+}

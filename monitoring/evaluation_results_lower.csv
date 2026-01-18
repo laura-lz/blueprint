@@ -1,0 +1,432 @@
+id,input,output,language,name,num_blocks,structure_json,detail_score,detail_explanation,accuracy_score,accuracy_explanation
+app/layout.tsx,"{
+  ""relativePath"": ""app/layout.tsx"",
+  ""lang"": ""react-typescript"",
+  ""exports"": [
+    ""metadata"",
+    ""RootLayout""
+  ],
+  ""imports"": [
+    ""next"",
+    ""next/font/google"",
+    ""./globals.css""
+  ]
+}","This file defines the root layout for a Next.js application, configuring global fonts and metadata. It wraps the application's children in HTML and body tags with applied font variables.",react-typescript,layout.tsx,4,"[
+  {
+    ""name"": ""geistSans"",
+    ""type"": ""block"",
+    ""startLine"": 5,
+    ""endLine"": 8,
+    ""summary"": ""Initializes the Geist sans-serif font with specific CSS variables and subsets.""
+  },
+  {
+    ""name"": ""geistMono"",
+    ""type"": ""block"",
+    ""startLine"": 10,
+    ""endLine"": 13,
+    ""summary"": ""Initializes the Geist Mono font with specific CSS variables and subsets.""
+  },
+  {
+    ""name"": ""metadata"",
+    ""type"": ""block"",
+    ""startLine"": 15,
+    ""endLine"": 18,
+    ""summary"": ""Defines the application's SEO metadata including the title and description.""
+  },
+  {
+    ""name"": ""RootLayout"",
+    ""type"": ""function"",
+    ""startLine"": 20,
+    ""endLine"": 31,
+    ""summary"": ""The root layout component that provides the basic HTML structure and applies global font styles.""
+  }
+]",,"Score: 3
+
+Explanation:
+
+The summary identifies the file's purpose (root layout), the technologies used (Next.js, fonts, CSS), and the basic structure (wrapping children in HTML/body). It mentions the configuration of fonts and metadata. However, it lacks depth. It doesn't specify *how* the fonts are configured (e.g., which font families are used, how the font variables are applied), or what kind of metadata is being defined. It also doesn't mention anything about the specific implementation of the `RootLayout` component itself. Therefore, it's more than a superficial overview (level 1), but it doesn't delve into the implementation details (level 5). A level 3 is appropriate.
+",5,"Rating: 5
+
+Explanation: The analysis accurately describes the file's purpose and structure. It correctly identifies the exports (metadata and RootLayout), the imports (next, next/font/google, and the global CSS file), and the overall function of the file as defining the root layout with font configuration and metadata.
+"
+app/page.tsx,"{
+  ""relativePath"": ""app/page.tsx"",
+  ""lang"": ""react-typescript"",
+  ""exports"": [
+    ""Home""
+  ],
+  ""imports"": [
+    ""@/components/Calculator"",
+    ""./page.module.css""
+  ]
+}",This file defines the main entry point for the application's home page. It sets up the primary layout using CSS modules and renders the Calculator component within a main HTML element.,react-typescript,page.tsx,1,"[
+  {
+    ""name"": ""Home"",
+    ""type"": ""function"",
+    ""startLine"": 7,
+    ""endLine"": 14,
+    ""summary"": ""The main React component that renders the home page's structure and includes the Calculator component.""
+  }
+]",3.0,"Score: 3
+
+Explanation:
+
+The summary identifies the file's purpose (main entry point for the home page), mentions the use of CSS modules for styling, and states that the `Calculator` component is rendered. This goes beyond a very shallow description. However, it doesn't delve into any specific implementation details of the `Calculator` component, the CSS modules, or any data flow. It mentions patterns (layout using CSS modules) but lacks depth. Therefore, a score of 3 is appropriate.
+",5,"Accuracy Rating: 5
+
+Explanation:
+The analysis accurately describes the file's purpose and structure. It correctly identifies the imports (Calculator component and CSS module) and the exported component (Home). The description of the file as the main entry point for the home page and its use of CSS modules for styling is also accurate.
+"
+components/Button.tsx,"{
+  ""relativePath"": ""components/Button.tsx"",
+  ""lang"": ""react-typescript"",
+  ""exports"": [
+    ""Button""
+  ],
+  ""imports"": [
+    ""./Button.module.css""
+  ]
+}","This file defines a reusable React Button component designed for a calculator interface. It utilizes CSS Modules for styling and accepts props for value, click handling, visual variants, and layout width.",react-typescript,Button.tsx,3,"[
+  {
+    ""name"": ""ButtonProps"",
+    ""type"": ""block"",
+    ""startLine"": 3,
+    ""endLine"": 8,
+    ""summary"": ""Defines the TypeScript interface for the component's props, including value, onClick callback, variant, and wide flag.""
+  },
+  {
+    ""name"": ""Button"",
+    ""type"": ""function"",
+    ""startLine"": 14,
+    ""endLine"": 39,
+    ""summary"": ""The main functional component that renders a styled button element with dynamic class names based on its props.""
+  },
+  {
+    ""name"": ""handleClick"",
+    ""type"": ""function"",
+    ""startLine"": 20,
+    ""endLine"": 22,
+    ""summary"": ""An internal helper function that invokes the provided onClick callback with the button's specific value.""
+  }
+]",3.0,"Score: 3
+
+Explanation: The summary mentions key aspects like reusability, CSS Modules, and prop usage (value, click handling, variants, width). This goes beyond a simple ""it's a button"" description. However, it lacks depth. It doesn't describe the specific types of variants, how the click handling is implemented (e.g., does it use callbacks?), or any details about the CSS Modules structure. It hints at implementation but doesn't delve into specifics.
+",5,"Rating: 5
+
+Explanation: The analysis accurately describes the file's purpose, technology (React, TypeScript, CSS Modules), exports, and imports. It correctly identifies the component as a button, its reusability, and the types of props it likely accepts (value, click handler, visual variants, width).
+"
+components/ButtonGrid.tsx,"{
+  ""relativePath"": ""components/ButtonGrid.tsx"",
+  ""lang"": ""react-typescript"",
+  ""exports"": [
+    ""ButtonGrid""
+  ],
+  ""imports"": [
+    ""./Button"",
+    ""./ButtonGrid.module.css""
+  ]
+}",This component defines a grid layout for a calculator's buttons by mapping over an array of button configurations. It passes click handlers and styling properties to child Button components to build the interactive interface.,react-typescript,ButtonGrid.tsx,2,"[
+  {
+    ""name"": ""ButtonGridProps"",
+    ""type"": ""block"",
+    ""startLine"": 4,
+    ""endLine"": 6,
+    ""summary"": ""Defines the interface for the component's props, specifically the click handler function.""
+  },
+  {
+    ""name"": ""ButtonGrid"",
+    ""type"": ""function"",
+    ""startLine"": 11,
+    ""endLine"": 46,
+    ""summary"": ""Main component that renders a grid of calculator buttons using a configuration array.""
+  }
+]",3.0,"Score: 3
+
+Explanation: The summary identifies the component's purpose (grid layout for calculator buttons), the use of mapping for rendering, and the passing of props to child components. This indicates some understanding of the implementation. However, it lacks specific details about the button configurations (what data they contain), the exact nature of the click handlers, or any specific styling properties being passed. It also doesn't mention how the grid layout is achieved (e.g., CSS Grid, Flexbox). Therefore, it's more than a superficial overview but not a comprehensive deep dive.
+",5,"Accuracy Rating: 5
+
+Explanation:
+The description accurately reflects the file's purpose and structure. It correctly identifies the component's role in creating a button grid, its use of mapping to generate buttons, and the passing of props to child Button components. The imports listed also align with the component's dependencies.
+"
+components/Calculator.tsx,"{
+  ""relativePath"": ""components/Calculator.tsx"",
+  ""lang"": ""react-typescript"",
+  ""exports"": [
+    ""Calculator""
+  ],
+  ""imports"": [
+    ""react"",
+    ""@/lib/calculator"",
+    ""./Display"",
+    ""./ButtonGrid"",
+    ""./Calculator.module.css""
+  ]
+}","A React component that implements calculator logic and state management. It utilizes hooks to handle numeric input, arithmetic operations, and UI updates, while delegating core math logic to external utility functions.",react-typescript,Calculator.tsx,10,"[
+  {
+    ""name"": ""Calculator"",
+    ""type"": ""function"",
+    ""startLine"": 13,
+    ""endLine"": 175,
+    ""summary"": ""Main component that manages the calculator state, input handlers, and renders the display and button grid.""
+  },
+  {
+    ""name"": ""handleNumber"",
+    ""type"": ""function"",
+    ""startLine"": 23,
+    ""endLine"": 30,
+    ""summary"": ""Updates the display with numeric input, handling initial zeros and operand transitions.""
+  },
+  {
+    ""name"": ""handleDecimal"",
+    ""type"": ""function"",
+    ""startLine"": 35,
+    ""endLine"": 42,
+    ""summary"": ""Adds a decimal point to the current display value if one is not already present.""
+  },
+  {
+    ""name"": ""handleOperator"",
+    ""type"": ""function"",
+    ""startLine"": 47,
+    ""endLine"": 71,
+    ""summary"": ""Processes arithmetic operators, triggering pending calculations and updating the operation state.""
+  },
+  {
+    ""name"": ""handleEquals"",
+    ""type"": ""function"",
+    ""startLine"": 76,
+    ""endLine"": 95,
+    ""summary"": ""Finalizes the current calculation, updates the display and history, and resets the operand state.""
+  },
+  {
+    ""name"": ""handleClear"",
+    ""type"": ""function"",
+    ""startLine"": 100,
+    ""endLine"": 106,
+    ""summary"": ""Resets the calculator state to its initial default values.""
+  },
+  {
+    ""name"": ""handleBackspace"",
+    ""type"": ""function"",
+    ""startLine"": 111,
+    ""endLine"": 117,
+    ""summary"": ""Removes the last character from the display string or resets it to zero.""
+  },
+  {
+    ""name"": ""handleToggleSign"",
+    ""type"": ""function"",
+    ""startLine"": 122,
+    ""endLine"": 125,
+    ""summary"": ""Inverts the sign of the current numerical value on the display.""
+  },
+  {
+    ""name"": ""handlePercent"",
+    ""type"": ""function"",
+    ""startLine"": 130,
+    ""endLine"": 133,
+    ""summary"": ""Converts the current display value to its percentage equivalent.""
+  },
+  {
+    ""name"": ""handleButtonClick"",
+    ""type"": ""function"",
+    ""startLine"": 138,
+    ""endLine"": 167,
+    ""summary"": ""A central dispatcher that routes button inputs to their specific logic handlers based on the character value.""
+  }
+]",3.0,"Score: 3
+
+Explanation:
+
+The summary provides a decent overview of the component's purpose and its reliance on hooks and external utility functions. It mentions state management and UI updates, which hints at the component's responsibilities. However, it lacks specific details about the algorithms used for calculations, the data flow between the component and its children (Display and ButtonGrid), or the specific state variables managed. It's a good high-level description, but it doesn't delve into the implementation details that would warrant a higher score.
+",5,"Rating: 5
+
+Explanation:
+The description accurately reflects the file's purpose and organization. It correctly identifies the component as a React component, its role in implementing calculator logic, its use of hooks, and its reliance on external modules for calculations and UI elements. The imports and exports also align with the description.
+"
+components/Display.tsx,"{
+  ""relativePath"": ""components/Display.tsx"",
+  ""lang"": ""react-typescript"",
+  ""exports"": [
+    ""Display""
+  ],
+  ""imports"": [
+    ""./Display.module.css""
+  ]
+}",This React component renders a calculator-style display consisting of a history line and a current value line. It uses CSS modules for styling and defines a specific interface for its props.,react-typescript,Display.tsx,2,"[
+  {
+    ""name"": ""DisplayProps"",
+    ""type"": ""block"",
+    ""startLine"": 3,
+    ""endLine"": 6,
+    ""summary"": ""Defines the shape of the props for the Display component, including history and value strings.""
+  },
+  {
+    ""name"": ""Display"",
+    ""type"": ""function"",
+    ""startLine"": 11,
+    ""endLine"": 18,
+    ""summary"": ""Functional component that renders the calculation history and current input value within styled div elements.""
+  }
+]",3.0,"Score: 3
+
+Explanation: The summary mentions key aspects like the component's purpose (calculator display), its structure (history and current value lines), styling (CSS modules), and props interface. However, it lacks depth regarding the specific data flow, how the history and current values are managed, or any potential logic within the component. It's a good overview but doesn't delve into the implementation details.
+",5,"Rating: 5
+
+Explanation:
+The analysis accurately describes the file. It correctly identifies the file as a React component written in TypeScript, its purpose as a calculator display, the presence of CSS modules for styling, the exported `Display` component, and the import of the CSS module.
+"
+eslint.config.mjs,"{
+  ""relativePath"": ""eslint.config.mjs"",
+  ""lang"": ""javascript"",
+  ""exports"": [
+    ""eslintConfig""
+  ],
+  ""imports"": [
+    ""eslint/config"",
+    ""eslint-config-next/core-web-vitals"",
+    ""eslint-config-next/typescript""
+  ]
+}",This file configures ESLint for a Next.js project using the modern flat configuration format. It combines Next.js Core Web Vitals and TypeScript rule sets while specifying global ignore patterns for build directories and environment files.,javascript,eslint.config.mjs,2,"[
+  {
+    ""name"": ""eslintConfig"",
+    ""type"": ""block"",
+    ""startLine"": 5,
+    ""endLine"": 16,
+    ""summary"": ""Defines the primary ESLint configuration by merging Next.js presets and global ignore rules.""
+  },
+  {
+    ""name"": ""globalIgnores"",
+    ""type"": ""block"",
+    ""startLine"": 9,
+    ""endLine"": 15,
+    ""summary"": ""Specifies a list of directories and files, such as build outputs and environment declarations, to be excluded from linting.""
+  }
+]",3.0,"Score: 3
+
+Explanation:
+
+The summary provides a good overview of the file's purpose (ESLint configuration for a Next.js project) and mentions the key rule sets being used (Next.js Core Web Vitals and TypeScript). It also notes the presence of global ignore patterns. However, it lacks depth regarding the specific rules being applied or how they are configured. It doesn't delve into the data flow or the specific algorithms used by ESLint. Therefore, it's more than a shallow overview but doesn't reach a comprehensive level of detail.
+",5,"Accuracy Rating: 5
+
+Explanation:
+The analysis accurately describes the file's purpose and structure. It correctly identifies the use of the flat ESLint configuration, the inclusion of Next.js and TypeScript rule sets, and the presence of global ignore patterns. The identified imports and exports also align with the expected content of such a configuration file.
+"
+lib/calculator.ts,"{
+  ""relativePath"": ""lib/calculator.ts"",
+  ""lang"": ""typescript"",
+  ""exports"": [
+    ""add"",
+    ""subtract"",
+    ""multiply"",
+    ""divide"",
+    ""Operation"",
+    ""calculate"",
+    ""parseInput"",
+    ""formatDisplay""
+  ],
+  ""imports"": []
+}","This file provides a comprehensive set of arithmetic utilities and helper functions for a calculator application. It includes basic mathematical operations, a main calculation dispatcher, input parsing logic, and specialized string formatting for display purposes.",typescript,calculator.ts,8,"[
+  {
+    ""name"": ""add"",
+    ""type"": ""function"",
+    ""startLine"": 12,
+    ""endLine"": 14,
+    ""summary"": ""Adds two numbers and returns the result.""
+  },
+  {
+    ""name"": ""subtract"",
+    ""type"": ""function"",
+    ""startLine"": 22,
+    ""endLine"": 24,
+    ""summary"": ""Subtracts the second number from the first and returns the result.""
+  },
+  {
+    ""name"": ""multiply"",
+    ""type"": ""function"",
+    ""startLine"": 32,
+    ""endLine"": 34,
+    ""summary"": ""Multiplies two numbers and returns the result.""
+  },
+  {
+    ""name"": ""divide"",
+    ""type"": ""function"",
+    ""startLine"": 43,
+    ""endLine"": 48,
+    ""summary"": ""Divides two numbers with error handling for division by zero.""
+  },
+  {
+    ""name"": ""Operation"",
+    ""type"": ""block"",
+    ""startLine"": 53,
+    ""endLine"": 53,
+    ""summary"": ""Defines the allowed mathematical operator symbols for calculations.""
+  },
+  {
+    ""name"": ""calculate"",
+    ""type"": ""function"",
+    ""startLine"": 62,
+    ""endLine"": 75,
+    ""summary"": ""Executes a mathematical operation on two numbers based on the specified operator.""
+  },
+  {
+    ""name"": ""parseInput"",
+    ""type"": ""function"",
+    ""startLine"": 82,
+    ""endLine"": 88,
+    ""summary"": ""Safely converts a string input into a floating-point number, defaulting to zero.""
+  },
+  {
+    ""name"": ""formatDisplay"",
+    ""type"": ""function"",
+    ""startLine"": 95,
+    ""endLine"": 108,
+    ""summary"": ""Formats a numeric value into a string suitable for a calculator display, handling precision and scientific notation.""
+  }
+]",3.0,"Score: 3
+
+Explanation:
+
+The summary provides a good overview of the file's functionality, mentioning the core arithmetic operations, the presence of a calculation dispatcher, input parsing, and display formatting. However, it lacks depth regarding the specific algorithms or data structures used. For example, it doesn't describe how `parseInput` works (e.g., regular expressions, tokenization), the logic within the `calculate` dispatcher (e.g., switch statement, strategy pattern), or the specifics of `formatDisplay` (e.g., number formatting, precision handling). Therefore, it's more than a shallow overview but doesn't delve into the implementation details.
+",5,"Score: 5
+
+Explanation: The analysis accurately reflects the file's contents. It correctly identifies the exported functions (add, subtract, multiply, divide, calculate, parseInput, formatDisplay) and the enum/type `Operation`. The description of the file's purpose as providing arithmetic utilities, a calculation dispatcher, input parsing, and display formatting is also accurate.
+"
+next-env.d.ts,"{
+  ""relativePath"": ""next-env.d.ts"",
+  ""lang"": ""typescript"",
+  ""exports"": [],
+  ""imports"": []
+}","This is a Next.js environment declaration file used to ensure TypeScript recognizes Next.js specific types and features. Currently, the file contains only empty lines and does not define any functions, classes, or blocks.",typescript,next-env.d.ts,0,,4.0,"Score: 4
+
+Explanation:
+
+The analysis provides a good level of detail for such a simple file. It correctly identifies the file's purpose within a Next.js project (environment declaration for TypeScript). It also notes the absence of any specific code elements (functions, classes, etc.). While there are no algorithms or complex data flows to describe, the analysis effectively conveys the file's role and current state. It could only be improved by mentioning the specific types that Next.js provides that this file makes available, but that would be beyond the scope of a simple file analysis and more appropriate for documentation generation.
+",5,"Accuracy Rating: 5
+
+Explanation:
+The analysis accurately reflects the file's content and purpose. The file is indeed a Next.js environment declaration file, and the description of it containing only empty lines aligns with the provided analysis.
+"
+next.config.ts,"{
+  ""relativePath"": ""next.config.ts"",
+  ""lang"": ""typescript"",
+  ""exports"": [
+    ""nextConfig""
+  ],
+  ""imports"": [
+    ""next""
+  ]
+}","This file defines the configuration settings for a Next.js application using TypeScript. It exports a nextConfig object that implements the NextConfig type, serving as the central point for customizing build and runtime behavior.",typescript,next.config.ts,1,"[
+  {
+    ""name"": ""nextConfig"",
+    ""type"": ""block"",
+    ""startLine"": 3,
+    ""endLine"": 5,
+    ""summary"": ""Defines the configuration object for the Next.js application.""
+  }
+]",2.0,"Score: 2
+
+Explanation: The summary provides a basic overview of the file's purpose (Next.js configuration) and its main export (nextConfig). It mentions TypeScript and the NextConfig type, but it lacks any specific details about the configuration options being set, the logic behind them, or any potential algorithms or patterns used within the configuration. It's a step above a very shallow description, but it doesn't delve into any implementation details.
+",5,"Accuracy Rating: 5
+
+Explanation:
+The analysis accurately describes the file's purpose and structure. It correctly identifies the file as a Next.js configuration file written in TypeScript, exporting `nextConfig` and importing `next`. The description of `nextConfig` as the central configuration object is also accurate.
+"

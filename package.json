@@ -1,0 +1,112 @@
+{
+  "name": "nexhacks",
+  "displayName": "nexhacks",
+  "description": "Codebase documentation agent - generates wiki summaries and Mermaid diagrams",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "./out/src/extension.js",
+  "bin": {
+    "nexhacks-agent": "./cli/index.ts"
+  },
+  "engines": {
+    "vscode": "^1.104.0",
+    "node": ">=18.0.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:nexhacks.helloWorld",
+    "onCommand:nexhacks.readCodebase",
+    "onCommand:nexhacks.openCanvas"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "nexhacks.helloWorld",
+        "title": "Hello World"
+      },
+      {
+        "command": "nexhacks.readCodebase",
+        "title": "Read Codebase"
+      },
+      {
+        "command": "nexhacks.openCanvas",
+        "title": "Open Visualizer",
+        "icon": "$(graph)"
+      }
+    ],
+    "configuration": {
+      "title": "Nexhacks",
+      "properties": {
+        "nexhacks.geminiApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Gemini API key for AI summaries.",
+          "scope": "application"
+        },
+        "nexhacks.ttcApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "API key for The Token Company (TTC) compression.",
+          "scope": "application"
+        }
+      }
+    },
+    "menus": {
+      "editor/title": [
+        {
+          "command": "nexhacks.openCanvas",
+          "group": "navigation"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "pnpm run compile && pnpm run build:webview",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "build:webview": "cd webview-ui && pnpm install && pnpm build",
+    "pretest": "pnpm run compile && pnpm run lint",
+    "lint": "eslint src",
+    "test": "vscode-test",
+    "dev": "npm run dev --prefix samples/calculator",
+    "build": "npm run build --prefix samples/calculator",
+    "agent": "npx tsx cli/index.ts",
+    "agent:sample": "npx tsx cli/index.ts --target ./samples/calculator --output ./output",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "codebase",
+    "documentation",
+    "wiki",
+    "mermaid",
+    "agent",
+    "gemini"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@babel/parser": "^7.23.0",
+    "@babel/traverse": "^7.23.0",
+    "@babel/types": "^7.23.0",
+    "commander": "^12.0.0",
+    "dotenv": "^17.2.3",
+    "dagre": "^0.8.5",
+    "reactflow": "^11.11.4",
+    "openai": "^6.16.0"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.108.1",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "22.x",
+    "@types/babel__traverse": "^7.20.0",
+    "@types/dagre": "^0.7.53",
+    "typescript-eslint": "^8.52.0",
+    "eslint": "^9.39.2",
+    "typescript": "^5.9.3",
+    "tsx": "^4.7.0",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2"
+  }
+}

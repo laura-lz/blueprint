@@ -1,0 +1,391 @@
+id,input,output,language,name,has_summary,clarity_score,clarity_explanation,verbosity_label,verbosity_explanation,verbosity_is_good,completeness_score,completeness_explanation
+.nexhacks/capsules.json,"{
+  ""relativePath"": "".nexhacks/capsules.json"",
+  ""lang"": ""json"",
+  ""exports"": [],
+  ""functionSignatures"": [],
+  ""firstNLines"": ""{\n  \""stats\"": {\n    \""totalFiles\"": 21,\n    \""totalDirectories\"": 6,\n    \""totalEdges\"": 9,\n    \""externalDependencies\"": [\n      \""eslint-config-next/core-web-vitals\"",\n      \""eslint-config-next/typescript\"",\n      \""eslint/config\"",\n      \""next\"",\n      \""next/font/google\"",\n      \""react\""\n    ],\n    \""entryPoints\"": [\n      \"".nexhacks/capsules.json\"",\n      \""README.md\"",\n      \""app/layout.tsx\"",\n      \""app/page.module.css\"",\n      \""app/page.tsx\"",\n      \""components/Calculator.tsx\"",\n      \""eslint.config.mjs\"",\n      \""n""
+}",A metadata configuration storing project statistics and dependency mappings for codebase analysis within the Nexhacks toolset.,json,capsules.json,True,4.0,"Score: 4
+
+Explanation: The summary is quite good. It correctly identifies the file as a metadata configuration and highlights its purpose: storing project statistics and dependency mappings. Mentioning ""Nexhacks toolset"" provides context. However, it could be slightly improved by explicitly stating that the file is in JSON format.
+",good,"Good
+",1,4.0,"Score: 4
+
+Explanation: The summary correctly identifies the file as a metadata configuration for project statistics and dependency mappings. It also correctly associates it with the Nexhacks toolset. However, it could be slightly more specific. For example, mentioning that it contains information about total files, directories, edges, external dependencies, and entry points would make it more complete. While ""project statistics and dependency mappings"" hints at this, explicitly stating the types of data stored would improve the summary.
+"
+README.md,"{
+  ""relativePath"": ""README.md"",
+  ""lang"": ""markdown"",
+  ""exports"": [],
+  ""functionSignatures"": [],
+  ""firstNLines"": ""This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).\n\n## Getting Started\n\nFirst, run the development server:\n\n```bash\nnpm run dev\n# or\nyarn dev\n# or\npnpm dev\n# or\nbun dev\n```\n\nOpen [http://localhost:3000](http://localhost:3000) with your browser to see the result.\n\nYou can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.\n\nThis project uses [`next/font`](""
+}",Provides essential setup instructions and a project overview for the Next.js application to guide developer onboarding.,markdown,README.md,True,5.0,"Clarity: 5
+
+Explanation: The summary accurately and concisely describes the content of the README.md file. It highlights the purpose of the file (setup instructions and project overview) and its target audience (developers onboarding).
+",good,"Good
+",1,4.0,"Score: 4
+
+Explanation: The summary captures the main purpose (setup instructions and project overview). It also mentions the target audience (developers onboarding). However, it could be slightly improved by explicitly mentioning that the instructions are for running a development server and viewing the application in a browser. It also doesn't mention the auto-updating feature.
+"
+app/globals.css,"{
+  ""relativePath"": ""app/globals.css"",
+  ""lang"": ""css"",
+  ""exports"": [],
+  ""functionSignatures"": [],
+  ""firstNLines"": "":root {\n  --background: #0a0a12;\n  --foreground: #ffffff;\n}\n\n* {\n  box-sizing: border-box;\n  padding: 0;\n  margin: 0;\n}\n\nhtml,\nbody {\n  max-width: 100vw;\n  overflow-x: hidden;\n  font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;\n}\n\nbody {\n  color: var(--foreground);\n  background: var(--background);\n  background-image:\n    radial-gradient(ellipse 80% 80% at 50% -20%, rgba(120, 119, 198, 0.15), transparent),\n    radial-gradient(ellipse""
+}",Defines global CSS variables and base reset styles imported by the root layout to establish the application's visual foundation.,css,globals.css,True,5.0,"Score: 5
+
+Explanation: The summary is perfectly clear and concise. It accurately describes the purpose of the CSS file: defining global variables (like background and foreground colors) and setting up basic reset styles (box-sizing, padding, margin) that are used to create the foundation for the application's visual appearance. The mention of the root layout importing the file provides valuable context.
+",good,"Good
+",1,4.0,"Score: 4
+
+Explanation: The summary captures the main purpose (defining global styles and reset) and mentions its use in establishing the application's visual foundation. However, it could be more specific about the key aspects of the CSS, such as:
+
+*   Mentioning the background and foreground color variables.
+*   Highlighting the font family being set.
+*   Acknowledging the overflow and max-width properties to prevent horizontal scrolling.
+*   Briefly mentioning the radial gradients used for the background.
+
+While ""visual foundation"" is accurate, being more specific would improve the summary's completeness.
+"
+app/layout.tsx,"{
+  ""relativePath"": ""app/layout.tsx"",
+  ""lang"": ""react-typescript"",
+  ""exports"": [
+    ""metadata"",
+    ""RootLayout""
+  ],
+  ""functionSignatures"": [
+    ""export default function RootLayout(""
+  ],
+  ""firstNLines"": ""import type { Metadata } from \""next\"";\nimport { Geist, Geist_Mono } from \""next/font/google\"";\nimport \""./globals.css\"";\n\nconst geistSans = Geist({\n  variable: \""--font-geist-sans\"",\n  subsets: [\""latin\""],\n});\n\nconst geistMono = Geist_Mono({\n  variable: \""--font-geist-mono\"",\n  subsets: [\""latin\""],\n});\n\nexport const metadata: Metadata = {\n  title: \""Calculator | Nexhacks Sample\"",\n  description: \""A modern calculator built with Next.js\"",\n};\n\nexport default function RootLayout({\n  children,\n}: Readonly<{\n  chi""
+}","Defines the application's root structure, global styles, and metadata as the primary layout for all pages.",react-typescript,layout.tsx,True,5.0,"Score: 5
+
+Explanation: The summary is perfectly clear and accurately describes the code's purpose. It highlights the key aspects: root layout, global styles, and metadata. It's also concise.
+",good,"Good
+",1,4.0,"Score: 4
+
+Explanation: The summary captures the main purpose (root layout, global styles, metadata). However, it misses the crucial detail of the font configuration using `next/font/google` and the specific fonts (Geist and Geist_Mono) being used. Mentioning the font setup would make the summary more complete.
+"
+app/page.module.css,"{
+  ""relativePath"": ""app/page.module.css"",
+  ""lang"": ""css"",
+  ""exports"": [],
+  ""functionSignatures"": [],
+  ""firstNLines"": "".main {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  min-height: 100vh;\n  padding: 24px;\n}\n\n.title {\n  font-size: 1.5rem;\n  font-weight: 500;\n  color: rgba(255, 255, 255, 0.6);\n  margin-bottom: 24px;\n  letter-spacing: 0.05em;\n  text-transform: uppercase;\n}""
+}",Defines layout and typography styles for the main landing page component imported by app/page.tsx.,css,page.module.css,True,4.0,"Score: 4
+
+Explanation: The summary is quite good. It accurately describes the purpose of the CSS file (layout and typography for the main landing page). The connection to `app/page.tsx` is also helpful. It could be slightly improved by mentioning the specific elements being styled (e.g., a main container and a title). However, as it stands, it's clear and concise.
+",good,"Good
+",1,4.0,"Score: 4
+
+Explanation: The summary captures the main purpose (layout and typography styles) and the component it styles (main landing page). However, it could be slightly more specific. For example, mentioning the flexbox layout or the text styling of the title would add more value. It's good, but could be a touch more descriptive.
+"
+app/page.tsx,"{
+  ""relativePath"": ""app/page.tsx"",
+  ""lang"": ""react-typescript"",
+  ""exports"": [
+    ""Home""
+  ],
+  ""functionSignatures"": [
+    ""export default function Home()""
+  ],
+  ""firstNLines"": ""import Calculator from \""@/components/Calculator\"";\nimport styles from \""./page.module.css\"";\n\n/**\n * Home page component\n * Renders the calculator in a centered layout\n */\nexport default function Home() {\n  return (\n    <main className={styles.main}>\n      <h1 className={styles.title}>Calculator</h1>\n      <Calculator />\n    </main>\n  );\n}""
+}","Acts as the application's primary home page entry point, integrating the core Calculator component into a styled layout.",react-typescript,page.tsx,True,5.0,"Score: 5
+
+Explanation: The summary is perfectly clear, concise, and accurately describes the code's function. It highlights the role of the component as the main entry point and its integration of the Calculator component within a styled layout.
+",good,"Good
+",1,4.0,"Score: 4
+
+Explanation: The summary captures the main purpose (home page, integrating Calculator) and mentions the styled layout. However, it could be slightly more complete by explicitly mentioning the title ""Calculator"" that's rendered on the page. While seemingly minor, it's a direct element within the component's return and contributes to the overall UI.
+"
+components/Button.module.css,"{
+  ""relativePath"": ""components/Button.module.css"",
+  ""lang"": ""css"",
+  ""exports"": [],
+  ""functionSignatures"": [],
+  ""firstNLines"": "".button {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    font-size: 1.5rem;\n    font-weight: 400;\n    border: none;\n    border-radius: 16px;\n    cursor: pointer;\n    transition: all 0.15s ease;\n    user-select: none;\n    aspect-ratio: 1;\n    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;\n}\n\n.button:active {\n    transform: scale(0.95);\n}\n\n/* Number buttons */\n.number {\n    background: linear-gradient(145deg, #2d2d44, #252538);\n    color""
+}",Defines the layout and visual styles for the Button component used in components/Button.tsx.,css,Button.module.css,True,5.0,"Score: 5
+
+Explanation: The summary is perfectly clear, concise, and accurately describes the code. It correctly identifies that the CSS file defines styles for a Button component and even hints at where the component is likely located.
+",good,"Good
+",1,3.0,"Score: 3
+
+Explanation: The summary correctly identifies the file's purpose: defining styles for a Button component. However, it lacks detail. It doesn't mention specific aspects of the styling, such as the use of flexbox for layout, the presence of a hover/active state, or the styling applied to number buttons. A more complete summary would touch on these key aspects.
+"
+components/Button.tsx,"{
+  ""relativePath"": ""components/Button.tsx"",
+  ""lang"": ""react-typescript"",
+  ""exports"": [
+    ""Button""
+  ],
+  ""functionSignatures"": [
+    ""export default function Button("",
+    ""const handleClick = () =>""
+  ],
+  ""firstNLines"": ""import styles from \""./Button.module.css\"";\n\ninterface ButtonProps {\n    value: string;\n    onClick: (value: string) => void;\n    variant?: \""number\"" | \""operator\"" | \""special\"" | \""equals\"";\n    wide?: boolean;\n}\n\n/**\n * Calculator button component\n * Supports multiple visual variants for different button types\n */\nexport default function Button({\n    value,\n    onClick,\n    variant = \""number\"",\n    wide = false\n}: ButtonProps) {\n    const handleClick = () => {\n        onClick(value);\n    };\n\n    const ""
+}",Exports a multi-variant calculator button component used in ButtonGrid.tsx and styled via Button.module.css.,react-typescript,Button.tsx,True,5.0,"Score: 5
+
+Explanation: The summary is perfectly clear, concise, and accurately describes the code. It mentions the key aspects: it's a calculator button, it has multiple variants, it's styled with CSS modules, and it hints at its usage context (ButtonGrid).
+",good,"Good
+",1,4.0,"Score: 4
+
+Explanation: The summary is good, capturing the essence of the component (calculator button, styling, and usage context). However, it could be improved by mentioning the props the component accepts (value, onClick, variant, wide) and the `handleClick` function's role in triggering the `onClick` prop. Mentioning the variants (""number"", ""operator"", ""special"", ""equals"") would also add value.
+"
+components/ButtonGrid.module.css,"{
+  ""relativePath"": ""components/ButtonGrid.module.css"",
+  ""lang"": ""css"",
+  ""exports"": [],
+  ""functionSignatures"": [],
+  ""firstNLines"": "".grid {\n    display: grid;\n    grid-template-columns: repeat(4, 1fr);\n    gap: 12px;\n}\n\n@media (max-width: 480px) {\n    .grid {\n        gap: 8px;\n    }\n}""
+}",Defines grid layout and responsive styling for the ButtonGrid component.,css,ButtonGrid.module.css,True,5.0,"Score: 5
+
+Explanation: The summary is perfectly clear, concise, and accurately describes the CSS code. It mentions the grid layout and the responsive styling, which are the key aspects of the provided code snippet.
+",good,"Good
+",1,4.0,"Score: 4
+
+Explanation: The summary captures the main purpose (grid layout and responsive styling). However, it could be slightly more specific. For example, mentioning the 4-column grid and the gap adjustments at smaller screen sizes would improve the completeness. It's good, but a little more detail would make it excellent.
+"
+components/ButtonGrid.tsx,"{
+  ""relativePath"": ""components/ButtonGrid.tsx"",
+  ""lang"": ""react-typescript"",
+  ""exports"": [
+    ""ButtonGrid""
+  ],
+  ""functionSignatures"": [
+    ""export default function ButtonGrid(""
+  ],
+  ""firstNLines"": ""import Button from \""./Button\"";\nimport styles from \""./ButtonGrid.module.css\"";\n\ninterface ButtonGridProps {\n    onButtonClick: (value: string) => void;\n}\n\n/**\n * Calculator button grid component\n * Arranges buttons in a 4x5 grid layout\n */\nexport default function ButtonGrid({ onButtonClick }: ButtonGridProps) {\n    const buttons = [\n        { value: \""C\"", variant: \""special\"" as const },\n        { value: \""\u00b1\"", variant: \""special\"" as const },\n        { value: \""%\"", variant: \""special\"" as const },\n        ""
+}",Arranges calculator buttons in a 4x5 grid for the Calculator component using individual Button components and local CSS modules.,react-typescript,ButtonGrid.tsx,True,,"Score: 5
+
+Explanation: The summary is perfectly clear, concise, and accurately describes the code. It highlights the key aspects: the arrangement of calculator buttons in a grid, the grid's dimensions (4x5), the component's purpose (for a Calculator), the use of individual Button components, and the styling approach (local CSS modules).
+",good,"Good
+",1,,"**Score: 4**
+
+**Explanation:**
+
+The summary is good and captures the main purpose of the component: arranging calculator buttons in a grid. It also correctly identifies the use of `Button` components and CSS modules. However, it could be slightly more complete by mentioning:
+
+*   **The `onButtonClick` prop:** This is a crucial part of the component's functionality, as it handles the button click events.
+*   **The types of buttons:** The component has special buttons like ""C"", ""+/-"", and ""%"". Mentioning this adds more context.
+
+Therefore, while the summary is good, it's not quite a perfect 5 because it omits some important details about the component's props and the specific types of buttons it renders.
+"
+components/Calculator.module.css,"{
+  ""relativePath"": ""components/Calculator.module.css"",
+  ""lang"": ""css"",
+  ""exports"": [],
+  ""functionSignatures"": [],
+  ""firstNLines"": "".calculator {\n  background: linear-gradient(145deg, #1a1a2e, #16213e);\n  border-radius: 24px;\n  padding: 24px;\n  box-shadow: \n    0 25px 50px -12px rgba(0, 0, 0, 0.5),\n    0 0 0 1px rgba(255, 255, 255, 0.1),\n    inset 0 1px 0 rgba(255, 255, 255, 0.1);\n  backdrop-filter: blur(20px);\n  min-width: 320px;\n  max-width: 400px;\n}\n\n@media (max-width: 480px) {\n  .calculator {\n    min-width: 280px;\n    padding: 16px;\n    border-radius: 20px;\n  }\n}\n""
+}",Provides responsive visual styling and layout definitions for the Calculator component.,css,Calculator.module.css,True,5.0,"Score: 5
+
+Explanation: The summary accurately and concisely describes the CSS code. It highlights the key aspects: responsive design (adapting to different screen sizes), visual styling (background, border-radius, box-shadow, backdrop-filter), and layout definitions (min/max width, padding). It's easy to understand and provides a good overview of the file's purpose.
+",good,"Good
+",1,3.0,"**Score: 3**
+
+**Explanation:**
+
+The summary correctly identifies the main purpose: providing visual styling and layout for the Calculator component. It also acknowledges the responsive nature of the styling. However, it misses some important details:
+
+*   **Specific styling details:** The summary doesn't mention the specific styling elements used, such as the background gradient, border-radius, box-shadow, backdrop-filter, and min/max width. These are key visual characteristics defined in the CSS.
+*   **Responsive behavior details:** While it mentions responsiveness, it doesn't specify how the styling changes at smaller screen sizes (e.g., reduced padding and border-radius).
+
+A more complete summary would include these details to provide a better understanding of the CSS module's purpose and behavior.
+"
+components/Calculator.tsx,"{
+  ""relativePath"": ""components/Calculator.tsx"",
+  ""lang"": ""react-typescript"",
+  ""exports"": [
+    ""Calculator""
+  ],
+  ""functionSignatures"": [
+    ""export default function Calculator()""
+  ],
+  ""firstNLines"": ""\""use client\"";\n\nimport { useState, useCallback } from \""react\"";\nimport { calculate, parseInput, formatDisplay, Operation } from \""@/lib/calculator\"";\nimport Display from \""./Display\"";\nimport ButtonGrid from \""./ButtonGrid\"";\nimport styles from \""./Calculator.module.css\"";\n\n/**\n * Main Calculator component\n * Manages state and orchestrates calculation logic\n */\nexport default function Calculator() {\n    const [display, setDisplay] = useState(\""0\"");\n    const [previousValue, setPreviousValue] = useState<num""
+}",Manages state and coordinates calculation logic across display and button components to provide the primary calculator interface for the main application page.,react-typescript,Calculator.tsx,True,4.0,"Score: 4
+
+Explanation: The summary is quite good. It accurately describes the component's role in managing state and coordinating the calculation logic. It also correctly identifies the display and button components as being part of the calculator's interface. The phrase ""primary calculator interface for the main application page"" is slightly redundant, as the context already implies it's a main calculator component. Removing ""for the main application page"" would make it even more concise.
+",good,"Good
+",1,4.0,"Score: 4
+
+Explanation: The summary captures the core purpose of the `Calculator` component (managing state and coordinating calculation logic) and its role in providing the calculator interface. However, it could be slightly more specific. For example, mentioning the use of `useState` for managing the display value and previous value, and the interaction with the `calculate`, `parseInput`, and `formatDisplay` functions from ""@/lib/calculator"" would make it more complete. It also doesn't explicitly mention the `ButtonGrid` component, which is a key part of the user interface.
+"
+components/Display.module.css,"{
+  ""relativePath"": ""components/Display.module.css"",
+  ""lang"": ""css"",
+  ""exports"": [],
+  ""functionSignatures"": [],
+  ""firstNLines"": "".display {\n    background: linear-gradient(180deg, #0f0f1a, #1a1a2e);\n    border-radius: 16px;\n    padding: 20px 24px;\n    margin-bottom: 20px;\n    min-height: 100px;\n    display: flex;\n    flex-direction: column;\n    justify-content: flex-end;\n    align-items: flex-end;\n    border: 1px solid rgba(255, 255, 255, 0.05);\n    box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.3);\n}\n\n.history {\n    font-size: 0.875rem;\n    color: rgba(255, 255, 255, 0.4);\n    min-height: 1.25rem;\n    margin-bottom: 8px;\n ""
+}",Defines visual styling and layout properties for the Display component to manage its appearance in the user interface.,css,Display.module.css,True,4.0,"Score: 4
+
+Explanation: The summary is quite good. It correctly identifies that the code defines styling for a ""Display component"" and that it manages the component's appearance. It could be slightly improved by mentioning specific aspects of the styling, such as the background gradient or the flexbox layout, but as a general summary, it's accurate and concise.
+",good,"Good
+",1,3.0,"Score: 3
+
+Explanation: The summary correctly identifies the main purpose: defining visual styling for the Display component. However, it lacks specific details about the styling. It doesn't mention the gradient background, border-radius, padding, flexbox layout, or the styling of the `.history` class (font size, color). Including these details would make the summary more comprehensive.
+"
+components/Display.tsx,"{
+  ""relativePath"": ""components/Display.tsx"",
+  ""lang"": ""react-typescript"",
+  ""exports"": [
+    ""Display""
+  ],
+  ""functionSignatures"": [
+    ""export default function Display(""
+  ],
+  ""firstNLines"": ""import styles from \""./Display.module.css\"";\n\ninterface DisplayProps {\n    value: string;\n    history: string;\n}\n\n/**\n * Calculator display component\n * Shows the current value and calculation history\n */\nexport default function Display({ value, history }: DisplayProps) {\n    return (\n        <div className={styles.display}>\n            <div className={styles.history}>{history}</div>\n            <div className={styles.value}>{value}</div>\n        </div>\n    );\n}\n""
+}",Renders the calculator's current value and history for the Calculator component using localized CSS styles.,react-typescript,Display.tsx,True,5.0,"Score: 5
+
+Explanation: The summary is perfectly clear, concise, and accurately describes the code's function. It highlights the key aspects: rendering the calculator's value and history, its role within the Calculator component (implied), and the use of localized CSS styles.
+",good,"Good
+",1,5.0,"**Score: 5**
+
+**Explanation:**
+
+The summary accurately and concisely describes the purpose of the `Display` component. It highlights that the component:
+
+*   Renders the calculator's current value and history.
+*   Is used within the Calculator component (implied by the context).
+*   Utilizes localized CSS styles (from the `Display.module.css` file).
+
+The summary captures all the essential information about the component's role and implementation.
+"
+eslint.config.mjs,"{
+  ""relativePath"": ""eslint.config.mjs"",
+  ""lang"": ""javascript"",
+  ""exports"": [
+    ""eslintConfig""
+  ],
+  ""functionSignatures"": [],
+  ""firstNLines"": ""import { defineConfig, globalIgnores } from \""eslint/config\"";\nimport nextVitals from \""eslint-config-next/core-web-vitals\"";\nimport nextTs from \""eslint-config-next/typescript\"";\n\nconst eslintConfig = defineConfig([\n  ...nextVitals,\n  ...nextTs,\n  // Override default ignores of eslint-config-next.\n  globalIgnores([\n    // Default ignores of eslint-config-next:\n    \"".next/**\"",\n    \""out/**\"",\n    \""build/**\"",\n    \""next-env.d.ts\"",\n  ]),\n]);\n\nexport default eslintConfig;\n""
+}",Configures project ESLint rules by integrating Next.js web vitals and TypeScript presets with custom global ignore patterns for build outputs.,javascript,eslint.config.mjs,True,5.0,"Score: 5
+
+Explanation: The summary is perfectly clear, concise, and accurately describes the code's purpose. It highlights the key aspects: configuring ESLint, integrating Next.js presets (web vitals and TypeScript), and customizing the ignore patterns. It's easy to understand what the code does without needing to delve into the code itself.
+",good,"Good
+",1,4.0,"**Score: 4**
+
+**Explanation:**
+
+The summary captures the main purpose: configuring ESLint rules using Next.js presets and custom ignores. However, it could be slightly more specific. For example, mentioning that it's overriding the default ignores from `eslint-config-next` adds a bit more detail about the configuration's behavior. Also, explicitly stating that the configuration is exported would improve the completeness.
+"
+lib/calculator.ts,"{
+  ""relativePath"": ""lib/calculator.ts"",
+  ""lang"": ""typescript"",
+  ""exports"": [
+    ""add"",
+    ""subtract"",
+    ""multiply"",
+    ""divide"",
+    ""Operation"",
+    ""calculate"",
+    ""parseInput"",
+    ""formatDisplay""
+  ],
+  ""functionSignatures"": [
+    ""export function add(a: number, b: number): number"",
+    ""export function subtract(a: number, b: number): number"",
+    ""export function multiply(a: number, b: number): number"",
+    ""export function divide(a: number, b: number): number"",
+    ""export function calculate(a: number, operation: Operation, b: number): number"",
+    ""export function parseInput(input: string): number"",
+    ""export function formatDisplay(value: number): string""
+  ],
+  ""firstNLines"": ""/**\n * Calculator logic module\n * Contains pure mathematical functions for calculator operations\n */\n\n/**\n * Adds two numbers together\n * @param a - First operand\n * @param b - Second operand\n * @returns Sum of a and b\n */\nexport function add(a: number, b: number): number {\n  return a + b;\n}\n\n/**\n * Subtracts the second number from the first\n * @param a - First operand\n * @param b - Second operand\n * @returns Difference of a and b\n */\nexport function subtract(a: number, b: number): number {\n  re""
+}",Provides pure mathematical operations and input parsing utilities that serve as the core logic for the Calculator component.,typescript,calculator.ts,True,4.0,"Score: 4
+
+Explanation: The summary is quite good. It accurately captures the essence of the module by highlighting the pure mathematical operations and input parsing. The connection to the ""Calculator component"" provides useful context.
+
+However, it could be slightly improved by mentioning the formatting utility. While ""input parsing utilities"" is accurate, it doesn't explicitly cover the `formatDisplay` function. A minor tweak to include formatting would make it even more comprehensive.
+",good,"Good
+",1,3.0,"Score: 3
+
+Explanation: The summary captures the essence of the module being the core logic for a calculator. However, it misses several important details. It doesn't mention the specific mathematical operations provided (add, subtract, multiply, divide), the existence of an `Operation` type, the `calculate` function that uses this type, or the `formatDisplay` function. While ""input parsing utilities"" is mentioned, it's vague and doesn't highlight the specific function `parseInput`. A more complete summary would explicitly list the key functions and their roles.
+"
+next-env.d.ts,"{
+  ""relativePath"": ""next-env.d.ts"",
+  ""lang"": ""typescript"",
+  ""exports"": [],
+  ""functionSignatures"": [],
+  ""firstNLines"": ""/// <reference types=\""next\"" />\n/// <reference types=\""next/image-types/global\"" />\n/// <reference path=\""./.next/types/routes.d.ts\"" />\n\n// NOTE: This file should not be edited\n// see https://nextjs.org/docs/app/api-reference/config/typescript for more information.\n""
+}",Provides global TypeScript type definitions for Next.js features and routing to ensure project-wide environment compatibility and type safety.,typescript,next-env.d.ts,True,5.0,"Score: 5
+
+Explanation: The summary is perfectly clear, concise, and accurately describes the purpose of the `next-env.d.ts` file. It highlights the key aspects: global type definitions, Next.js features, routing, environment compatibility, and type safety. The summary effectively conveys the role of this file in a Next.js TypeScript project.
+",good,"Good
+",1,4.0,"Score: 4
+
+Explanation: The summary captures the main purpose of the file, which is to provide TypeScript type definitions for Next.js. It also mentions environment compatibility and type safety, which are important aspects. However, it could be slightly more specific by mentioning that it includes type definitions for `next/image-types/global` and routes, as indicated in the first few lines of the file. While ""Next.js features"" is accurate, specifying image types and routes adds more clarity.
+"
+next.config.ts,"{
+  ""relativePath"": ""next.config.ts"",
+  ""lang"": ""typescript"",
+  ""exports"": [
+    ""nextConfig""
+  ],
+  ""functionSignatures"": [],
+  ""firstNLines"": ""import type { NextConfig } from \""next\"";\n\nconst nextConfig: NextConfig = {\n  /* config options here */\n};\n\nexport default nextConfig;\n""
+}",Defines and exports global configuration settings to customize the Next.js application's build and runtime behavior.,typescript,next.config.ts,True,5.0,"Score: 5
+
+Explanation: The summary is perfectly clear, concise, and accurately describes the code. It correctly identifies the file as defining and exporting the Next.js configuration, and it accurately states the purpose of this configuration (customizing build and runtime behavior).
+",good,"Good
+",1,4.0,"Score: 4
+
+Explanation: The summary captures the main purpose of `next.config.ts`, which is to define and export the Next.js configuration. It also mentions that the configuration customizes the build and runtime behavior. However, it could be slightly improved by explicitly stating that the exported object is named `nextConfig` and that it's the default export. While implied, explicitly stating this would make the summary more complete.
+"
+package-lock.json,"{
+  ""relativePath"": ""package-lock.json"",
+  ""lang"": ""json"",
+  ""exports"": [],
+  ""functionSignatures"": [],
+  ""firstNLines"": ""{\n    \""name\"": \""calculator\"",\n    \""version\"": \""0.1.0\"",\n    \""lockfileVersion\"": 3,\n    \""requires\"": true,\n    \""packages\"": {\n        \""\"": {\n            \""name\"": \""calculator\"",\n            \""version\"": \""0.1.0\"",\n            \""dependencies\"": {\n                \""next\"": \""16.1.3\"",\n                \""react\"": \""19.2.3\"",\n                \""react-dom\"": \""19.2.3\""\n            },\n            \""devDependencies\"": {\n                \""@types/node\"": \""^20\"",\n                \""@types/react\"": \""^19\"",\n                \""@types/react-dom\"": \""^19""
+}",Records the exact versions of all project dependencies and their sub-dependencies to ensure consistent and reproducible builds across different environments.,json,package-lock.json,True,5.0,"Score: 5
+
+Explanation: The summary accurately and concisely describes the purpose of a `package-lock.json` file. It highlights the key aspects: recording exact versions, ensuring consistency, and enabling reproducible builds. The language is clear and easy to understand, even for someone not deeply familiar with JavaScript package management.
+",good,"Good
+",1,5.0,"**Score: 5**
+
+**Explanation:**
+
+The summary accurately and comprehensively describes the purpose of a `package-lock.json` file. It highlights the core function of ensuring consistent and reproducible builds by recording exact dependency versions. There are no missing key components in the summary.
+"
+package.json,"{
+  ""relativePath"": ""package.json"",
+  ""lang"": ""json"",
+  ""exports"": [],
+  ""functionSignatures"": [],
+  ""firstNLines"": ""{\n    \""name\"": \""calculator\"",\n    \""version\"": \""0.1.0\"",\n    \""private\"": true,\n    \""scripts\"": {\n        \""dev\"": \""next dev\"",\n        \""build\"": \""next build\"",\n        \""start\"": \""next start\"",\n        \""lint\"": \""eslint\""\n    },\n    \""dependencies\"": {\n        \""next\"": \""16.1.3\"",\n        \""react\"": \""19.2.3\"",\n        \""react-dom\"": \""19.2.3\""\n    },\n    \""devDependencies\"": {\n        \""@types/node\"": \""^20\"",\n        \""@types/react\"": \""^19\"",\n        \""@types/react-dom\"": \""^19\"",\n        \""eslint\"": \""^9\"",\n        \""eslint-config-next\"": \""1""
+}","Defines project metadata, build scripts, and core dependencies for the Next.js-based calculator application.",json,package.json,True,5.0,"Score: 5
+
+Explanation: The summary is perfectly clear, concise, and accurately describes the content of the `package.json` file. It highlights the key aspects: project metadata (name, version), build scripts (dev, build, start, lint), and core dependencies (Next.js, React, React DOM).
+",good,"Good
+",1,4.0,"Score: 4
+
+Explanation: The summary captures the main purpose (project metadata, build scripts, and dependencies) and correctly identifies the project as a Next.js application. However, it could be slightly more specific. For example, mentioning that it defines development dependencies as well, or briefly listing some of the key scripts (dev, build, start, lint) would improve the completeness. It's good, but could be a touch more descriptive.
+"
+public/capsules.json,"{
+  ""relativePath"": ""public/capsules.json"",
+  ""lang"": ""json"",
+  ""exports"": [],
+  ""functionSignatures"": [],
+  ""firstNLines"": ""{\n  \""stats\"": {\n    \""totalFiles\"": 22,\n    \""totalDirectories\"": 6,\n    \""totalEdges\"": 11,\n    \""externalDependencies\"": [\n      \""eslint-config-next/core-web-vitals\"",\n      \""eslint-config-next/typescript\"",\n      \""eslint/config\"",\n      \""next\"",\n      \""next/font/google\"",\n      \""react\""\n    ],\n    \""entryPoints\"": [\n      \"".nexhacks/capsules.json\"",\n      \""README.md\"",\n      \""app/layout.tsx\"",\n      \""app/page.tsx\"",\n      \""eslint.config.mjs\"",\n      \""next-env.d.ts\"",\n      \""next.config.ts\"",\n      \""package-lock.json""
+}",This JSON asset provides project-wide statistics and external dependency metadata to serve as a public structural overview of the codebase.,json,capsules.json,True,5.0,"Score: 5
+
+Explanation: The summary is perfectly clear, concise, and accurately describes the content of the JSON file. It highlights the key aspects: project statistics, external dependencies, and its purpose as a public overview.
+",good,"Good
+",1,4.0,"Score: 4
+
+Explanation: The summary captures the main purpose of the JSON file (providing project statistics and dependency metadata). However, it could be improved by explicitly mentioning the types of statistics included (e.g., file counts, directory counts, edge counts) and highlighting that it also lists entry points. Mentioning ""structural overview"" is good, but being more specific about what constitutes the structure would be better.
+"
+tsconfig.json,"{
+  ""relativePath"": ""tsconfig.json"",
+  ""lang"": ""json"",
+  ""exports"": [],
+  ""functionSignatures"": [],
+  ""firstNLines"": ""{\n  \""compilerOptions\"": {\n    \""target\"": \""ES2017\"",\n    \""lib\"": [\n      \""dom\"",\n      \""dom.iterable\"",\n      \""esnext\""\n    ],\n    \""allowJs\"": true,\n    \""skipLibCheck\"": true,\n    \""strict\"": true,\n    \""noEmit\"": true,\n    \""esModuleInterop\"": true,\n    \""module\"": \""esnext\"",\n    \""moduleResolution\"": \""bundler\"",\n    \""resolveJsonModule\"": true,\n    \""isolatedModules\"": true,\n    \""jsx\"": \""preserve\"",\n    \""incremental\"": true,\n    \""plugins\"": [\n      {\n        \""name\"": \""next\""\n      }\n    ],\n    \""paths\"": {\n      \""@/*\"": [\n     ""
+}",Configures TypeScript compiler settings and environment rules to enforce strict type checking and modern module resolution.,json,tsconfig.json,True,5.0,"Score: 5
+
+Explanation: The summary is perfectly clear, concise, and accurately describes the content of the `tsconfig.json` file. It highlights the key aspects: TypeScript compiler options, environment rules, strict type checking, and modern module resolution. It's easy to understand even without looking at the code itself.
+",good,"Good
+",1,,"Score: 4
+
+Explanation: The summary captures the main purpose (configuring TypeScript) and mentions key aspects like strict type checking and modern module resolution. However, it could be more complete by explicitly mentioning the target environment (ES2017, browser via ""dom"" lib), the use of Next.js plugin, and the path aliases. While ""environment rules"" hints at some of these, being more specific would improve the summary.
+"
