@@ -55,3 +55,17 @@ export {
     OpenRouterClient,
     createOpenRouterClient,
 } from "./gemini.js";
+
+// Risk Analysis Agent
+export {
+    RiskAnalysisAgent,
+    createRiskAnalysisAgent,
+    type RiskAnalysis,
+    type Risk,
+    type BestPractice,
+    type RiskType,
+    type RiskSeverity,
+    type RiskLevel,
+    type RiskAnalysisConfig,
+} from "./risk-agent.js";
+

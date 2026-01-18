@@ -40,6 +40,28 @@ interface CodeBlockSummary {
   summary: string;
 }
 
+// --- RISK ANALYSIS TYPES ---
+interface Risk {
+  type: 'security' | 'performance' | 'error_handling' | 'concurrency' | 'type_safety' | 'api_misuse';
+  description: string;
+  severity: 'low' | 'medium' | 'high';
+  lineNumbers?: number[];
+}
+
+interface BestPractice {
+  practice: string;
+  suggestion: string;
+  reference?: string;
+}
+
+interface RiskAnalysis {
+  functionName: string;
+  riskLevel: 'low' | 'medium' | 'high' | 'critical';
+  risks: Risk[];
+  bestPractices: BestPractice[];
+  summary: string;
+}
+
 interface SymbolData {
   name: string;
   kind: string;
@@ -123,22 +145,41 @@ const blockTypeColors: Record<string, { bg: string; border: string; icon: string
   'block': { bg: '#3d3d00', border: '#f7df1e', icon: '📄' },
 };
 
+// --- RISK LEVEL COLORS ---
+const riskLevelColors: Record<string, { bg: string; border: string; text: string; icon: string }> = {
+  'low': { bg: '#1a3d1a', border: '#48bb78', text: '#48bb78', icon: '✅' },
+  'medium': { bg: '#3d3d1a', border: '#ecc94b', text: '#ecc94b', icon: '⚠️' },
+  'high': { bg: '#3d1a1a', border: '#f56565', text: '#f56565', icon: '🔴' },
+  'critical': { bg: '#4a1a1a', border: '#e53e3e', text: '#e53e3e', icon: '🚨' },
+};
+
+const riskTypeIcons: Record<string, string> = {
+  'security': '🔒',
+  'performance': '⚡',
+  'error_handling': '⚠️',
+  'concurrency': '🔄',
+  'type_safety': '📝',
+  'api_misuse': '🔧',
+};
+
 // --- CODE BLOCK CARD COMPONENT ---
 const CodeBlockCard: React.FC<{
   block: CodeBlockSummary;
+  riskAnalysis?: RiskAnalysis;
   onClick: () => void;
-}> = ({ block, onClick }) => {
+}> = ({ block, riskAnalysis, onClick }) => {
+  const [showRiskDetails, setShowRiskDetails] = useState(false);
   const colors = blockTypeColors[block.type] || blockTypeColors.block;
+  const riskColors = riskAnalysis ? riskLevelColors[riskAnalysis.riskLevel] : null;
 
   return (
     <div
-      onClick={onClick}
       style={{
         padding: '16px 20px',
         borderRadius: '12px',
         background: colors.bg,
         color: '#fff',
-        border: `2px solid ${colors.border}`,
+        border: riskColors ? `2px solid ${riskColors.border}` : `2px solid ${colors.border}`,
         cursor: 'pointer',
         transition: 'transform 0.2s, box-shadow 0.2s',
         marginBottom: '12px',
@@ -152,10 +193,10 @@ const CodeBlockCard: React.FC<{
         e.currentTarget.style.boxShadow = 'none';
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+      <div onClick={onClick} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
         <span style={{ fontSize: '24px' }}>{colors.icon}</span>
         <div style={{ flex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', flexWrap: 'wrap' }}>
             <span style={{ fontWeight: '700', fontSize: '16px' }}>{block.name}</span>
             <span style={{
               fontSize: '10px',
@@ -166,6 +207,24 @@ const CodeBlockCard: React.FC<{
             }}>
               {block.type}
             </span>
+            {/* Risk Level Badge */}
+            {riskAnalysis && (
+              <span style={{
+                fontSize: '10px',
+                padding: '2px 8px',
+                background: riskColors?.bg,
+                border: `1px solid ${riskColors?.border}`,
+                borderRadius: '12px',
+                color: riskColors?.text,
+                fontWeight: '600',
+                textTransform: 'uppercase',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}>
+                {riskColors?.icon} {riskAnalysis.riskLevel}
+              </span>
+            )}
           </div>
           <div style={{ fontSize: '11px', color: '#888', marginBottom: '8px', fontFamily: 'monospace' }}>
             Lines {block.startLine} - {block.endLine}
@@ -175,12 +234,124 @@ const CodeBlockCard: React.FC<{
           </div>
         </div>
       </div>
+
+      {/* Risk Analysis Section */}
+      {riskAnalysis && riskAnalysis.risks.length > 0 && (
+        <div style={{ marginTop: '12px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '12px' }}>
+          <button
+            onClick={(e) => { e.stopPropagation(); setShowRiskDetails(!showRiskDetails); }}
+            style={{
+              background: 'rgba(255,255,255,0.05)',
+              border: 'none',
+              color: riskColors?.text || '#888',
+              padding: '8px 12px',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '12px',
+              fontWeight: '600',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              width: '100%'
+            }}
+          >
+            <span>{showRiskDetails ? '▼' : '▶'}</span>
+            <span>{riskAnalysis.risks.length} Risk{riskAnalysis.risks.length > 1 ? 's' : ''} Found</span>
+            {riskAnalysis.bestPractices.length > 0 && (
+              <span style={{ marginLeft: 'auto', color: '#48bb78' }}>
+                💡 {riskAnalysis.bestPractices.length} suggestion{riskAnalysis.bestPractices.length > 1 ? 's' : ''}
+              </span>
+            )}
+          </button>
+
+          {showRiskDetails && (
+            <div style={{ marginTop: '12px', animation: 'fadeIn 0.2s' }}>
+              {/* Risks */}
+              {riskAnalysis.risks.map((risk, i) => (
+                <div key={i} style={{
+                  padding: '10px 12px',
+                  background: 'rgba(0,0,0,0.3)',
+                  borderRadius: '8px',
+                  marginBottom: '8px',
+                  borderLeft: `3px solid ${riskLevelColors[risk.severity]?.border || '#888'}`
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                    <span>{riskTypeIcons[risk.type] || '⚠️'}</span>
+                    <span style={{ fontWeight: '600', fontSize: '12px', textTransform: 'capitalize' }}>
+                      {risk.type.replace('_', ' ')}
+                    </span>
+                    <span style={{
+                      fontSize: '9px',
+                      padding: '2px 6px',
+                      background: riskLevelColors[risk.severity]?.bg,
+                      color: riskLevelColors[risk.severity]?.text,
+                      borderRadius: '4px',
+                      textTransform: 'uppercase'
+                    }}>
+                      {risk.severity}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#bbb', lineHeight: '1.4' }}>
+                    {risk.description}
+                  </div>
+                </div>
+              ))}
+
+              {/* Best Practices */}
+              {riskAnalysis.bestPractices.length > 0 && (
+                <div style={{ marginTop: '12px' }}>
+                  <div style={{ fontSize: '11px', color: '#48bb78', fontWeight: '600', marginBottom: '8px' }}>
+                    💡 Suggestions
+                  </div>
+                  {riskAnalysis.bestPractices.map((bp, i) => (
+                    <div key={i} style={{
+                      padding: '10px 12px',
+                      background: 'rgba(72, 187, 120, 0.1)',
+                      borderRadius: '8px',
+                      marginBottom: '8px',
+                      borderLeft: '3px solid #48bb78'
+                    }}>
+                      <div style={{ fontWeight: '600', fontSize: '12px', color: '#48bb78', marginBottom: '4px' }}>
+                        {bp.practice}
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#bbb', lineHeight: '1.4' }}>
+                        {bp.suggestion}
+                      </div>
+                      {bp.reference && (
+                        <div style={{ fontSize: '10px', color: '#666', marginTop: '4px' }}>
+                          📚 {bp.reference}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Summary */}
+              <div style={{
+                padding: '10px 12px',
+                background: 'rgba(255,255,255,0.03)',
+                borderRadius: '8px',
+                fontSize: '12px',
+                color: '#999',
+                fontStyle: 'italic'
+              }}>
+                {riskAnalysis.summary}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
 
 // --- NODE DETAILS OVERLAY COMPONENT ---
-const NodeDetailsOverlay: React.FC<{ data: FileNodeData; onClose: () => void }> = ({ data, onClose }) => {
+const NodeDetailsOverlay: React.FC<{
+  data: FileNodeData;
+  onClose: () => void;
+  riskAnalyses: Map<string, Map<string, RiskAnalysis>>;
+}> = ({ data, onClose, riskAnalyses }) => {
   const [activeTab, setActiveTab] = useState<'summary' | 'diagram'>('summary');
   const colors = langColors[data.lang] || langColors.other;
 
@@ -362,20 +533,25 @@ const NodeDetailsOverlay: React.FC<{ data: FileNodeData; onClose: () => void }> 
                     </div>
                     {data.fullCapsule?.structure && data.fullCapsule.structure.length > 0 ? (
                       <div style={{ flex: 1, background: '#111', borderRadius: '16px', padding: '16px', overflowY: 'auto', border: '1px solid #222' }}>
-                        {data.fullCapsule.structure.map((block, i) => (
-                          <CodeBlockCard
-                            key={i}
-                            block={block}
-                            onClick={() => {
-                              vscode.postMessage({
-                                type: 'openFile',
-                                relativePath: data.relativePath,
-                                startLine: block.startLine,
-                                endLine: block.endLine
-                              });
-                            }}
-                          />
-                        ))}
+                        {data.fullCapsule.structure.map((block, i) => {
+                          const fileRisks = data.relativePath ? riskAnalyses.get(data.relativePath) : undefined;
+                          const blockRisk = fileRisks?.get(block.name);
+                          return (
+                            <CodeBlockCard
+                              key={i}
+                              block={block}
+                              riskAnalysis={blockRisk}
+                              onClick={() => {
+                                vscode.postMessage({
+                                  type: 'openFile',
+                                  relativePath: data.relativePath,
+                                  startLine: block.startLine,
+                                  endLine: block.endLine
+                                });
+                              }}
+                            />
+                          );
+                        })}
                       </div>
                     ) : (
                       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#151515', borderRadius: '16px', border: `1px solid ${colors.border}`, padding: '40px' }}>
@@ -479,16 +655,16 @@ const CapsuleNode: React.FC<NodeProps<FileNodeData>> = ({ data }) => {
 
       {/* BODY: Summary */}
       <div style={{ flex: 1 }}>
-        <div style={{ fontSize: '16px', lineHeight: '1.5', color: '#fff', fontWeight: '500' }}>
+        <div style={{ fontSize: '24px', lineHeight: '1.5', color: '#fff', fontWeight: '500' }}>
           {data.summary || "No summary available."}
         </div>
       </div>
 
       {/* FOOTER: Icon + Label */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '12px' }}>
-        <div style={{ fontSize: '24px' }}>{colors.icon}</div>
+        <div style={{ fontSize: '16px' }}>{colors.icon}</div>
         <div style={{ overflow: 'hidden' }}>
-          <div style={{ fontWeight: '800', fontSize: '18px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{data.label}</div>
+          <div style={{ fontWeight: '800', fontSize: '14px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{data.label}</div>
           {(data.isDirectory || data.isRoot) && (
             <div style={{ fontSize: '12px', opacity: 0.7 }}>{data.fileCount} items</div>
           )}
@@ -722,6 +898,8 @@ export default function App() {
     'json': true, 'markdown': true, 'directory': true, 'sticky': true
   });
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  // Risk analysis cache: Map<relativePath, Map<functionName, RiskAnalysis>>
+  const [riskAnalyses, setRiskAnalyses] = useState<Map<string, Map<string, RiskAnalysis>>>(new Map());
 
   const nodeTypes = useMemo(() => ({ capsule: CapsuleNode }), []);
 
@@ -756,7 +934,7 @@ export default function App() {
         // Update nodes state (No capsules state anymore)
 
         // Update nodes state
-        setNodes(prev => prev.map(node => {
+        setNodes((prev: FileNode[]) => prev.map((node: FileNode) => {
           if (node.data.relativePath === relativePath) {
             return {
               ...node,
@@ -775,7 +953,7 @@ export default function App() {
         // Update nodes to reflect change immediately (No capsules state anymore)
 
         // Update nodes to reflect change immediately
-        setNodes(nds => nds.map(node => {
+        setNodes((nds: FileNode[]) => nds.map((node: FileNode) => {
           if (node.data.relativePath === relativePath) {
             return {
               ...node,
@@ -829,7 +1007,7 @@ export default function App() {
         // Update capsules state (No capsules state anymore, we'll just update nodes)
 
         // Update nodes state
-        setNodes(nds => nds.map(node => {
+        setNodes((nds: FileNode[]) => nds.map((node: FileNode) => {
           if (node.data.isDirectory && node.data.relativePath === relativePath) {
             return {
               ...node,
@@ -841,6 +1019,26 @@ export default function App() {
           }
           return node;
         }));
+      }
+
+      // Handle risk analysis updates
+      if (message.type === 'updateFunctionRisk') {
+        const { relativePath, functionName, analysis } = message.data as {
+          relativePath: string;
+          functionName: string;
+          analysis: RiskAnalysis;
+        };
+
+        setRiskAnalyses(prev => {
+          const newMap = new Map(prev);
+          if (!newMap.has(relativePath)) {
+            newMap.set(relativePath, new Map());
+          }
+          newMap.get(relativePath)!.set(functionName, analysis);
+          return newMap;
+        });
+
+        console.log(`[Webview] Received risk analysis for ${relativePath}:${functionName} - ${analysis.riskLevel}`);
       }
     };
 
@@ -867,7 +1065,7 @@ export default function App() {
   const handleSearch = (term: string) => {
     const lowerTerm = term.toLowerCase();
     const results: SearchResult[] = [];
-    setNodes(nds => nds.map(node => {
+    setNodes((nds: FileNode[]) => nds.map((node: FileNode) => {
       const data = node.data as FileNodeData;
       if (!lowerTerm) return { ...node, data: { ...data, isDimmed: false, isHighlight: false } };
       const isMatch = (data.label?.toLowerCase().includes(lowerTerm)) ||
@@ -975,6 +1173,7 @@ export default function App() {
           <NodeDetailsOverlay
             data={selectedNodeData}
             onClose={() => setSelectedNodeData(null)}
+            riskAnalyses={riskAnalyses}
           />
         )}
       </div>

@@ -62,6 +62,8 @@ async function main() {
 
     console.log(`   ${capsules.size} file capsules generated`);
 
+    let rootSummary: string | undefined;
+
     // Generate AI summaries if requested
     if (options.summarize) {
         const client = createGeminiClient();
@@ -72,9 +74,8 @@ async function main() {
             const total = capsules.size;
 
             for (const [, capsule] of capsules) {
-                // Skip non-code files
-                if (!capsule.metadata ||
-                    ["json", "css", "markdown"].includes(capsule.lang)) {
+                // Skip files without metadata
+                if (!capsule.metadata) {
                     continue;
                 }
 
@@ -103,6 +104,37 @@ async function main() {
             }
 
             console.log(`   ✅ Generated ${count} summaries`);
+
+            // Generate root directory summary
+            console.log("📁 Generating root directory summary...");
+            const rootFiles: { name: string; summary: string }[] = [];
+            const rootSubdirs = new Set<string>();
+
+            for (const [filePath, capsule] of capsules) {
+                const rel = path.relative(targetPath, filePath);
+                const parts = rel.split(path.sep);
+
+                if (parts.length === 1) {
+                    // It's in the root
+                    rootFiles.push({
+                        name: capsule.name,
+                        summary: capsule.upperLevelSummary || "No summary generated",
+                    });
+                } else {
+                    rootSubdirs.add(parts[0]);
+                }
+            }
+
+            try {
+                rootSummary = await client.generateDirectorySummary(
+                    targetPath,
+                    rootFiles,
+                    Array.from(rootSubdirs)
+                );
+                console.log("   ✅ Root summary generated");
+            } catch (error) {
+                console.warn("   ⚠️ Failed to generate root summary");
+            }
         } else {
             console.log("⚠️ GEMINI_API_KEY not set, skipping AI summaries");
         }
@@ -158,6 +190,7 @@ async function main() {
     const capsulesPath = path.join(outputPath, "capsules.json");
     const output = {
         stats,
+        rootSummary,
         files: Object.fromEntries(
             Array.from(capsules.entries()).map(([, v]) => [v.relativePath, v])
         ),

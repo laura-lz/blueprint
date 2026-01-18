@@ -1,7 +1,7 @@
 {
   "stats": {
-    "totalFiles": 21,
-    "totalDirectories": 5,
+    "totalFiles": 22,
+    "totalDirectories": 6,
     "totalEdges": 9,
     "externalDependencies": [
       "eslint-config-next/core-web-vitals",
@@ -12,6 +12,7 @@
       "react"
     ],
     "entryPoints": [
+      ".nexhacks/capsules.json",
       "README.md",
       "app/layout.tsx",
       "app/page.module.css",
@@ -20,11 +21,27 @@
       "eslint.config.mjs",
       "next-env.d.ts",
       "next.config.ts",
-      "package-lock.json",
-      "package.json"
+      "package-lock.json"
     ]
   },
+  "rootSummary": "This directory serves as the root for a TypeScript-based calculator application built using the Next.js framework. It contains the essential configuration files, UI components, and core logic needed to develop, build, and deploy the web application.",
   "files": {
+    ".nexhacks/capsules.json": {
+      "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/.nexhacks/capsules.json",
+      "relativePath": ".nexhacks/capsules.json",
+      "name": "capsules.json",
+      "lang": "json",
+      "imports": [],
+      "exports": [],
+      "topSymbols": [],
+      "metadata": {
+        "functionSignatures": [],
+        "firstNLines": "{\n  \"stats\": {\n    \"totalFiles\": 21,\n    \"totalDirectories\": 6,\n    \"totalEdges\": 9,\n    \"externalDependencies\": [\n      \"eslint-config-next/core-web-vitals\",\n      \"eslint-config-next/typescript\",\n      \"eslint/config\",\n      \"next\",\n      \"next/font/google\",\n      \"react\"\n    ],\n    \"entryPoints\": [\n      \".nexhacks/capsules.json\",\n      \"README.md\",\n      \"app/layout.tsx\",\n      \"app/page.module.css\",\n      \"app/page.tsx\",\n      \"components/Calculator.tsx\",\n      \"eslint.config.mjs\",\n      \"next.config.ts\",\n      \"package-lock.json\",\n      \"package.json\"\n    ]\n  },\n  \"files\": {\n    \".nexhacks/capsules.json\": {\n      \"path\": \"/Users/wayne_tx/Desktop/nexhacks/samples/calculator/.nexhacks/capsules.json\",\n      \"relativePath\": \".nexhacks/capsules.json\",",
+        "usedBy": [],
+        "dependsOn": []
+      },
+      "upperLevelSummary": "Provides project statistics and metadata detailing file counts, directory structure, and external dependencies. Operates as an independent data store for project analysis without any internal dependencies or dependents."
+    },
     "README.md": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/README.md",
       "relativePath": "README.md",
@@ -38,7 +55,8 @@
         "firstNLines": "This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).\n\n## Getting Started\n\nFirst, run the development server:\n\n```bash\nnpm run dev\n# or\nyarn dev\n# or\npnpm dev\n# or\nbun dev\n```\n\nOpen [http://localhost:3000](http://localhost:3000) with your browser to see the result.\n\nYou can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.\n\nThis project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.\n\n## Learn More\n\nTo learn more about Next.js, take a look at the following resources:\n\n- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.\n- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.\n\nYou can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!",
         "usedBy": [],
         "dependsOn": []
-      }
+      },
+      "upperLevelSummary": "This file provides project documentation and setup instructions for a Next.js application initialized via create-next-app. It serves as a standalone developer guide with no functional integration or dependencies within the codebase."
     },
     "app/globals.css": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/app/globals.css",
@@ -55,7 +73,8 @@
           "app/layout.tsx"
         ],
         "dependsOn": []
-      }
+      },
+      "upperLevelSummary": "This file defines global CSS variables and base reset styles to establish the application's core visual theme and layout. It is imported by the root layout file to provide consistent styling across the entire application."
     },
     "app/layout.tsx": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/app/layout.tsx",
@@ -145,38 +164,7 @@
           "./globals.css"
         ]
       },
-      "upperLevelSummary": "Defines the root layout and global metadata while configuring the application's primary fonts. Integrates global CSS styles to provide a consistent visual foundation for all pages.",
-      "lowerLevelSummary": "This file serves as the root layout for a Next.js application, specifically a calculator project. It performs essential setup tasks including font optimization by configuring the Geist and Geist Mono fonts from Google Fonts as CSS variables. It defines global SEO metadata such as the application title and description. Finally, it exports the 'RootLayout' component, which defines the fundamental HTML structure (html and body tags) and applies typography classes to ensure consistent styling and font availability across all pages in the application.",
-      "structure": [
-        {
-          "name": "geistSans",
-          "type": "block",
-          "startLine": 5,
-          "endLine": 8,
-          "summary": "Initializes the Geist Sans variable font with a CSS variable name '--font-geist-sans' and specifies the 'latin' subset for optimization."
-        },
-        {
-          "name": "geistMono",
-          "type": "block",
-          "startLine": 10,
-          "endLine": 13,
-          "summary": "Initializes the Geist Mono monospace font with a CSS variable name '--font-geist-mono' and specifies the 'latin' subset."
-        },
-        {
-          "name": "metadata",
-          "type": "block",
-          "startLine": 15,
-          "endLine": 18,
-          "summary": "Defines and exports the SEO metadata object, setting the page title to 'Calculator | Nexhacks Sample' and providing a descriptive summary of the application."
-        },
-        {
-          "name": "RootLayout",
-          "type": "function",
-          "startLine": 20,
-          "endLine": 30,
-          "summary": "The main layout component that wraps the entire application. It accepts 'children' as a prop, renders the base HTML structure with the 'en' language attribute, and applies the font CSS variables to the body element using template literals."
-        }
-      ]
+      "upperLevelSummary": "This root layout defines the global metadata and base structure for the entire Next.js application. It imports global CSS styles and acts as the top-level wrapper for all child pages and components."
     },
     "app/page.module.css": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/app/page.module.css",
@@ -191,7 +179,8 @@
         "firstNLines": ".main {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  min-height: 100vh;\n  padding: 24px;\n}\n\n.title {\n  font-size: 1.5rem;\n  font-weight: 500;\n  color: rgba(255, 255, 255, 0.6);\n  margin-bottom: 24px;\n  letter-spacing: 0.05em;\n  text-transform: uppercase;\n}",
         "usedBy": [],
         "dependsOn": []
-      }
+      },
+      "upperLevelSummary": "This CSS module defines layout and typography styles for the application's primary landing page elements. It serves as a standalone styling asset with no current internal dependencies or external consumers."
     },
     "app/page.tsx": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/app/page.tsx",
@@ -255,24 +244,7 @@
           "./Visualizer"
         ]
       },
-      "upperLevelSummary": "This file defines the Home page component to render a titled calculator within a centered main layout. It serves as the application's root entry point and depends on the Calculator and Visualizer components.",
-      "lowerLevelSummary": "This file serves as the main entry point for a Next.js application's home route. Originally designed to host a Calculator component (now commented out), the current implementation acts as a wrapper for a client-side visualization component. It uses the 'use client' directive to facilitate React's client-side features and defines a full-screen layout using inline CSS to ensure the Visualizer occupies the entire viewport area.",
-      "structure": [
-        {
-          "name": "Legacy Home Page Block (Commented)",
-          "type": "block",
-          "startLine": 1,
-          "endLine": 17,
-          "summary": "Contains a commented-out version of the Home component which previously imported a Calculator and CSS modules to render a titled calculator interface."
-        },
-        {
-          "name": "Home",
-          "type": "function",
-          "startLine": 24,
-          "endLine": 30,
-          "summary": "The active React functional component that renders the application's main page. It encapsulates the Visualizer component within a main container styled with 100vw and 100vh to ensure it fills the user's screen."
-        }
-      ]
+      "upperLevelSummary": "Defines the Home page component that renders the main calculator interface within a centered layout. Serves as the primary application entry point and integrates the Calculator component alongside the Visualizer module."
     },
     "components/Button.module.css": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/components/Button.module.css",
@@ -289,7 +261,8 @@
           "components/Button.tsx"
         ],
         "dependsOn": []
-      }
+      },
+      "upperLevelSummary": "This CSS module defines the layout, typography, and interactive styling for a button element. It is imported and applied exclusively within the Button.tsx component."
     },
     "components/Button.tsx": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/components/Button.tsx",
@@ -351,38 +324,7 @@
           "./Button.module.css"
         ]
       },
-      "upperLevelSummary": "This component renders a customizable calculator button supporting various visual variants and click interactions. It utilizes local CSS module styling and is implemented within the ButtonGrid component to build the user interface.",
-      "lowerLevelSummary": "This file defines a React functional component named Button, designed for a calculator interface. It utilizes TypeScript for type safety, defining a ButtonProps interface to manage button labels, click events, visual variants (number, operator, special, equals), and layout options (wide). The component dynamically generates CSS class names using CSS Modules and a filtering logic to apply styles based on the provided props. Its primary role is to serve as a reusable, stylized input element that returns its value to a parent component upon interaction.",
-      "structure": [
-        {
-          "name": "ButtonProps",
-          "type": "block",
-          "startLine": 3,
-          "endLine": 8,
-          "summary": "A TypeScript interface defining the expected properties for the Button component, including value (string), onClick (callback function), variant (styling category), and wide (boolean for layout control)."
-        },
-        {
-          "name": "Button",
-          "type": "function",
-          "startLine": 14,
-          "endLine": 35,
-          "summary": "The default export functional component that renders a HTML button. It destructures props with default values, manages click events, and computes dynamic CSS classes."
-        },
-        {
-          "name": "handleClick",
-          "type": "function",
-          "startLine": 20,
-          "endLine": 22,
-          "summary": "An internal closure that executes the onClick callback provided in the props, passing the component's current value back to the parent component."
-        },
-        {
-          "name": "classNames logic",
-          "type": "block",
-          "startLine": 24,
-          "endLine": 28,
-          "summary": "A logical block that constructs a dynamic string of CSS classes by accessing the imported styles module. It uses an array with a filter(Boolean) pattern to conditionally apply the 'wide' class and the specific 'variant' class."
-        }
-      ]
+      "upperLevelSummary": "Defines a calculator button component that supports multiple visual variants and custom click interactions. It imports styles from a local CSS module and is utilized by the ButtonGrid component."
     },
     "components/ButtonGrid.module.css": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/components/ButtonGrid.module.css",
@@ -399,7 +341,8 @@
           "components/ButtonGrid.tsx"
         ],
         "dependsOn": []
-      }
+      },
+      "upperLevelSummary": "Defines a responsive four-column grid layout with variable spacing for button organization. Provides modular styling used exclusively by the ButtonGrid component."
     },
     "components/ButtonGrid.tsx": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/components/ButtonGrid.tsx",
@@ -465,38 +408,7 @@
           "./ButtonGrid.module.css"
         ]
       },
-      "upperLevelSummary": "This component renders a 4x5 grid of interactive calculator buttons to handle user input and operations. It integrates the Button component and local styles for use within the main Calculator interface.",
-      "lowerLevelSummary": "The ButtonGrid component serves as the structural layout for a calculator's keypad, organizing individual Button components into a functional grid. It defines a static array of button configurations, specifying labels, visual variants (special, operator, number, equals), and layout properties such as the wide span for the '0' key. By mapping over this configuration, it ensures consistent event handling through a shared callback and maintains separation between data definition and visual presentation.",
-      "structure": [
-        {
-          "name": "ButtonGridProps",
-          "type": "block",
-          "startLine": 4,
-          "endLine": 6,
-          "summary": "TypeScript interface defining the required props for the component, specifically the onButtonClick callback function."
-        },
-        {
-          "name": "ButtonGrid",
-          "type": "function",
-          "startLine": 11,
-          "endLine": 44,
-          "summary": "The main functional component that initializes the keypad layout and handles the rendering of the calculator's interactive buttons."
-        },
-        {
-          "name": "buttons",
-          "type": "block",
-          "startLine": 12,
-          "endLine": 32,
-          "summary": "A configuration array that stores the data for 19 calculator buttons, defining their display value, semantic variant for styling, and layout behavior (e.g., the 'wide' property for the zero key)."
-        },
-        {
-          "name": "return block",
-          "type": "block",
-          "startLine": 34,
-          "endLine": 43,
-          "summary": "The JSX rendering logic that iterates through the buttons array to generate a collection of Button components wrapped in a CSS grid container."
-        }
-      ]
+      "upperLevelSummary": "This component renders a 4x5 grid of interactive calculator buttons to handle user input events. It is integrated into the Calculator component and depends on the Button component and local CSS modules."
     },
     "components/Calculator.module.css": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/components/Calculator.module.css",
@@ -513,7 +425,8 @@
           "components/Calculator.tsx"
         ],
         "dependsOn": []
-      }
+      },
+      "upperLevelSummary": "This module defines the visual styles, layout, and responsive design for the calculator's primary container and interface elements. It is imported and utilized by the Calculator component to apply scoped CSS classes."
     },
     "components/Calculator.tsx": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/components/Calculator.tsx",
@@ -607,87 +520,7 @@
           "./Calculator.module.css"
         ]
       },
-      "upperLevelSummary": "This component manages the calculator's internal state and coordinates the processing of mathematical operations. It integrates core calculation utilities with modular subcomponents for the display and button layout.",
-      "lowerLevelSummary": "This component serves as the central state manager and orchestrator for a React-based calculator application. It manages five distinct state variables—display, previousValue, operation, waitingForOperand, and history—to facilitate complex arithmetic workflows including chained operations, floating-point math, and history tracking. The component utilizes several memoized callback functions (useCallback) to handle specific input types like digits, operators, and clear/delete functions, delegating actual mathematical logic to external utility functions. It acts as a bridge between the user interface elements, specifically the Display and ButtonGrid components, ensuring a cohesive flow of data from button clicks to the visual output.",
-      "structure": [
-        {
-          "name": "Calculator",
-          "type": "function",
-          "startLine": 14,
-          "endLine": 166,
-          "summary": "The main functional component that initializes calculator state and defines the event handlers for all calculator operations."
-        },
-        {
-          "name": "handleNumber",
-          "type": "function",
-          "startLine": 24,
-          "endLine": 32,
-          "summary": "Updates the display state when a numeric button is clicked, handling the transition from '0' and managing the input of multi-digit numbers."
-        },
-        {
-          "name": "handleDecimal",
-          "type": "function",
-          "startLine": 37,
-          "endLine": 43,
-          "summary": "Appends a decimal point to the current display string, ensuring that only one decimal point can exist in the current operand."
-        },
-        {
-          "name": "handleOperator",
-          "type": "function",
-          "startLine": 48,
-          "endLine": 68,
-          "summary": "Processes mathematical operators; if a calculation is already pending, it performs the previous operation before setting the new operator and updating the calculation history."
-        },
-        {
-          "name": "handleEquals",
-          "type": "function",
-          "startLine": 73,
-          "endLine": 91,
-          "summary": "Executes the pending calculation using the stored previous value, the current operator, and the current display value, then updates the display and history."
-        },
-        {
-          "name": "handleClear",
-          "type": "function",
-          "startLine": 96,
-          "endLine": 102,
-          "summary": "Resets all component state variables to their initial default values, effectively clearing the calculator's memory and display."
-        },
-        {
-          "name": "handleBackspace",
-          "type": "function",
-          "startLine": 107,
-          "endLine": 112,
-          "summary": "Removes the last character from the display string, resetting it to '0' if the length reaches zero or if only a negative sign remains."
-        },
-        {
-          "name": "handleToggleSign",
-          "type": "function",
-          "startLine": 117,
-          "endLine": 120,
-          "summary": "Multiplies the current display value by -1 to toggle between positive and negative values."
-        },
-        {
-          "name": "handlePercent",
-          "type": "function",
-          "startLine": 125,
-          "endLine": 128,
-          "summary": "Converts the current display value into a percentage by dividing it by 100."
-        },
-        {
-          "name": "handleButtonClick",
-          "type": "function",
-          "startLine": 133,
-          "endLine": 158,
-          "summary": "A dispatcher function that receives a button value from the ButtonGrid and executes the corresponding handler (clear, backspace, operator, equals, etc.)."
-        },
-        {
-          "name": "return",
-          "type": "block",
-          "startLine": 160,
-          "endLine": 165,
-          "summary": "Renders the UI layout, passing display and history state to the Display component and the click dispatcher to the ButtonGrid component."
-        }
-      ]
+      "upperLevelSummary": "Manages state and orchestrates calculation logic for the main user interface. Coordinates the display and button grid components while utilizing internal utility functions and modular styling."
     },
     "components/Display.module.css": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/components/Display.module.css",
@@ -704,7 +537,8 @@
           "components/Display.tsx"
         ],
         "dependsOn": []
-      }
+      },
+      "upperLevelSummary": "Provides visual styles and layout configurations for a display container and its history section. The module is consumed exclusively by the Display component and has no external dependencies."
     },
     "components/Display.tsx": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/components/Display.tsx",
@@ -761,24 +595,7 @@
           "./Display.module.css"
         ]
       },
-      "upperLevelSummary": "This component renders a calculator display that shows the current input value and the history of previous calculations. It is utilized by the Calculator component and depends on a dedicated CSS module for its visual layout.",
-      "lowerLevelSummary": "The Display.tsx file defines a React functional component designed to serve as the visual interface for a calculator's output screen. It utilizes TypeScript for prop validation via the DisplayProps interface, ensuring that both the current numerical value and the calculation history are passed as strings. The component follows a presentational pattern, focusing on rendering the received data within a styled container using CSS modules. It acts as a stateless leaf component in the UI hierarchy, responsible for the clear separation and display of the calculator's current state and historical context.",
-      "structure": [
-        {
-          "name": "DisplayProps",
-          "type": "block",
-          "startLine": 3,
-          "endLine": 6,
-          "summary": "An interface that defines the contract for the component's properties, requiring a 'value' string for the main result and a 'history' string for previous operations."
-        },
-        {
-          "name": "Display",
-          "type": "function",
-          "startLine": 12,
-          "endLine": 18,
-          "summary": "The default exported functional component that returns the JSX structure for the calculator display. It renders a parent container containing two distinct divs: one for displaying the calculation history and another for the current input or result, mapping them to specific CSS classes from a module."
-        }
-      ]
+      "upperLevelSummary": "This component renders the calculator's visual interface to display the current numeric value and calculation history. It is used by the Calculator component and depends on a local CSS module for styling."
     },
     "eslint.config.mjs": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/eslint.config.mjs",
@@ -826,24 +643,7 @@
         "usedBy": [],
         "dependsOn": []
       },
-      "upperLevelSummary": "This file establishes the project's ESLint rules by merging Next.js core web vitals and TypeScript configurations. It exports the final settings and defines global ignore patterns for build artifacts without relying on other local files.",
-      "lowerLevelSummary": "This file, `eslint.config.mjs`, serves as the centralized ESLint configuration for a Next.js project, utilizing the modern Flat Config system. It imports predefined rule sets for Next.js Core Web Vitals and TypeScript support to maintain high code quality and performance standards. The configuration aggregates these rules and explicitly defines global ignore patterns using the `globalIgnores` utility. This ensures that build artifacts, output directories, and auto-generated type definitions—specifically `.next/`, `out/`, `build/`, and `next-env.d.ts`—are excluded from the linting process, optimizing execution time and preventing noise from non-source files.",
-      "structure": [
-        {
-          "name": "eslintConfig",
-          "type": "block",
-          "startLine": 5,
-          "endLine": 16,
-          "summary": "The primary configuration constant initialized via the `defineConfig` utility. It spreads the imported Next.js configurations into a flat array and incorporates a global ignore block to manage which files the linter should process."
-        },
-        {
-          "name": "globalIgnores",
-          "type": "block",
-          "startLine": 9,
-          "endLine": 15,
-          "summary": "A specific configuration entry that defines a list of file and directory patterns to be ignored globally. This block targets standard Next.js build and distribution folders to ensure the linter only evaluates source code."
-        }
-      ]
+      "upperLevelSummary": "This file defines the project's ESLint configuration by combining Next.js web vitals and TypeScript rules with specific global ignore patterns. It exports the `eslintConfig` object for use by the linting engine and functions independently of other local codebase files."
     },
     "lib/calculator.ts": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/lib/calculator.ts",
@@ -1045,66 +845,7 @@
         ],
         "dependsOn": []
       },
-      "upperLevelSummary": "This module provides pure mathematical functions and utilities for core calculator operations, including arithmetic, input parsing, and display formatting. It functions as a dependency-free logic layer utilized by the Calculator component to handle computational tasks.",
-      "lowerLevelSummary": "This file serves as the core logic module for a calculator application, providing a suite of pure mathematical functions and utility methods. It defines the basic arithmetic operations (addition, subtraction, multiplication, and division), including safety checks for division by zero. It utilizes a TypeScript union type 'Operation' to define valid mathematical symbols and a centralized 'calculate' function to dispatch these operations based on the operator provided. Additionally, it includes utility functions for sanitizing string inputs into numbers and sophisticated logic for formatting numerical results for display, handling edge cases such as very large or small numbers through scientific notation and precision constraints.",
-      "structure": [
-        {
-          "name": "add",
-          "type": "function",
-          "startLine": 6,
-          "endLine": 13,
-          "summary": "Performs addition of two numerical operands and returns the sum."
-        },
-        {
-          "name": "subtract",
-          "type": "function",
-          "startLine": 15,
-          "endLine": 22,
-          "summary": "Performs subtraction by calculating the difference between the first and second numerical operands."
-        },
-        {
-          "name": "multiply",
-          "type": "function",
-          "startLine": 24,
-          "endLine": 31,
-          "summary": "Performs multiplication of two numerical operands and returns the product."
-        },
-        {
-          "name": "divide",
-          "type": "function",
-          "startLine": 33,
-          "endLine": 43,
-          "summary": "Performs division of the dividend by the divisor. It includes a guard clause that throws an Error if the divisor is zero to prevent invalid mathematical operations."
-        },
-        {
-          "name": "Operation",
-          "type": "block",
-          "startLine": 45,
-          "endLine": 48,
-          "summary": "Defines a TypeScript union type representing the valid string literals allowed for mathematical operations: addition, subtraction, multiplication, and division."
-        },
-        {
-          "name": "calculate",
-          "type": "function",
-          "startLine": 50,
-          "endLine": 68,
-          "summary": "A dispatcher function that accepts two operands and an operation symbol. It uses a switch statement to route the inputs to the specific arithmetic function corresponding to the operation."
-        },
-        {
-          "name": "parseInput",
-          "type": "function",
-          "startLine": 70,
-          "endLine": 80,
-          "summary": "Converts string inputs into numbers using parseFloat. It includes a safety check that returns 0 if the input cannot be successfully parsed into a valid number."
-        },
-        {
-          "name": "formatDisplay",
-          "type": "function",
-          "startLine": 82,
-          "endLine": 99,
-          "summary": "Prepares a number for UI display by converting it to a string. It applies scientific notation for extreme magnitudes (very large or very small numbers) and uses precision limiting for long decimal strings to ensure the output fits within typical UI constraints."
-        }
-      ]
+      "upperLevelSummary": "This module provides pure mathematical functions, input parsing, and display formatting for calculator operations. It serves as a standalone utility used by the Calculator component and has no local dependencies."
     },
     "next-env.d.ts": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/next-env.d.ts",
@@ -1130,31 +871,7 @@
           "./.next/dev/types/routes.d.ts"
         ]
       },
-      "upperLevelSummary": "Provides TypeScript type definitions for Next.js features, global image types, and framework-specific environment configurations. It integrates internal build-generated route types into the project to ensure consistent type safety across the codebase.",
-      "lowerLevelSummary": "The next-env.d.ts file is a crucial, auto-generated TypeScript declaration file used in Next.js projects to provide type safety and IntelliSense for the framework's internal features. It serves as a bridge between the TypeScript compiler and Next.js, referencing essential type definitions for the core framework and global image types. Additionally, it imports generated route types to enable features like statically typed links. Because Next.js manages this file automatically during development and build cycles, manual modifications are discouraged to prevent them from being overwritten or causing compilation errors.",
-      "structure": [
-        {
-          "name": "Reference Directives",
-          "type": "block",
-          "startLine": 1,
-          "endLine": 2,
-          "summary": "These triple-slash directives instruct the TypeScript compiler to include global type definitions for Next.js ('next') and image asset imports ('next/image-types/global'), ensuring types for various file formats and Next.js components are recognized globally."
-        },
-        {
-          "name": "Typed Routes Import",
-          "type": "block",
-          "startLine": 3,
-          "endLine": 3,
-          "summary": "Imports the dynamically generated route types from the internal build directory (./.next), which facilitates the 'Typed Routes' feature in Next.js, allowing for type-safe navigation."
-        },
-        {
-          "name": "Maintenance Notice",
-          "type": "block",
-          "startLine": 5,
-          "endLine": 6,
-          "summary": "A comment block providing a warning that the file should not be manually edited and a reference link to the official Next.js documentation regarding TypeScript configuration."
-        }
-      ]
+      "upperLevelSummary": "This file provides global TypeScript type definitions for Next.js core features and image handling. It integrates the development environment with the framework by importing generated route types from the local build directory."
     },
     "next.config.ts": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/next.config.ts",
@@ -1186,31 +903,7 @@
         "usedBy": [],
         "dependsOn": []
       },
-      "upperLevelSummary": "Defines configuration settings to customize the Next.js application's build and runtime behavior. Exports a typed configuration object used by the framework and maintains no local dependencies.",
-      "lowerLevelSummary": "This file serves as the configuration entry point for a Next.js application using TypeScript. It imports the 'NextConfig' type to ensure type safety and provide developers with auto-completion for available framework options. The file defines a 'nextConfig' constant, currently empty, which acts as a central repository for adjusting core framework behaviors such as build optimization, environment variables, headers, and rewrites. By exporting this object as the default, the Next.js runtime can ingest these settings to customize the application's build and server-side behavior.",
-      "structure": [
-        {
-          "name": "Import Statement",
-          "type": "block",
-          "startLine": 1,
-          "endLine": 1,
-          "summary": "Imports the NextConfig type from the 'next' package to enable TypeScript type-checking and IDE support for configuration properties."
-        },
-        {
-          "name": "nextConfig",
-          "type": "block",
-          "startLine": 3,
-          "endLine": 5,
-          "summary": "Defines the primary configuration object for the Next.js application. While currently empty, this block is where settings like output modes, experimental features, and plugin configurations are specified."
-        },
-        {
-          "name": "Export Statement",
-          "type": "block",
-          "startLine": 7,
-          "endLine": 7,
-          "summary": "Exports the nextConfig object as the default export, making it accessible to the Next.js build system and dev server."
-        }
-      ]
+      "upperLevelSummary": "Defines the build and runtime configuration options for the Next.js application. Exports the nextConfig object as a standalone module with no local dependencies or internal dependents."
     },
     "package-lock.json": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/package-lock.json",
@@ -1225,7 +918,8 @@
         "firstNLines": "{\n    \"name\": \"calculator\",\n    \"version\": \"0.1.0\",\n    \"lockfileVersion\": 3,\n    \"requires\": true,\n    \"packages\": {\n        \"\": {\n            \"name\": \"calculator\",\n            \"version\": \"0.1.0\",\n            \"dependencies\": {\n                \"next\": \"16.1.3\",\n                \"react\": \"19.2.3\",\n                \"react-dom\": \"19.2.3\"\n            },\n            \"devDependencies\": {\n                \"@types/node\": \"^20\",\n                \"@types/react\": \"^19\",\n                \"@types/react-dom\": \"^19\",\n                \"eslint\": \"^9\",\n                \"eslint-config-next\": \"16.1.3\",\n                \"typescript\": \"^5\"\n            }\n        },\n        \"node_modules/@babel/code-frame\": {\n            \"version\": \"7.28.6\",\n            \"resolved\": \"https://registry.npmjs.org/@babel/code-frame/-/code-frame-7.28.6.tgz\",\n            \"integrity\": \"sha512-JYgintcMjRiCvS8mMECzaEn+m3PfoQiyqukOMCCVQtoJGYJw8j/8LBJEiqkHLkfwCcs74E3pbAUFNg7d9VNJ+Q==\",\n            \"dev\": true,\n            \"license\": \"MIT\",\n            \"dependencies\": {",
         "usedBy": [],
         "dependsOn": []
-      }
+      },
+      "upperLevelSummary": "This file locks the exact versions of project dependencies to ensure consistent and reproducible builds across environments. It tracks the dependency tree for the calculator application, managing core requirements like Next.js and React."
     },
     "package.json": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/package.json",
@@ -1240,7 +934,8 @@
         "firstNLines": "{\n    \"name\": \"calculator\",\n    \"version\": \"0.1.0\",\n    \"private\": true,\n    \"scripts\": {\n        \"dev\": \"next dev\",\n        \"build\": \"next build\",\n        \"start\": \"next start\",\n        \"lint\": \"eslint\"\n    },\n    \"dependencies\": {\n        \"next\": \"16.1.3\",\n        \"react\": \"19.2.3\",\n        \"react-dom\": \"19.2.3\"\n    },\n    \"devDependencies\": {\n        \"@types/node\": \"^20\",\n        \"@types/react\": \"^19\",\n        \"@types/react-dom\": \"^19\",\n        \"eslint\": \"^9\",\n        \"eslint-config-next\": \"16.1.3\",\n        \"typescript\": \"^5\"\n    }\n}",
         "usedBy": [],
         "dependsOn": []
-      }
+      },
+      "upperLevelSummary": "This file defines the metadata and execution scripts for a Next.js-based calculator application. It manages core external dependencies like React and Next.js to facilitate project development and deployment."
     },
     "public/capsules.json": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/public/capsules.json",
@@ -1255,7 +950,8 @@
         "firstNLines": "{\n  \"stats\": {\n    \"totalFiles\": 19,\n    \"totalDirectories\": 4,\n    \"totalEdges\": 11,\n    \"externalDependencies\": [\n      \"next\",\n      \"next/font/google\",\n      \"react\"\n    ],\n    \"entryPoints\": [\n      \"README.md\",\n      \"app/layout.tsx\",\n      \"app/page.tsx\",\n      \"next-env.d.ts\",\n      \"next.config.ts\",\n      \"package-lock.json\",\n      \"package.json\",\n      \"tsconfig.json\"\n    ]\n  },\n  \"files\": {\n    \"README.md\": {\n      \"path\": \"/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/README.md\",\n      \"relativePath\": \"README.md\",\n      \"name\": \"README.md\",\n      \"lang\": \"markdown\",\n      \"imports\": [],\n      \"exports\": [],\n      \"topSymbols\": [],",
         "usedBy": [],
         "dependsOn": []
-      }
+      },
+      "upperLevelSummary": "This JSON file stores metadata and structural statistics about the project, including file counts and external dependencies. It acts as a standalone public asset with no internal dependencies or consumers in the codebase."
     },
     "tsconfig.json": {
       "path": "/Users/brianliu/Documents/personal/coding/nexhacks/samples/calculator/tsconfig.json",
@@ -1267,10 +963,11 @@
       "topSymbols": [],
       "metadata": {
         "functionSignatures": [],
-        "firstNLines": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2017\",\n    \"lib\": [\"dom\", \"dom.iterable\", \"esnext\"],\n    \"allowJs\": true,\n    \"skipLibCheck\": true,\n    \"strict\": true,\n    \"noEmit\": true,\n    \"esModuleInterop\": true,\n    \"module\": \"esnext\",\n    \"moduleResolution\": \"bundler\",\n    \"resolveJsonModule\": true,\n    \"isolatedModules\": true,\n    \"jsx\": \"react-jsx\",\n    \"incremental\": true,\n    \"plugins\": [\n      {\n        \"name\": \"next\"\n      }\n    ],\n    \"paths\": {\n      \"@/*\": [\"./*\"]\n    }\n  },\n  \"include\": [\n    \"next-env.d.ts\",\n    \"**/*.ts\",\n    \"**/*.tsx\",\n    \".next/types/**/*.ts\",\n    \".next/dev/types/**/*.ts\",",
+        "firstNLines": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2017\",\n    \"lib\": [\n      \"dom\",\n      \"dom.iterable\",\n      \"esnext\"\n    ],\n    \"allowJs\": true,\n    \"skipLibCheck\": true,\n    \"strict\": true,\n    \"noEmit\": true,\n    \"esModuleInterop\": true,\n    \"module\": \"esnext\",\n    \"moduleResolution\": \"bundler\",\n    \"resolveJsonModule\": true,\n    \"isolatedModules\": true,\n    \"jsx\": \"preserve\",\n    \"incremental\": true,\n    \"plugins\": [\n      {\n        \"name\": \"next\"\n      }\n    ],\n    \"paths\": {\n      \"@/*\": [\n        \"./*\"\n      ]\n    }\n  },",
         "usedBy": [],
         "dependsOn": []
-      }
+      },
+      "upperLevelSummary": "Configures TypeScript compiler settings for strict type-checking and ES2017 target compatibility. Acts as the central build configuration for the project with no local dependencies or exports."
     }
   }
 }

@@ -237,7 +237,7 @@ Keep it concise and focused on the big picture.`;
     }
 
     /**
-     * Generates a concise 2-line summary from a FileCapsule's context
+     * Generates a concise 1-line summary from a FileCapsule's context
      * Uses only extracted metadata, not full file content
      */
     async generateCapsuleSummary(
@@ -251,7 +251,7 @@ Keep it concise and focused on the big picture.`;
             exports: string[];
         }
     ): Promise<string> {
-        const prompt = `Generate a 2-sentence summary for this code file based on ONLY the following context.
+        const prompt = `Generate a 1-sentence summary for this code file based on ONLY the following context.
 
 File: ${filePath}
 
@@ -267,7 +267,7 @@ ${context.functionSignatures.map(s => `- ${s.signature}${s.jsdoc ? ` // ${s.jsdo
 First 15 lines preview:
 ${context.firstNLines.split("\n").slice(0, 15).join("\n")}
 
-Respond with ONLY 2 sentences:
+Respond with ONLY 1 sentences:
 1. What this file does (purpose)
 2. How it fits into the codebase (dependencies/usage)
 
@@ -277,7 +277,7 @@ Write for optimal readability and understanding; the output does not have to be 
         return this.chat([
             {
                 role: "system",
-                content: "You are a code documentation expert. Generate extremely concise 2-sentence file summaries. Do not include any prefixes, labels, or formatting - just 2 plain sentences.",
+                content: "You are a code documentation expert. Generate extremely concise 1-sentence file summaries. Do not include any prefixes, labels, or formatting - just 1 plain sentences.",
             },
             {
                 role: "user",
@@ -307,14 +307,16 @@ ${fileList}
 
 Subdirectories: ${subdirectories.join(", ") || "None"}
 
-Respond with a 2-sentence summary:
+Respond with a short 1-sentence summary:
 1. What is the primary purpose of this directory?
-2. What are the key functionalities contained within?`;
+2. What are the key functionalities contained within?
+(Does not need to be grammatically correct; the sentence can start with a verb)
+`;
 
         return this.chat([
             {
                 role: "system",
-                content: "You are a code documentation expert. Generate extremely concise 2-sentence directory summaries.",
+                content: "You are a code documentation expert. Generate extremely concise 1-sentence directory summaries.",
             },
             {
                 role: "user",
