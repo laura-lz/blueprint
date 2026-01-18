@@ -1,76 +1,102 @@
 /**
- * Gemini API client for LLM integration
- * Compatible with OpenAI/OpenRouter-style API format
+ * Native Gemini API client for LLM integration
+ * Uses Google's generativelanguage.googleapis.com REST API
  */
 
 export interface GeminiConfig {
     apiKey: string;
-    baseUrl?: string;
     model?: string;
-    siteUrl?: string;
-    siteName?: string;
 }
-
-export type OpenRouterConfig = GeminiConfig;
 
 export interface Message {
     role: "system" | "user" | "assistant";
     content: string;
 }
 
-export interface ChatCompletionResponse {
-    id: string;
-    choices: {
-        message: {
+// Gemini API types
+interface GeminiPart {
+    text: string;
+}
+
+interface GeminiContent {
+    role: "user" | "model";
+    parts: GeminiPart[];
+}
+
+interface GeminiRequest {
+    systemInstruction?: { parts: GeminiPart[] };
+    contents: GeminiContent[];
+}
+
+interface GeminiResponse {
+    candidates?: {
+        content: {
+            parts: GeminiPart[];
             role: string;
-            content: string;
         };
-        finish_reason: string;
+        finishReason: string;
     }[];
-    usage?: {
-        prompt_tokens: number;
-        completion_tokens: number;
-        total_tokens: number;
+    usageMetadata?: {
+        promptTokenCount: number;
+        candidatesTokenCount: number;
+        totalTokenCount: number;
     };
 }
 
-const DEFAULT_MODEL = "google/gemini-2.0-flash-001";
-const DEFAULT_BASE_URL = "https://openrouter.ai/api/v1";
+const DEFAULT_MODEL = "gemini-3-flash-preview";
+const API_BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
 
 /**
- * Gemini client for generating AI-powered summaries
+ * Native Gemini client for generating AI-powered summaries
  */
 export class GeminiClient {
     private apiKey: string;
-    private baseUrl: string;
     private model: string;
-    private siteUrl: string;
-    private siteName: string;
 
     constructor(config: GeminiConfig) {
         this.apiKey = config.apiKey;
-        this.baseUrl = config.baseUrl || DEFAULT_BASE_URL;
         this.model = config.model || DEFAULT_MODEL;
-        this.siteUrl = config.siteUrl || "http://localhost";
-        this.siteName = config.siteName || "Nexhacks Agent";
     }
 
     /**
-     * Sends a chat completion request to Gemini (via OpenRouter or direct)
+     * Converts OpenAI-style messages to Gemini format
+     */
+    private convertMessages(messages: Message[]): GeminiRequest {
+        const request: GeminiRequest = {
+            contents: [],
+        };
+
+        for (const msg of messages) {
+            if (msg.role === "system") {
+                // System messages become systemInstruction
+                request.systemInstruction = {
+                    parts: [{ text: msg.content }],
+                };
+            } else {
+                // Map user/assistant to user/model
+                request.contents.push({
+                    role: msg.role === "assistant" ? "model" : "user",
+                    parts: [{ text: msg.content }],
+                });
+            }
+        }
+
+        return request;
+    }
+
+    /**
+     * Sends a chat completion request to Gemini
      */
     async chat(messages: Message[]): Promise<string> {
-        const response = await fetch(`${this.baseUrl}/chat/completions`, {
+        const endpoint = `${API_BASE_URL}/models/${this.model}:generateContent`;
+        const body = this.convertMessages(messages);
+
+        const response = await fetch(`${endpoint}?key=${this.apiKey}`, {
             method: "POST",
             headers: {
-                "Authorization": `Bearer ${this.apiKey}`,
                 "Content-Type": "application/json",
-                "HTTP-Referer": this.siteUrl,
-                "X-Title": this.siteName,
             },
-            body: JSON.stringify({
-                model: this.model,
-                messages,
-            }),
+            body: JSON.stringify(body),
         });
 
         if (!response.ok) {
@@ -78,8 +104,8 @@ export class GeminiClient {
             throw new Error(`Gemini API error: ${response.status} - ${error}`);
         }
 
-        const data = await response.json() as ChatCompletionResponse;
-        return data.choices[0]?.message?.content || "";
+        const data = (await response.json()) as GeminiResponse;
+        return data.candidates?.[0]?.content?.parts?.[0]?.text || "";
     }
 
     /**
@@ -114,7 +140,8 @@ Keep it concise (max 150 words).`;
         return this.chat([
             {
                 role: "system",
-                content: "You are a technical documentation writer. Generate concise, accurate summaries of code files in wiki format.",
+                content:
+                    "You are a technical documentation writer. Generate concise, accurate summaries of code files in wiki format.",
             },
             {
                 role: "user",
@@ -129,9 +156,7 @@ Keep it concise (max 150 words).`;
     async generateArchitectureOverview(
         files: { path: string; summary: string; exports: string[]; imports: string[] }[]
     ): Promise<string> {
-        const fileList = files
-            .map((f) => `- ${f.path}: ${f.summary.split("\n")[0]}`)
-            .join("\n");
+        const fileList = files.map((f) => `- ${f.path}: ${f.summary.split("\n")[0]}`).join("\n");
 
         const prompt = `Given these file summaries from a codebase, generate a high-level architecture overview.
 
@@ -183,7 +208,7 @@ Used by: ${context.usedBy.join(", ") || "No dependents"}
 Depends on: ${context.dependsOn.join(", ") || "No local dependencies"}
 
 Function signatures:
-${context.functionSignatures.map(s => `- ${s.signature}${s.jsdoc ? ` // ${s.jsdoc}` : ""}`).join("\n") || "None"}
+${context.functionSignatures.map((s) => `- ${s.signature}${s.jsdoc ? ` // ${s.jsdoc}` : ""}`).join("\n") || "None"}
 
 First 15 lines preview:
 ${context.firstNLines.split("\n").slice(0, 15).join("\n")}
@@ -197,7 +222,8 @@ Write for optimal readability and understanding; the output does not have to be 
         return this.chat([
             {
                 role: "system",
-                content: "You are a code documentation expert. Generate extremely concise 2-sentence file summaries. Do not include any prefixes, labels, or formatting - just 2 plain sentences.",
+                content:
+                    "You are a code documentation expert. Generate extremely concise 2-sentence file summaries. Do not include any prefixes, labels, or formatting - just 2 plain sentences.",
             },
             {
                 role: "user",
@@ -214,9 +240,7 @@ Write for optimal readability and understanding; the output does not have to be 
         files: { name: string; summary: string }[],
         subdirectories: string[]
     ): Promise<string> {
-        const fileList = files
-            .map(f => `- ${f.name}: ${f.summary}`)
-            .join("\n");
+        const fileList = files.map((f) => `- ${f.name}: ${f.summary}`).join("\n");
 
         const prompt = `Generate a concise summary for this directory based on its contents.
 
@@ -234,7 +258,8 @@ Respond with a 2-sentence summary:
         return this.chat([
             {
                 role: "system",
-                content: "You are a code documentation expert. Generate extremely concise 2-sentence directory summaries.",
+                content:
+                    "You are a code documentation expert. Generate extremely concise 2-sentence directory summaries.",
             },
             {
                 role: "user",
@@ -295,7 +320,7 @@ Respond ONLY with the JSON object.`;
             console.error("Failed to parse deep analysis JSON:", e);
             return {
                 lowerLevelSummary: "Failed to generate deep analysis.",
-                structure: []
+                structure: [],
             };
         }
     }
@@ -319,7 +344,3 @@ export function createGeminiClient(apiKey?: string): GeminiClient {
         model: process.env.GEMINI_MODEL || DEFAULT_MODEL,
     });
 }
-
-// Re-export with OpenRouter-compatible names for backward compatibility
-export { GeminiClient as OpenRouterClient };
-export { createGeminiClient as createOpenRouterClient };

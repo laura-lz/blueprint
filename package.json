@@ -38,26 +38,16 @@
     "configuration": {
       "title": "Nexhacks",
       "properties": {
-        "nexhacks.llmProvider": {
-          "type": "string",
-          "enum": [
-            "openrouter",
-            "openai"
-          ],
-          "default": "openrouter",
-          "description": "LLM provider for AI summaries.",
-          "scope": "application"
-        },
         "nexhacks.llmApiKey": {
           "type": "string",
           "default": "",
-          "description": "API key for the selected LLM provider.",
+          "description": "Gemini API key for AI summaries.",
           "scope": "application"
         },
         "nexhacks.llmModel": {
           "type": "string",
-          "default": "google/gemini-2.0-flash-001",
-          "description": "Model to use for AI summaries (e.g., gpt-4o-mini for OpenAI, google/gemini-2.0-flash-001 for OpenRouter).",
+          "default": "gemini-3-flash-preview",
+          "description": "Gemini model to use for AI summaries (e.g., gemini-2.0-flash, gemini-1.5-pro).",
           "scope": "application"
         }
       }
@@ -83,7 +73,7 @@
     "wiki",
     "mermaid",
     "agent",
-    "openrouter"
+    "gemini"
   ],
   "author": "",
   "license": "MIT",

@@ -46,13 +46,10 @@ export {
     type ComponentGraph,
 } from "./analyzer.js";
 
-// Gemini (formerly OpenRouter)
+// Gemini API client
 export {
     GeminiClient,
-    OpenRouterClient,
     createGeminiClient,
-    createOpenRouterClient,
     type GeminiConfig,
-    type OpenRouterConfig,
     type Message,
 } from "./gemini.js";

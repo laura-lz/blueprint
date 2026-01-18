@@ -12,7 +12,7 @@ import * as fs from "fs/promises";
 import * as path from "path";
 import {
     createUpperLevelAPI,
-    createOpenRouterClient,
+    createGeminiClient,
     type FileCapsule,
     type ExportEntry,
 } from "../src/core/index.js";
@@ -62,7 +62,7 @@ async function main() {
 
     // Generate AI summaries if requested
     if (options.summarize) {
-        const client = createOpenRouterClient();
+        const client = createGeminiClient();
 
         if (client.isConfigured()) {
             console.log("🤖 Generating AI summaries...");
@@ -102,7 +102,7 @@ async function main() {
 
             console.log(`   ✅ Generated ${count} summaries`);
         } else {
-            console.log("⚠️ OPENROUTER_API_KEY not set, skipping AI summaries");
+            console.log("⚠️ GEMINI_API_KEY not set, skipping AI summaries");
         }
     }
 

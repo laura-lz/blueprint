@@ -141,15 +141,15 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 			if (message?.type === 'setApiKey') {
 				const value = await vscode.window.showInputBox({
-					prompt: 'Enter your LLM API key (OpenRouter or OpenAI)',
-					placeHolder: 'sk-... or your OpenRouter key',
+					prompt: 'Enter your Gemini API key',
+					placeHolder: 'Your Gemini API key',
 					password: true,
 					ignoreFocusOut: true
 				});
 				if (value) {
 					const config = vscode.workspace.getConfiguration('nexhacks');
 					await config.update('llmApiKey', value, vscode.ConfigurationTarget.Global);
-					vscode.window.showInformationMessage('API key saved. Configure provider in Settings (nexhacks.llmProvider).');
+					vscode.window.showInformationMessage('Gemini API key saved.');
 				}
 				return;
 			}
@@ -278,22 +278,13 @@ async function sendCapsulesDataToWebview(webview: vscode.Webview) {
 
 			// PHASE 2: Generate AI summaries in background if API key is configured
 			const config = vscode.workspace.getConfiguration('nexhacks');
-			const provider = config.get<string>('llmProvider') || 'openrouter';
 			const apiKey = config.get<string>('llmApiKey');
-			const model = config.get<string>('llmModel') || 'google/gemini-2.0-flash-001';
-			
-			console.log("apiKey", apiKey);
-			console.log("model", model);
+			const model = config.get<string>('llmModel') || 'gemini-3-flash-preview';
 
 			if (apiKey && apiKey.length > 0) {
-				console.log(`[Nexhacks] 🤖 Generating AI summaries using ${provider}...`);
+				console.log('[Nexhacks] 🤖 Generating AI summaries using Gemini...');
 
-				// Configure base URL based on provider
-				const baseUrl = provider === 'openai'
-					? 'https://api.openai.com/v1'
-					: 'https://openrouter.ai/api/v1';
-
-				const client = new GeminiClient({ apiKey, baseUrl, model });
+				const client = new GeminiClient({ apiKey, model });
 
 				let summarized = 0;
 
