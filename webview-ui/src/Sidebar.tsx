@@ -83,8 +83,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         }}>
             {/* Header */}
             <div style={{ padding: '16px', borderBottom: '1px solid #222', flexShrink: 0 }}>
-                <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#fff', marginBottom: '4px' }}>
-                    🚀 Nexhacks
+                <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#add8e6', marginBottom: '4px' }}>
+                    blueprint
                 </div>
                 <div style={{ fontSize: '12px', color: '#666' }}>
                     {capsules?.stats.totalFiles || 0} Files • {capsules?.stats.totalEdges || 0} Connections

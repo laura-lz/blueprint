@@ -135,6 +135,13 @@ interface FileNodeData {
 
 type FileNode = Node<FileNodeData>;
 
+// --- STICKY NOTE DATA ---
+interface StickyNodeData {
+  text: string;
+  color: string;
+  isSticky: true;
+}
+
 // Use langColors from Sidebar.tsx (removed local duplicate)
 
 
@@ -682,6 +689,78 @@ const CapsuleNode: React.FC<NodeProps<FileNodeData>> = ({ data }) => {
   );
 };
 
+// --- STICKY NOTE NODE ---
+const StickyNode: React.FC<NodeProps<StickyNodeData>> = ({ data }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [text, setText] = useState(data.text);
+
+  const handleDoubleClick = () => {
+    setIsEditing(true);
+  };
+
+  const handleBlur = () => {
+    setIsEditing(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      setIsEditing(false);
+    }
+  };
+
+  return (
+    <div
+      onDoubleClick={handleDoubleClick}
+      style={{
+        padding: '16px',
+        borderRadius: '8px',
+        background: data.color || '#fefcbf',
+        color: '#333',
+        border: '2px solid #d69e2e',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+        width: 200,
+        minHeight: 100,
+        fontFamily: 'system-ui, -apple-system, sans-serif',
+        cursor: 'grab',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '8px'
+      }}
+    >
+      <Handle type="target" position={Position.Top} style={{ opacity: 0 }} />
+      <Handle type="source" position={Position.Bottom} style={{ opacity: 0 }} />
+
+      <div style={{ fontSize: '12px', fontWeight: 'bold', opacity: 0.6 }}>
+        📝 Note
+      </div>
+      {isEditing ? (
+        <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
+          autoFocus
+          style={{
+            flex: 1,
+            background: 'transparent',
+            border: 'none',
+            resize: 'none',
+            fontSize: '24px',
+            fontFamily: 'inherit',
+            color: '#333',
+            outline: 'none',
+            minHeight: '60px'
+          }}
+        />
+      ) : (
+        <div style={{ fontSize: '14px', lineHeight: '1.4', flex: 1 }}>
+          {text || 'Double-click to edit...'}
+        </div>
+      )}
+    </div>
+  );
+};
+
 // --- DATA PREPARATION ---
 const prepareGraphData = (data: CapsulesData) => {
   const nodes: FileNode[] = [];
@@ -908,8 +987,9 @@ export default function App() {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   // Risk analysis cache: Map<relativePath, Map<functionName, RiskAnalysis>>
   const [riskAnalyses, setRiskAnalyses] = useState<Map<string, Map<string, RiskAnalysis>>>(new Map());
+  const [stickyCounter, setStickyCounter] = useState(1);
 
-  const nodeTypes = useMemo(() => ({ capsule: CapsuleNode }), []);
+  const nodeTypes = useMemo(() => ({ capsule: CapsuleNode, sticky: StickyNode }), []);
 
   // Listen for messages from extension
   useEffect(() => {
@@ -1160,7 +1240,23 @@ export default function App() {
   };
 
   const handleAddSticky = () => {
-    // Placeholder for sticky note creation
+    const newId = `sticky-${stickyCounter}`;
+    setStickyCounter(prev => prev + 1);
+
+    // Position near the center of the current view
+    const newNode: Node<StickyNodeData> = {
+      id: newId,
+      type: 'sticky',
+      data: {
+        text: '',
+        color: '#fefcbf',
+        isSticky: true
+      },
+      position: { x: Math.random() * 400 - 200, y: Math.random() * 400 - 200 },
+      draggable: true
+    };
+
+    setNodes((nds) => [...nds, newNode as any]);
   };
 
   if (loading) {
