@@ -519,6 +519,37 @@ export default function App() {
         setEdges(layoutedEdges);
         setLoading(false);
       }
+
+      if (message.type === 'updateFileSummary') {
+        const { relativePath, summary } = message.data;
+
+        // Update capsules state
+        setCapsules(prev => {
+          if (!prev) return prev;
+          const updatedFiles = { ...prev.files };
+          if (updatedFiles[relativePath]) {
+            updatedFiles[relativePath] = {
+              ...updatedFiles[relativePath],
+              summary
+            };
+          }
+          return { ...prev, files: updatedFiles };
+        });
+
+        // Update nodes state
+        setNodes(prev => prev.map(node => {
+          if (node.data.relativePath === relativePath) {
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                summary
+              }
+            };
+          }
+          return node;
+        }));
+      }
     };
 
     window.addEventListener('message', handleMessage);

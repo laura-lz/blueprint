@@ -221,7 +221,14 @@ async function sendCapsulesDataToWebview(webview: vscode.Webview) {
 			capsulesCache = { stats, files };
 			console.log(`[Nexhacks] Scan complete in ${Date.now() - startTime}ms. Total files: ${Object.keys(files).length}`);
 
-			// Generate AI summaries if API key is configured
+			// PHASE 1: Send initial capsules immediately (without AI summaries)
+			webview.postMessage({
+				type: 'setCapsules',
+				data: capsulesCache
+			});
+			console.log('[Nexhacks] Sent initial capsules to webview');
+
+			// PHASE 2: Generate AI summaries in background if API key is configured
 			const config = vscode.workspace.getConfiguration('nexhacks');
 			const provider = config.get<string>('llmProvider') || 'openrouter';
 			const apiKey = config.get<string>('llmApiKey');
@@ -238,11 +245,12 @@ async function sendCapsulesDataToWebview(webview: vscode.Webview) {
 				const client = new OpenRouterClient({ apiKey, baseUrl, model });
 
 				let summarized = 0;
-				const total = Object.keys(files).length;
 
+				// Generate AI summaries in background and stream updates
 				for (const [relativePath, capsule] of Object.entries(files)) {
-					// Skip non-code files
-					if (!capsule.summaryContext ||
+					// Skip if summary already exists (e.g. from partial run) or non-code
+					if (capsule.summary ||
+						!capsule.summaryContext ||
 						['json', 'css', 'markdown', 'yaml'].includes(capsule.lang)) {
 						continue;
 					}
@@ -262,6 +270,12 @@ async function sendCapsulesDataToWebview(webview: vscode.Webview) {
 
 						capsule.summary = summary;
 						summarized++;
+
+						// Send incremental update to webview
+						webview.postMessage({
+							type: 'updateFileSummary',
+							data: { relativePath, summary }
+						});
 
 						if (summarized % 5 === 0) {
 							console.log(`[Nexhacks] Summarized ${summarized} files...`);
@@ -293,12 +307,13 @@ async function sendCapsulesDataToWebview(webview: vscode.Webview) {
 			}
 		} else {
 			console.log('[Nexhacks] Using cached capsules data');
+			webview.postMessage({
+				type: 'setCapsules',
+				data: capsulesCache
+			});
 		}
 
-		webview.postMessage({
-			type: 'setCapsules',
-			data: capsulesCache
-		});
+
 	} catch (error) {
 		console.error('Failed to scan workspace:', error);
 		webview.postMessage({
