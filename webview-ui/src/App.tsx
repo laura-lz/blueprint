@@ -132,6 +132,7 @@ interface FileNodeData {
   depth?: number;
   // Full capsule access for diagram
   fullCapsule?: CapsuleFile;
+  aggregateRisk?: 'low' | 'medium' | 'high' | 'critical';
 }
 
 type FileNode = Node<FileNodeData>;
@@ -641,6 +642,8 @@ const CapsuleNode: React.FC<NodeProps<FileNodeData>> = ({ data }) => {
 
   // Check if this node is on a highlighted path
   const isOnPath = (data as any).isOnPath;
+  const risk = data.aggregateRisk;
+  const riskColor = risk ? riskLevelColors[risk] : null;
 
   return (
     <div
@@ -649,10 +652,10 @@ const CapsuleNode: React.FC<NodeProps<FileNodeData>> = ({ data }) => {
         borderRadius: '24px',
         background: colors.bg,
         color: '#fff',
-        border: isOnPath ? `4px solid #48bb78` : `3px solid ${colors.border}`,
+        border: isOnPath ? `4px solid #48bb78` : (riskColor && (risk === 'high' || risk === 'critical') ? `3px solid ${riskColor.border}` : `3px solid ${colors.border}`),
         boxShadow: isOnPath
           ? '0 0 30px rgba(72, 187, 120, 0.6), 0 8px 25px rgba(0,0,0,0.6)'
-          : '0 8px 25px rgba(0,0,0,0.6)',
+          : (riskColor && (risk === 'high' || risk === 'critical') ? `0 0 20px ${riskColor.bg}, 0 8px 25px rgba(0,0,0,0.6)` : '0 8px 25px rgba(0,0,0,0.6)'),
         width: 320,
         fontFamily: 'system-ui, -apple-system, sans-serif',
         cursor: 'pointer',
@@ -679,12 +682,29 @@ const CapsuleNode: React.FC<NodeProps<FileNodeData>> = ({ data }) => {
       {/* FOOTER: Icon + Label */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '12px' }}>
         <div style={{ fontSize: '16px' }}>{colors.icon}</div>
-        <div style={{ overflow: 'hidden' }}>
+        <div style={{ overflow: 'hidden', flex: 1 }}>
           <div style={{ fontWeight: '800', fontSize: '14px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{data.label}</div>
           {(data.isDirectory || data.isRoot) && (
             <div style={{ fontSize: '12px', opacity: 0.7 }}>{data.fileCount} items</div>
           )}
         </div>
+        {risk && (
+          <div style={{
+            fontSize: '10px',
+            background: riskColor?.bg,
+            border: `1px solid ${riskColor?.border}`,
+            color: riskColor?.text,
+            padding: '2px 6px',
+            borderRadius: '8px',
+            fontWeight: 'bold',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px'
+          }}>
+            <span>{riskColor?.icon}</span>
+            <span style={{ textTransform: 'uppercase' }}>{risk}</span>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1009,11 +1029,20 @@ export default function App() {
 
       if (message.type === 'setCapsules') {
         const data: CapsulesData = message.data;
+
+        // Check if this is an initial load or just an update
+        const isUpdate = capsules !== null &&
+          Object.keys(data.files).length === Object.keys(capsules.files).length;
+
         setCapsules(data);
-        const { nodes: rawNodes, edges: rawEdges } = prepareGraphData(data);
-        const { nodes: layoutedNodes, edges: layoutedEdges } = applyForceLayout(rawNodes, rawEdges);
-        setNodes(layoutedNodes);
-        setEdges(layoutedEdges);
+
+        // Only re-layout if this is the initial load
+        if (!isUpdate) {
+          const { nodes: rawNodes, edges: rawEdges } = prepareGraphData(data);
+          const { nodes: layoutedNodes, edges: layoutedEdges } = applyForceLayout(rawNodes, rawEdges);
+          setNodes(layoutedNodes);
+          setEdges(layoutedEdges);
+        }
         setLoading(false);
       }
 
@@ -1128,6 +1157,30 @@ export default function App() {
         });
 
         console.log(`[Webview] Received risk analysis for ${relativePath}:${functionName} - ${analysis.riskLevel}`);
+
+        // Update node aggregate risk
+        setNodes(currNodes => currNodes.map(node => {
+          if (node.data.relativePath === relativePath) {
+            // Calculate max risk
+            const currentRisk = (node.data.aggregateRisk as string) || 'low';
+            const newRisk = analysis.riskLevel;
+
+            const levels = ['low', 'medium', 'high', 'critical'];
+            const currentIdx = levels.indexOf(currentRisk);
+            const newIdx = levels.indexOf(newRisk);
+
+            const finalRisk = newIdx > currentIdx ? newRisk : currentRisk;
+
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                aggregateRisk: finalRisk as any
+              }
+            };
+          }
+          return node;
+        }));
       }
     };
 
@@ -1148,6 +1201,10 @@ export default function App() {
   };
 
   const handleNodeClick = (_event: React.MouseEvent, node: FileNode) => {
+    // Don't open overlay for sticky notes
+    if (node.type === 'sticky' || (node.data as any).isSticky) {
+      return;
+    }
     setSelectedNodeData(node.data);
   };
 
