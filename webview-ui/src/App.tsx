@@ -20,6 +20,7 @@ import {
   forceCollide,
   forceRadial
 } from 'd3-force';
+import { stratify, tree } from 'd3-hierarchy';
 import 'reactflow/dist/style.css';
 import Sidebar, { langColors, type SearchResult } from './Sidebar';
 import { Button } from './components/ui/button';
@@ -314,6 +315,8 @@ const NodeDetailsOverlay: React.FC<{
   const [activeTab, setActiveTab] = useState<'summary' | 'diagram'>('summary');
   const colors = langColors[data.lang] || langColors.other;
 
+
+
   return (
     <div
       className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/70 backdrop-blur-md"
@@ -391,7 +394,7 @@ const NodeDetailsOverlay: React.FC<{
             </TabsContent>
 
             <TabsContent value="diagram" className="h-full">
-              <div className="flex h-[68vh] gap-4">
+              <div className="flex h-full w-full">
                 {!data.isDirectory && !data.isRoot ? (
                   <>
                     <Card className="flex w-[220px] flex-col border-border/70 bg-card/90">
@@ -876,6 +879,70 @@ const applyForceLayout = (nodes: FileNode[], edges: Edge[]) => {
   };
 };
 
+// --- TREE LAYOUT ENGINE ---
+const applyTreeLayout = (nodes: FileNode[], edges: Edge[]) => {
+  if (nodes.length === 0) return { nodes, edges };
+
+  // 1. Identify Parent-Child relationships from Structural Edges
+  // We filter out dependency edges
+  const hierarchyEdges = edges.filter(e => !e.data?.isDependency);
+
+  const parentMap = new Map<string, string>();
+  hierarchyEdges.forEach(e => {
+    parentMap.set(e.target, e.source);
+  });
+
+  // 2. Prepare data for stratify
+  // We need to ensure every node matches { id, parentId }
+  // Root has no parent.
+  const hierarchyData = nodes.map(n => ({
+    id: n.id,
+    parentId: n.id === 'root' ? undefined : (parentMap.get(n.id) || 'root'), // Fallback to root if orphaned?
+    data: n
+  }));
+
+  // Clean up: Ensure parentIds exist in nodes
+  const validIds = new Set(nodes.map(n => n.id));
+  const cleanData = hierarchyData.map(d => {
+    if (d.parentId && !validIds.has(d.parentId)) {
+      return { ...d, parentId: undefined }; // Treat as root? Or 'root' if exists?
+    }
+    return d;
+  });
+
+  try {
+    const root = stratify<any>()
+      .id((d: any) => d.id)
+      .parentId((d: any) => d.parentId)
+      (cleanData);
+
+    const treeLayout = tree().nodeSize([250, 150]); // Width, Height spacing (flipped for Horizontal, or Standard)
+
+    treeLayout(root);
+
+    const newNodes = nodes.map(n => {
+      // Find matching hierarchy node
+      // d3 tree assigns coordinates x, y
+      const hNode = root.descendants().find((d: any) => d.id === n.id) as any;
+      if (hNode) {
+        // Adjust position. d3 tree centers at 0? No, usually starts 0,0 top-left relative to root
+        // We can center it.
+        return {
+          ...n,
+          position: { x: hNode.x, y: hNode.y }
+        };
+      }
+      return n;
+    });
+
+    return { nodes: newNodes, edges };
+
+  } catch (err) {
+    console.error("Tree layout failed:", err);
+    return { nodes, edges };
+  }
+};
+
 // --- MAIN COMPONENT ---
 export default function App() {
   const [capsules, setCapsules] = useState<CapsulesData | null>(null);
@@ -883,11 +950,48 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-  const [selectedNodeData, setSelectedNodeData] = useState<FileNodeData | null>(null);
+
+  // Refactored to store ID only, so data is always fresh from nodes state
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [layoutMode, setLayoutMode] = useState<'force' | 'tree'>('force');
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const forcePositionsRef = React.useRef<Record<string, { x: number, y: number }>>({});
+
+  // Apply Theme Effect
+  useEffect(() => {
+    const root = window.document.documentElement;
+    root.classList.remove('light', 'dark');
+    root.classList.add(theme);
+  }, [theme]);
+
+  const toggleLayout = () => {
+    if (layoutMode === 'force') {
+      const currentNodes = reactFlowInstance?.getNodes() || nodes;
+      const positions: Record<string, { x: number, y: number }> = {};
+      currentNodes.forEach(n => {
+        if (n.type === 'capsule') {
+          positions[n.id] = n.position;
+        }
+      });
+      forcePositionsRef.current = positions;
+      setLayoutMode('tree');
+    } else {
+      setLayoutMode('force');
+    }
+  };
+
+  const selectedNodeData = useMemo(() => {
+    if (!selectedNodeId) return null;
+    const node = nodes.find(n => n.id === selectedNodeId);
+    return node ? (node.data as FileNodeData) : null;
+  }, [nodes, selectedNodeId]);
+
   const [showStructure, setShowStructure] = useState(true);
   const [fileTypes, setFileTypes] = useState<Record<string, boolean>>({
-    'react-typescript': true, 'typescript': true, 'javascript': true, 'css': true,
-    'json': true, 'markdown': true, 'directory': true, 'sticky': true
+    typescript: true,
+    javascript: true,
+    python: false, // Default off to reduce noise if needed
+    other: true
   });
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   // Risk analysis cache: Map<relativePath, Map<functionName, RiskAnalysis>>
@@ -953,6 +1057,7 @@ export default function App() {
       }
       if (message.type === 'updateFileStructure') {
         const { relativePath, structure, lowerLevelSummary } = message.data;
+        console.log(`[Webview] 📨 Received updateFileStructure for ${relativePath}`, { structureLength: structure?.length });
 
         // Update nodes to reflect change immediately (No capsules state anymore)
 
@@ -977,33 +1082,7 @@ export default function App() {
           return node;
         }));
 
-        // IMPORTANT: Update selectedNodeData separately using functional update 
-        // to avoid stale closure issues
-        setSelectedNodeData(prev => {
-          if (prev && prev.relativePath === relativePath) {
-            const updatedCapsule = prev.fullCapsule ? {
-              ...prev.fullCapsule,
-              structure,
-              lowerLevelSummary,
-              edges: message.data.edges
-            } : {
-              relativePath,
-              name: prev.label,
-              lang: prev.lang,
-              exports: [],
-              imports: [],
-              structure,
-              lowerLevelSummary,
-              edges: message.data.edges
-            } as any;
-
-            return {
-              ...prev,
-              fullCapsule: updatedCapsule
-            };
-          }
-          return prev;
-        });
+        // No need to manually update selectedNodeData anymore as it is derived from nodes!
       }
       if (message.type === 'updateDirectorySummary') {
         const { relativePath, summary } = message.data;
@@ -1087,7 +1166,7 @@ export default function App() {
       if (message.type === 'highlightFile') {
         const { relativePath } = message.data;
         const currentNodes = reactFlowInstance.getNodes();
-        // ID might be checking both file ID and directory ID structure? 
+        // ID might be checking both file ID and directory ID structure?
         // File ID IS relativePath.
         const targetNode = currentNodes.find(n => n.id === relativePath || n.data.relativePath === relativePath);
 
@@ -1116,6 +1195,40 @@ export default function App() {
     return () => window.removeEventListener('message', handleSyncMessage);
   }, [reactFlowInstance, setNodes]);
 
+  // Layout Effect
+  useEffect(() => {
+    if (nodes.length === 0) return;
+
+    if (layoutMode === 'tree') {
+      const { nodes: newNodes } = applyTreeLayout(nodes, edges);
+      setNodes(nds => nds.map(n => {
+        const match = newNodes.find(mn => mn.id === n.id);
+        return match ? { ...n, position: match.position } : n;
+      }));
+      setTimeout(() => reactFlowInstance?.fitView({ duration: 800 }), 100);
+    } else {
+      // Restore cached positions if available
+      const cached = forcePositionsRef.current;
+      const hasCache = Object.keys(cached).length > 0;
+
+      if (hasCache) {
+        setNodes(nds => nds.map(n => {
+          const pos = cached[n.id];
+          return pos ? { ...n, position: pos } : n;
+        }));
+        // Optional: fit view if we want, or keep current viewport
+        // setTimeout(() => reactFlowInstance?.fitView({ duration: 800 }), 100);
+      } else {
+        const { nodes: newNodes } = applyForceLayout(nodes, edges);
+        setNodes(nds => nds.map(n => {
+          const match = newNodes.find(mn => mn.id === n.id);
+          return match ? { ...n, position: match.position } : n;
+        }));
+        setTimeout(() => reactFlowInstance?.fitView({ duration: 800 }), 100);
+      }
+    }
+  }, [layoutMode]);
+
   const handleRefresh = () => {
     vscode.postMessage({ type: 'refresh' });
   };
@@ -1129,7 +1242,15 @@ export default function App() {
     if (node.type === 'sticky' || (node.data as any).isSticky) {
       return;
     }
-    setSelectedNodeData(node.data);
+    setSelectedNodeId(node.id);
+
+    // Auto-zoom
+    reactFlowInstance?.fitView({
+      nodes: [{ id: node.id }],
+      padding: 0.2,
+      duration: 800,
+      maxZoom: 3
+    });
   };
 
   const handleSearch = (term: string) => {
@@ -1151,10 +1272,7 @@ export default function App() {
 
   const handleClickResult = (nodeId: string) => {
     // Find the node and set it as selected to open the popup
-    const targetNode = nodes.find(n => n.id === nodeId);
-    if (targetNode) {
-      setSelectedNodeData(targetNode.data as FileNodeData);
-    }
+    setSelectedNodeId(nodeId);
 
     setNodes(nds => nds.map(n => ({
       ...n,
@@ -1295,6 +1413,25 @@ export default function App() {
         onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
       />
       <div className="relative flex-1">
+        {/* VIEW TOGGLES */}
+        <div className="absolute top-4 right-4 z-50 flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="bg-background/80 backdrop-blur shadow-lg border-border/50"
+            onClick={toggleLayout}
+          >
+            {layoutMode === 'force' ? '🕸️ Force' : '🌲 Tree'}
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="bg-background/80 backdrop-blur shadow-lg border-border/50"
+            onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
+          >
+            {theme === 'dark' ? '🌙' : '☀️'}
+          </Button>
+        </div>
         <ReactFlowProvider>
           <ReactFlow
             nodes={nodes}
@@ -1316,7 +1453,7 @@ export default function App() {
         {selectedNodeData && (
           <NodeDetailsOverlay
             data={selectedNodeData}
-            onClose={() => setSelectedNodeData(null)}
+            onClose={() => setSelectedNodeId(null)}
             riskAnalyses={riskAnalyses}
           />
         )}

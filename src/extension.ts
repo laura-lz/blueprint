@@ -29,6 +29,7 @@ interface DeepAnalysisQueue {
 	pending: Set<string>;           // Files waiting to be analyzed
 	inProgress: Set<string>;        // Files currently being analyzed
 	priorityFile: string | null;    // User-selected file to prioritize
+	retryCounts: Map<string, number>; // Track retry attempts per file
 	isRunning: boolean;
 	webview: vscode.Webview | null;
 }
@@ -37,12 +38,14 @@ const deepAnalysisQueue: DeepAnalysisQueue = {
 	pending: new Set(),
 	inProgress: new Set(),
 	priorityFile: null,
+	retryCounts: new Map(),
 	isRunning: false,
 	webview: null
 };
 
 const DEEP_ANALYSIS_CONCURRENCY = 300;
 const RISK_ANALYSIS_CONCURRENCY = 2;
+const MAX_DEEP_ANALYSIS_ATTEMPTS = 3;
 
 // Background risk analysis queue manager
 interface RiskAnalysisQueue {
@@ -90,24 +93,27 @@ async function runBackgroundDeepAnalysis() {
 	const rootPath = workspaceFolders[0].uri.fsPath;
 
 	const analyzeFile = async (relativePath: string): Promise<void> => {
-		if (!capsulesCache?.files[relativePath] || !deepAnalysisQueue.webview) {
-			return;
-		}
-
-		const capsule = capsulesCache.files[relativePath];
-
-		// Skip if already analyzed
-		if (capsule.structure && capsule.structure.length > 0) {
-			return;
-		}
-
-		deepAnalysisQueue.inProgress.add(relativePath);
+		let removeFromFileList = true; // Default to removing from list unless we need to retry
 
 		try {
+			if (!capsulesCache?.files[relativePath] || !deepAnalysisQueue.webview) {
+				return;
+			}
+
+			const capsule = capsulesCache.files[relativePath];
+
+			// Skip if already analyzed
+			if (capsule.structure && capsule.structure.length > 0) {
+				return;
+			}
+
+			deepAnalysisQueue.inProgress.add(relativePath);
+
 			const filePath = path.join(rootPath, relativePath);
 			const fileContent = fs.readFileSync(filePath, 'utf-8');
 
 			const analysis = await client.generateDeepAnalysis(relativePath, fileContent);
+
 
 			// Update cache
 			capsule.structure = analysis.structure;
@@ -124,11 +130,36 @@ async function runBackgroundDeepAnalysis() {
 			});
 
 			console.log(`[Nexhacks] ✅ Deep analysis complete: ${relativePath}`);
+			// console.log(`[Nexhacks] Deep analysis: ${relativePath} with data: ${JSON.stringify(analysis)}`);
+
+
+			// Success! Clear any retry history
+			deepAnalysisQueue.retryCounts.delete(relativePath);
 		} catch (error) {
 			console.warn(`[Nexhacks] Failed deep analysis for ${relativePath}:`, error);
+
+			// Handle Retry Logic
+			const currentRetries = deepAnalysisQueue.retryCounts.get(relativePath) || 0;
+			if (currentRetries < MAX_DEEP_ANALYSIS_ATTEMPTS) {
+				const nextRetry = currentRetries + 1;
+				deepAnalysisQueue.retryCounts.set(relativePath, nextRetry);
+				console.log(`[Nexhacks] ⚠️ Scheduling retry ${nextRetry}/${MAX_DEEP_ANALYSIS_ATTEMPTS} for ${relativePath}`);
+
+				// CRITICAL: Do NOT remove from pending list so it gets picked up again
+				removeFromFileList = false;
+			} else {
+				console.error(`[Nexhacks] ❌ Max retries reached for ${relativePath}. Giving up.`);
+				deepAnalysisQueue.retryCounts.delete(relativePath);
+			}
 		} finally {
+			// Always remove from in-progress
 			deepAnalysisQueue.inProgress.delete(relativePath);
-			deepAnalysisQueue.pending.delete(relativePath);
+
+			// Only remove from pending if we succeeded OR gave up (max retries)
+			// If we want to retry, we keep it in the pending set
+			if (removeFromFileList) {
+				deepAnalysisQueue.pending.delete(relativePath);
+			}
 		}
 	};
 
@@ -765,7 +796,7 @@ async function sendCapsulesDataToWebview(webview: vscode.Webview) {
 				// Queue all code files for deep analysis
 				for (const [relativePath, capsule] of Object.entries(files)) {
 					// Skip non-code files and already analyzed files
-					if (['json', 'css', 'markdown', 'yaml', 'txt'].includes(capsule.lang)) {
+					if (['json', 'markdown', 'yaml', 'txt', 'yml'].includes(capsule.lang)) {
 						continue;
 					}
 					if (capsule.structure && capsule.structure.length > 0) {

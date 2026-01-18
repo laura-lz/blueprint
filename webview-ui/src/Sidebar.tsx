@@ -48,15 +48,15 @@ export interface SidebarProps {
 
 // --- LANG COLORS ---
 export const langColors: Record<string, { bg: string; border: string; icon: string }> = {
-    'react-typescript': { bg: '#1a365d', border: '#4299e1', icon: '⚛️' },
-    'typescript': { bg: '#1e3a5f', border: '#3178c6', icon: '📘' },
-    'javascript': { bg: '#3d3d00', border: '#f7df1e', icon: '📒' },
-    'css': { bg: '#1a1a4e', border: '#264de4', icon: '🎨' },
-    'json': { bg: '#1a1a1a', border: '#555', icon: '📄' },
-    'markdown': { bg: '#1a2a1a', border: '#083fa1', icon: '📝' },
-    'directory': { bg: '#2d1f3d', border: '#9f7aea', icon: '📁' },
-    'root': { bg: '#1a3d1a', border: '#48bb78', icon: '🏠' },
-    'other': { bg: '#1a1a1a', border: '#555', icon: '📄' },
+    'react-typescript': { bg: 'var(--lang-react-ts-bg)', border: 'var(--lang-react-ts-border)', icon: '⚛️' },
+    'typescript': { bg: 'var(--lang-ts-bg)', border: 'var(--lang-ts-border)', icon: '📘' },
+    'javascript': { bg: 'var(--lang-js-bg)', border: 'var(--lang-js-border)', icon: '📒' },
+    'css': { bg: 'var(--lang-css-bg)', border: 'var(--lang-css-border)', icon: '🎨' },
+    'json': { bg: 'var(--lang-json-bg)', border: 'var(--lang-json-border)', icon: '📄' },
+    'markdown': { bg: 'var(--lang-md-bg)', border: 'var(--lang-md-border)', icon: '📝' },
+    'directory': { bg: 'var(--lang-dir-bg)', border: 'var(--lang-dir-border)', icon: '📁' },
+    'root': { bg: 'var(--lang-root-bg)', border: 'var(--lang-root-border)', icon: '🏠' },
+    'other': { bg: 'var(--lang-other-bg)', border: 'var(--lang-other-border)', icon: '📄' },
 };
 
 // --- SIDEBAR COMPONENT ---

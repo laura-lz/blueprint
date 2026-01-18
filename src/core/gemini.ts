@@ -385,32 +385,49 @@ Example:
   ]
 }`;
 
-        // Enable output as JSON for robustness
-        const response = await this.chat([
-            {
-                role: "system",
-                content: "You are a code analyst. Output strict JSON. Be concise.",
-            },
-            {
-                role: "user",
-                content: prompt,
-            },
-        ], { responseMimeType: "application/json" });
+        const MAX_ATTEMPTS = 3;
+        let lastError: any;
+        let lastResponse = "";
 
-        try {
-            // Strip markdown code fences if present and trim whitespace
-            // Gemini JSON mode might still return markdown fences sometimes, or just raw JSON.
-            let cleanResponse = response.replace(/```json/g, "").replace(/```/g, "").trim();
+        for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+            try {
+                // Enable output as JSON for robustness
+                const response = await this.chat([
+                    {
+                        role: "system",
+                        content: "You are a code analyst. Output strict JSON. Be concise.",
+                    },
+                    {
+                        role: "user",
+                        content: prompt,
+                    },
+                ], { responseMimeType: "application/json" });
 
-            return JSON.parse(cleanResponse);
-        } catch (e) {
-            console.error("Failed to parse deep analysis JSON:", e);
-            console.error("Raw Response:", response); // Log raw response for debugging
-            return {
-                lowerLevelSummary: "Failed to generate deep analysis due to invalid JSON response. Please try again.",
-                structure: []
-            };
+                lastResponse = response;
+
+                // Strip markdown code fences if present and trim whitespace
+                // Gemini JSON mode might still return markdown fences sometimes, or just raw JSON.
+                let cleanResponse = response.replace(/```json/g, "").replace(/```/g, "").trim();
+
+                return JSON.parse(cleanResponse);
+            } catch (e) {
+                console.warn(`[Gemini] Deep analysis attempt ${attempt}/${MAX_ATTEMPTS} failed to parse JSON.`);
+                lastError = e;
+
+                // If it's the last attempt, we let it fall through to the return below
+                if (attempt < MAX_ATTEMPTS) {
+                    console.log(`[Gemini] Retrying...`);
+                }
+            }
         }
+
+        console.error("Failed to parse deep analysis JSON after retries:", lastError);
+        console.error("Raw Response:", lastResponse);
+
+        return {
+            lowerLevelSummary: "Failed to generate deep analysis due to invalid JSON response. Please try again.",
+            structure: []
+        };
     }
 
     /**
