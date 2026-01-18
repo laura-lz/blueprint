@@ -111,6 +111,7 @@ interface CapsulesData {
     totalDirectories: number;
     totalEdges: number;
     externalDependencies?: string[];
+    projectOverview?: string;
   };
   files: Record<string, CapsuleFile>;
   directories: Record<string, DirectoryCapsule>;
