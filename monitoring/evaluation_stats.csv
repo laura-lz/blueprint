@@ -1,0 +1,7 @@
+Feature,Type,Count,Mean,Min,Max,StdDev,Top/Unique
+clarity_score,Numeric,15.0,4.07,1.0,5.0,1.67,N/A
+completeness_score,Numeric,18.0,2.78,1.0,5.0,1.73,N/A
+verbosity_is_good,Numeric,20.0,0.4,0.0,1.0,0.5,N/A
+verbosity_label,Categorical,20.0,N/A,N/A,N/A,N/A,too short (11/3)
+language,Categorical,20.0,N/A,N/A,N/A,N/A,css (6/5)
+name,Categorical,20.0,N/A,N/A,N/A,N/A,README.md (1/20)
