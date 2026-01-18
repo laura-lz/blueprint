@@ -21,6 +21,12 @@ import {
 } from 'd3-force';
 import 'reactflow/dist/style.css';
 import Sidebar, { langColors, type SearchResult } from './Sidebar';
+import { Button } from './components/ui/button';
+import { Badge } from './components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from './components/ui/card';
+import { ScrollArea } from './components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
+import { cn } from './lib/utils';
 
 // VS Code API
 declare function acquireVsCodeApi(): {
@@ -182,176 +188,119 @@ const CodeBlockCard: React.FC<{
   const riskColors = riskAnalysis ? riskLevelColors[riskAnalysis.riskLevel] : null;
 
   return (
-    <div
+    <Card
+      className={cn(
+        "group cursor-pointer border-2 transition-all hover:-translate-y-0.5 hover:shadow-lg",
+        "bg-gradient-to-br"
+      )}
       style={{
-        padding: '16px 20px',
-        borderRadius: '12px',
         background: colors.bg,
-        color: '#fff',
-        border: riskColors ? `2px solid ${riskColors.border}` : `2px solid ${colors.border}`,
-        cursor: 'pointer',
-        transition: 'transform 0.2s, box-shadow 0.2s',
-        marginBottom: '12px',
-      }}
-      onMouseEnter={e => {
-        e.currentTarget.style.transform = 'translateY(-2px)';
-        e.currentTarget.style.boxShadow = `0 8px 20px rgba(0,0,0,0.4)`;
-      }}
-      onMouseLeave={e => {
-        e.currentTarget.style.transform = 'translateY(0)';
-        e.currentTarget.style.boxShadow = 'none';
+        borderColor: riskColors ? riskColors.border : colors.border,
       }}
     >
-      <div onClick={onClick} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-        <span style={{ fontSize: '24px' }}>{colors.icon}</span>
-        <div style={{ flex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', flexWrap: 'wrap' }}>
-            <span style={{ fontWeight: '700', fontSize: '16px' }}>{block.name}</span>
-            <span style={{
-              fontSize: '10px',
-              padding: '2px 6px',
-              background: 'rgba(255,255,255,0.1)',
-              borderRadius: '4px',
-              textTransform: 'uppercase'
-            }}>
-              {block.type}
-            </span>
-            {/* Risk Level Badge */}
-            {riskAnalysis && (
-              <span style={{
-                fontSize: '10px',
-                padding: '2px 8px',
-                background: riskColors?.bg,
-                border: `1px solid ${riskColors?.border}`,
-                borderRadius: '12px',
-                color: riskColors?.text,
-                fontWeight: '600',
-                textTransform: 'uppercase',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px'
-              }}>
-                {riskColors?.icon} {riskAnalysis.riskLevel}
-              </span>
-            )}
-          </div>
-          <div style={{ fontSize: '11px', color: '#888', marginBottom: '8px', fontFamily: 'monospace' }}>
-            Lines {block.startLine} - {block.endLine}
-          </div>
-          <div style={{ fontSize: '14px', color: '#ccc', lineHeight: '1.5' }}>
-            {block.summary}
+      <CardContent className="space-y-3 p-4" onClick={onClick}>
+        <div className="flex items-start gap-3">
+          <span className="text-2xl">{colors.icon}</span>
+          <div className="flex-1 space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm font-semibold">{block.name}</span>
+              <Badge variant="outline" className="text-[10px] uppercase">
+                {block.type}
+              </Badge>
+              {riskAnalysis && (
+                <Badge
+                  className="text-[14px] uppercase"
+                  style={{
+                    background: riskColors?.bg,
+                    borderColor: riskColors?.border,
+                    color: riskColors?.text,
+                  }}
+                >
+                  {riskColors?.icon} {riskAnalysis.riskLevel}
+                </Badge>
+              )}
+            </div>
+            <div className="text-sm text-muted-foreground">
+              Lines {block.startLine} - {block.endLine}
+            </div>
+            <div className="text-md text-foreground/80">{block.summary}</div>
           </div>
         </div>
-      </div>
+      </CardContent>
 
-      {/* Risk Analysis Section */}
       {riskAnalysis && riskAnalysis.risks.length > 0 && (
-        <div style={{ marginTop: '12px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '12px' }}>
-          <button
-            onClick={(e) => { e.stopPropagation(); setShowRiskDetails(!showRiskDetails); }}
-            style={{
-              background: 'rgba(255,255,255,0.05)',
-              border: 'none',
-              color: riskColors?.text || '#888',
-              padding: '8px 12px',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontSize: '12px',
-              fontWeight: '600',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              width: '100%'
+        <CardFooter className="flex flex-col gap-3 border-t border-border/60 px-4 pb-4 pt-3">
+          <Button
+            variant="ghost"
+            className="w-full justify-start text-xs"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowRiskDetails(!showRiskDetails);
             }}
           >
             <span>{showRiskDetails ? '▼' : '▶'}</span>
-            <span>{riskAnalysis.risks.length} Risk{riskAnalysis.risks.length > 1 ? 's' : ''} Found</span>
+            <span className="ml-2">
+              {riskAnalysis.risks.length} Risk{riskAnalysis.risks.length > 1 ? 's' : ''} Found
+            </span>
             {riskAnalysis.bestPractices.length > 0 && (
-              <span style={{ marginLeft: 'auto', color: '#48bb78' }}>
+              <span className="ml-auto text-emerald-300">
                 💡 {riskAnalysis.bestPractices.length} suggestion{riskAnalysis.bestPractices.length > 1 ? 's' : ''}
               </span>
             )}
-          </button>
+          </Button>
 
           {showRiskDetails && (
-            <div style={{ marginTop: '12px', animation: 'fadeIn 0.2s' }}>
-              {/* Risks */}
+            <div className="space-y-3">
               {riskAnalysis.risks.map((risk, i) => (
-                <div key={i} style={{
-                  padding: '10px 12px',
-                  background: 'rgba(0,0,0,0.3)',
-                  borderRadius: '8px',
-                  marginBottom: '8px',
-                  borderLeft: `3px solid ${riskLevelColors[risk.severity]?.border || '#888'}`
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                <div
+                  key={i}
+                  className="rounded-lg border border-border/60 bg-background/40 p-3"
+                  style={{ borderLeft: `3px solid ${riskLevelColors[risk.severity]?.border || '#888'}` }}
+                >
+                  <div className="mb-1 flex items-center gap-2 text-xs font-semibold capitalize">
                     <span>{riskTypeIcons[risk.type] || '⚠️'}</span>
-                    <span style={{ fontWeight: '600', fontSize: '12px', textTransform: 'capitalize' }}>
-                      {risk.type.replace('_', ' ')}
-                    </span>
-                    <span style={{
-                      fontSize: '9px',
-                      padding: '2px 6px',
-                      background: riskLevelColors[risk.severity]?.bg,
-                      color: riskLevelColors[risk.severity]?.text,
-                      borderRadius: '4px',
-                      textTransform: 'uppercase'
-                    }}>
+                    <span>{risk.type.replace('_', ' ')}</span>
+                    <Badge
+                      variant="outline"
+                      className="text-[10px] uppercase"
+                      style={{
+                        background: riskLevelColors[risk.severity]?.bg,
+                        color: riskLevelColors[risk.severity]?.text,
+                      }}
+                    >
                       {risk.severity}
-                    </span>
+                    </Badge>
                   </div>
-                  <div style={{ fontSize: '12px', color: '#bbb', lineHeight: '1.4' }}>
-                    {risk.description}
-                  </div>
+                  <div className="text-xs text-muted-foreground">{risk.description}</div>
                 </div>
               ))}
 
-              {/* Best Practices */}
               {riskAnalysis.bestPractices.length > 0 && (
-                <div style={{ marginTop: '12px' }}>
-                  <div style={{ fontSize: '11px', color: '#48bb78', fontWeight: '600', marginBottom: '8px' }}>
-                    💡 Suggestions
-                  </div>
+                <div className="space-y-2">
+                  <div className="text-[11px] font-semibold text-emerald-300">💡 Suggestions</div>
                   {riskAnalysis.bestPractices.map((bp, i) => (
-                    <div key={i} style={{
-                      padding: '10px 12px',
-                      background: 'rgba(72, 187, 120, 0.1)',
-                      borderRadius: '8px',
-                      marginBottom: '8px',
-                      borderLeft: '3px solid #48bb78'
-                    }}>
-                      <div style={{ fontWeight: '600', fontSize: '12px', color: '#48bb78', marginBottom: '4px' }}>
-                        {bp.practice}
-                      </div>
-                      <div style={{ fontSize: '12px', color: '#bbb', lineHeight: '1.4' }}>
-                        {bp.suggestion}
-                      </div>
+                    <div
+                      key={i}
+                      className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 p-3"
+                    >
+                      <div className="text-xs font-semibold text-emerald-200">{bp.practice}</div>
+                      <div className="text-xs text-emerald-100/80">{bp.suggestion}</div>
                       {bp.reference && (
-                        <div style={{ fontSize: '10px', color: '#666', marginTop: '4px' }}>
-                          📚 {bp.reference}
-                        </div>
+                        <div className="text-[10px] text-emerald-100/60">📚 {bp.reference}</div>
                       )}
                     </div>
                   ))}
                 </div>
               )}
 
-              {/* Summary */}
-              <div style={{
-                padding: '10px 12px',
-                background: 'rgba(255,255,255,0.03)',
-                borderRadius: '8px',
-                fontSize: '12px',
-                color: '#999',
-                fontStyle: 'italic'
-              }}>
+              <div className="rounded-lg border border-border/60 bg-background/40 p-3 text-xs text-muted-foreground italic">
                 {riskAnalysis.summary}
               </div>
             </div>
           )}
-        </div>
+        </CardFooter>
       )}
-    </div>
+    </Card>
   );
 };
 
@@ -364,269 +313,195 @@ const NodeDetailsOverlay: React.FC<{
   const [activeTab, setActiveTab] = useState<'summary' | 'diagram'>('summary');
   const colors = langColors[data.lang] || langColors.other;
 
-  const handleScroll = (e: React.WheelEvent) => {
-    e.stopPropagation();
-  };
-
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      width: '100vw',
-      height: '100vh',
-      background: 'rgba(0,0,0,0.85)',
-      backdropFilter: 'blur(8px)',
-      zIndex: 99999,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      animation: 'fadeIn 0.2s'
-    }}
+    <div
+      className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/70 backdrop-blur-md"
       onClick={onClose}
     >
-      <div
+      <Card
         onClick={(e) => e.stopPropagation()}
-        style={{
-          width: '90%',
-          maxWidth: '1200px',
-          height: '85vh',
-          background: '#0a0a0a',
-          borderRadius: '24px',
-          border: `2px solid ${colors.border}`,
-          display: 'flex',
-          flexDirection: 'column',
-          boxShadow: '0 50px 100px rgba(0,0,0,0.5)',
-          overflow: 'hidden',
-          animation: 'scaleIn 0.2s'
-        }}
+        className="h-[85vh] w-[90vw] max-w-6xl overflow-hidden border-2 bg-background/95"
+        style={{ borderColor: colors.border }}
       >
-        {/* HEADER */}
-        <div
-          style={{
-            padding: '24px',
-            background: 'rgba(255,255,255,0.03)',
-            borderBottom: '1px solid rgba(255,255,255,0.1)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between'
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-            <span style={{ fontSize: '42px' }}>{colors.icon}</span>
+        <CardHeader className="flex-row items-center justify-between gap-4 border-b border-border/60">
+          <div className="flex items-center gap-4">
+            <span className="text-4xl">{colors.icon}</span>
             <div>
-              <span style={{ fontWeight: '800', fontSize: '32px', display: 'block', lineHeight: 1 }}>{data.label}</span>
-              <span style={{ fontSize: '14px', color: '#888', fontFamily: 'monospace', marginTop: '4px', display: 'block' }}>{data.relativePath}</span>
+              <CardTitle className="text-2xl">{data.label}</CardTitle>
+              <CardDescription className="font-mono text-xs">{data.relativePath}</CardDescription>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer', fontSize: '32px', padding: '0 10px' }}
-          >
+          <Button variant="ghost" size="icon" onClick={onClose}>
             ×
-          </button>
-        </div>
+          </Button>
+        </CardHeader>
 
-        {/* TABS */}
-        <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.2)' }}>
-          {[
-            { id: 'summary', label: 'Summary' },
-            { id: 'diagram', label: 'Diagram' }
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as 'summary' | 'diagram')}
-              style={{
-                flex: 1,
-                padding: '20px',
-                background: activeTab === tab.id ? 'rgba(255,255,255,0.05)' : 'transparent',
-                border: 'none',
-                color: activeTab === tab.id ? '#fff' : '#888',
-                borderBottom: activeTab === tab.id ? `4px solid ${colors.border}` : '4px solid transparent',
-                cursor: 'pointer',
-                fontSize: '16px',
-                fontWeight: '700',
-                transition: 'all 0.2s'
-              }}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+        <Tabs value={activeTab} onValueChange={(value: string) => setActiveTab(value as 'summary' | 'diagram')} className="flex h-full flex-col">
+          <TabsList className="mx-6 mt-4 grid w-[260px] grid-cols-2">
+            <TabsTrigger value="summary">Summary</TabsTrigger>
+            <TabsTrigger value="diagram">Diagram</TabsTrigger>
+          </TabsList>
 
-        {/* CONTENT */}
-        <div
-          className="nowheel"
-          onWheel={handleScroll}
-          style={{ padding: '32px', overflowY: 'auto', background: '#0a0a0a', flex: 1 }}
-        >
-          {activeTab === 'summary' && (
-            <div style={{ animation: 'fadeIn 0.2s', maxWidth: '800px', margin: '0 auto' }}>
-              <div style={{ fontSize: '20px', lineHeight: '1.7', color: '#ddd', marginBottom: '32px' }}>
-                {data.summary || "No summary available."}
-                {data.fullCapsule?.upperLevelSummary && data.summary !== data.fullCapsule.upperLevelSummary && (
-                  <div style={{ marginTop: '24px', padding: '16px', background: '#151515', borderRadius: '8px', fontStyle: 'italic', color: '#aaa', borderLeft: '4px solid #333' }}>
-                    {data.fullCapsule.upperLevelSummary}
+          <div className="flex-1 px-6 pb-6">
+            <TabsContent value="summary" className="h-full">
+              <ScrollArea className="h-[68vh] pr-6">
+                <div className="mx-auto max-w-3xl space-y-6 text-lg leading-relaxed text-muted-foreground">
+                  <div className="text-base text-foreground/90">
+                    {data.summary || "No summary available."}
+                  </div>
+                  {data.fullCapsule?.upperLevelSummary && data.summary !== data.fullCapsule.upperLevelSummary && (
+                    <Card className="border-border/70 bg-muted/50">
+                      <CardContent className="p-4 italic">{data.fullCapsule.upperLevelSummary}</CardContent>
+                    </Card>
+                  )}
+
+                  {!data.isDirectory && !data.isRoot && (
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <Card className="border-border/70 bg-card/90">
+                        <CardHeader className="pb-2">
+                          <CardDescription>Language</CardDescription>
+                          <CardTitle className="text-xl" style={{ color: colors.border }}>
+                            {data.lang}
+                          </CardTitle>
+                        </CardHeader>
+                      </Card>
+                      <Card className="border-border/70 bg-card/90">
+                        <CardHeader className="pb-2">
+                          <CardDescription>Dependencies</CardDescription>
+                          <CardTitle className="text-xl">
+                            {data.imports.length}
+                            <span className="ml-1 text-sm text-muted-foreground">modules</span>
+                          </CardTitle>
+                        </CardHeader>
+                      </Card>
+                    </div>
+                  )}
+
+                  {data.relativePath && !data.isDirectory && !data.isRoot && (
+                    <Button
+                      className="w-full"
+                      onClick={() => vscode.postMessage({ type: 'openFile', relativePath: data.relativePath })}
+                    >
+                      Open in Editor →
+                    </Button>
+                  )}
+                </div>
+              </ScrollArea>
+            </TabsContent>
+
+            <TabsContent value="diagram" className="h-full">
+              <div className="flex h-[68vh] gap-4">
+                {!data.isDirectory && !data.isRoot ? (
+                  <>
+                    <Card className="flex w-[220px] flex-col border-border/70 bg-card/90">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-xs uppercase text-muted-foreground">Imports</CardTitle>
+                      </CardHeader>
+                      <CardContent className="flex-1">
+                        <ScrollArea className="h-full pr-2">
+                          <div className="space-y-2 text-xs">
+                            {data.fullCapsule?.imports.map((imp, i) => (
+                              <div
+                                key={i}
+                                className="rounded-md border border-border/70 bg-background/40 px-2 py-2 font-mono"
+                              >
+                                {imp.pathOrModule}
+                              </div>
+                            ))}
+                            {(!data.fullCapsule?.imports || data.fullCapsule.imports.length === 0) && (
+                              <div className="text-center text-xs italic text-muted-foreground">No imports</div>
+                            )}
+                          </div>
+                        </ScrollArea>
+                      </CardContent>
+                    </Card>
+
+                    <div className="flex items-center text-muted-foreground">→</div>
+
+                    <Card className="flex flex-1 flex-col border-border/70 bg-card/90">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-xs uppercase text-muted-foreground">
+                          Code Structure ({data.fullCapsule?.structure?.length || 0} blocks)
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="flex-1">
+                        {data.fullCapsule?.structure && data.fullCapsule.structure.length > 0 ? (
+                          <ScrollArea className="h-full pr-4">
+                            <div className="space-y-3">
+                              {data.fullCapsule.structure.map((block, i) => {
+                                const fileRisks = data.relativePath ? riskAnalyses.get(data.relativePath) : undefined;
+                                const blockRisk = fileRisks?.get(block.name);
+                                return (
+                                  <CodeBlockCard
+                                    key={i}
+                                    block={block}
+                                    riskAnalysis={blockRisk}
+                                    onClick={() => {
+                                      vscode.postMessage({
+                                        type: 'openFile',
+                                        relativePath: data.relativePath,
+                                        startLine: block.startLine,
+                                        endLine: block.endLine
+                                      });
+                                    }}
+                                  />
+                                );
+                              })}
+                            </div>
+                          </ScrollArea>
+                        ) : (
+                          <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
+                            <div className="text-5xl">🔮</div>
+                            <div className="text-base font-semibold text-foreground">Analyze Code Structure</div>
+                            <div className="max-w-sm text-xs text-muted-foreground">
+                              Generate a deep analysis to see block-level summaries of functions, classes, and code blocks.
+                            </div>
+                            <Button
+                              variant="outline"
+                              onClick={() => vscode.postMessage({ type: 'analyzeFile', relativePath: data.relativePath })}
+                            >
+                              ✨ Generate Deep Analysis
+                            </Button>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    <div className="flex items-center text-muted-foreground">→</div>
+
+                    <Card className="flex w-[220px] flex-col border-border/70 bg-card/90">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-xs uppercase text-muted-foreground">Exports</CardTitle>
+                      </CardHeader>
+                      <CardContent className="flex-1">
+                        <ScrollArea className="h-full pr-2">
+                          <div className="space-y-2 text-xs">
+                            {data.fullCapsule?.exports.map((exp, i) => (
+                              <div
+                                key={i}
+                                className="rounded-md border border-emerald-500/40 bg-emerald-500/10 px-2 py-2 font-mono"
+                              >
+                                {exp.name}
+                              </div>
+                            ))}
+                            {(!data.fullCapsule?.exports || data.fullCapsule.exports.length === 0) && (
+                              <div className="text-center text-xs italic text-muted-foreground">No exports</div>
+                            )}
+                          </div>
+                        </ScrollArea>
+                      </CardContent>
+                    </Card>
+                  </>
+                ) : (
+                  <div className="flex flex-1 items-center justify-center text-sm italic text-muted-foreground">
+                    Directory or Root view details not fully supported yet.
                   </div>
                 )}
               </div>
-              {!data.isDirectory && !data.isRoot && (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '32px' }}>
-                  <div style={{ padding: '20px', background: '#151515', borderRadius: '16px', border: '1px solid #222' }}>
-                    <div style={{ fontSize: '12px', color: '#666', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '1px' }}>Language</div>
-                    <div style={{ fontSize: '24px', color: colors.border, fontWeight: 'bold' }}>{data.lang}</div>
-                  </div>
-                  <div style={{ padding: '20px', background: '#151515', borderRadius: '16px', border: '1px solid #222' }}>
-                    <div style={{ fontSize: '12px', color: '#666', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '1px' }}>Dependencies</div>
-                    <div style={{ fontSize: '24px', fontWeight: 'bold' }}>{data.imports.length} <span style={{ fontSize: '16px', color: '#666', fontWeight: 'normal' }}>modules</span></div>
-                  </div>
-                </div>
-              )}
-              {data.relativePath && !data.isDirectory && !data.isRoot && (
-                <button
-                  onClick={() => {
-                    vscode.postMessage({ type: 'openFile', relativePath: data.relativePath });
-                  }}
-                  style={{
-                    width: '100%',
-                    padding: '18px',
-                    background: '#007acc',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: '12px',
-                    cursor: 'pointer',
-                    fontSize: '18px',
-                    fontWeight: '600',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '12px',
-                    transition: 'background 0.2s'
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.background = '#0062a3'}
-                  onMouseLeave={e => e.currentTarget.style.background = '#007acc'}
-                >
-                  <span>Open in Editor</span>
-                  <span>→</span>
-                </button>
-              )}
-            </div>
-          )}
-
-          {activeTab === 'diagram' && (
-            <div style={{ animation: 'fadeIn 0.2s', height: '100%', display: 'flex', gap: '24px', alignItems: 'stretch' }}>
-              {!data.isDirectory && !data.isRoot ? (
-                <>
-                  {/* IMPORTS */}
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0 }}>
-                    <div style={{ textAlign: 'center', color: '#666', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>Imports</div>
-                    <div style={{ flex: 1, background: '#111', borderRadius: '16px', padding: '16px', overflowY: 'auto', border: '1px solid #222' }}>
-                      {data.fullCapsule?.imports.map((imp, i) => (
-                        <div key={i} style={{ padding: '12px', background: '#1a1a1a', marginBottom: '8px', borderRadius: '8px', fontSize: '14px', borderLeft: '3px solid #666', wordBreak: 'break-all', fontFamily: 'monospace' }}>
-                          {imp.pathOrModule}
-                        </div>
-                      ))}
-                      {(!data.fullCapsule?.imports || data.fullCapsule.imports.length === 0) && (
-                        <div style={{ color: '#444', fontStyle: 'italic', textAlign: 'center', marginTop: '40px' }}>No imports</div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* ARROW */}
-                  <div style={{ display: 'flex', alignItems: 'center', color: '#333', fontSize: '24px' }}>→</div>
-
-                  {/* CODE BLOCKS */}
-                  <div style={{ flex: 3, display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0 }}>
-                    <div style={{ textAlign: 'center', color: '#666', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                      Code Structure ({data.fullCapsule?.structure?.length || 0} blocks)
-                    </div>
-                    {data.fullCapsule?.structure && data.fullCapsule.structure.length > 0 ? (
-                      <div style={{ flex: 1, background: '#111', borderRadius: '16px', padding: '16px', overflowY: 'auto', border: '1px solid #222' }}>
-                        {data.fullCapsule.structure.map((block, i) => {
-                          const fileRisks = data.relativePath ? riskAnalyses.get(data.relativePath) : undefined;
-                          const blockRisk = fileRisks?.get(block.name);
-                          return (
-                            <CodeBlockCard
-                              key={i}
-                              block={block}
-                              riskAnalysis={blockRisk}
-                              onClick={() => {
-                                vscode.postMessage({
-                                  type: 'openFile',
-                                  relativePath: data.relativePath,
-                                  startLine: block.startLine,
-                                  endLine: block.endLine
-                                });
-                              }}
-                            />
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#151515', borderRadius: '16px', border: `1px solid ${colors.border}`, padding: '40px' }}>
-                        <div style={{ fontSize: '64px', marginBottom: '20px' }}>🔮</div>
-                        <div style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '8px', color: '#eee' }}>Analyze Code Structure</div>
-                        <div style={{ color: '#888', textAlign: 'center', marginBottom: '32px', maxWidth: '300px' }}>
-                          Generate a deep analysis to see block-level summaries of functions, classes, and code blocks.
-                        </div>
-
-                        <button
-                          onClick={() => {
-                            vscode.postMessage({ type: 'analyzeFile', relativePath: data.relativePath });
-                          }}
-                          style={{
-                            padding: '16px 32px',
-                            background: 'transparent',
-                            border: `2px dashed ${colors.border}`,
-                            color: colors.border,
-                            borderRadius: '12px',
-                            cursor: 'pointer',
-                            fontSize: '16px',
-                            fontWeight: '600',
-                            transition: 'all 0.2s',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px'
-                          }}
-                          onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-                          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                        >
-                          <span>✨</span>
-                          Generate Deep Analysis
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* ARROW */}
-                  <div style={{ display: 'flex', alignItems: 'center', color: '#333', fontSize: '24px' }}>→</div>
-
-                  {/* EXPORTS */}
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0 }}>
-                    <div style={{ textAlign: 'center', color: '#666', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>Exports</div>
-                    <div style={{ flex: 1, background: '#111', borderRadius: '16px', padding: '16px', overflowY: 'auto', border: '1px solid #222' }}>
-                      {data.fullCapsule?.exports.map((exp, i) => (
-                        <div key={i} style={{ padding: '12px', background: '#1a3d1a', marginBottom: '8px', borderRadius: '8px', fontSize: '14px', borderLeft: '3px solid #48bb78', wordBreak: 'break-all', fontFamily: 'monospace' }}>
-                          {exp.name}
-                        </div>
-                      ))}
-                      {(!data.fullCapsule?.exports || data.fullCapsule.exports.length === 0) && (
-                        <div style={{ color: '#444', fontStyle: 'italic', textAlign: 'center', marginTop: '40px' }}>No exports</div>
-                      )}
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <div style={{ color: '#666', fontStyle: 'italic', fontSize: '16px', textAlign: 'center', width: '100%', marginTop: '40px' }}>
-                  Directory or Root view details not fully supported yet.
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-      <style>{`
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-      `}</style>
+            </TabsContent>
+          </div>
+        </Tabs>
+      </Card>
     </div>
   );
 };
@@ -647,63 +522,60 @@ const CapsuleNode: React.FC<NodeProps<FileNodeData>> = ({ data }) => {
 
   return (
     <div
+      className={cn(
+        "flex w-80 cursor-pointer flex-col gap-4 rounded-2xl border-2 p-5 text-foreground transition",
+        "shadow-lg backdrop-blur-sm",
+        isOnPath && "scale-[1.05]"
+      )}
       style={{
-        padding: '24px',
-        borderRadius: '24px',
         background: colors.bg,
-        color: '#fff',
-        border: isOnPath ? `4px solid #48bb78` : (riskColor && (risk === 'high' || risk === 'critical') ? `3px solid ${riskColor.border}` : `3px solid ${colors.border}`),
+        borderColor: isOnPath
+          ? "#48bb78"
+          : riskColor && (risk === "high" || risk === "critical")
+            ? riskColor.border
+            : colors.border,
         boxShadow: isOnPath
-          ? '0 0 30px rgba(72, 187, 120, 0.6), 0 8px 25px rgba(0,0,0,0.6)'
-          : (riskColor && (risk === 'high' || risk === 'critical') ? `0 0 20px ${riskColor.bg}, 0 8px 25px rgba(0,0,0,0.6)` : '0 8px 25px rgba(0,0,0,0.6)'),
-        width: 320,
-        fontFamily: 'system-ui, -apple-system, sans-serif',
-        cursor: 'pointer',
-        transition: 'transform 0.2s, box-shadow 0.2s, border 0.2s',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '16px',
-        transform: isOnPath ? 'scale(1.05)' : 'scale(1)'
+          ? "0 0 30px rgba(72, 187, 120, 0.6), 0 8px 25px rgba(0,0,0,0.6)"
+          : riskColor && (risk === "high" || risk === "critical")
+            ? `0 0 20px ${riskColor.bg}, 0 8px 25px rgba(0,0,0,0.6)`
+            : "0 8px 25px rgba(0,0,0,0.6)",
       }}
-      className="capsule-node-hover"
     >
       <Handle type="target" position={Position.Top} style={{ top: '50%', left: '50%', opacity: 0 }} />
       <Handle type="source" position={Position.Bottom} style={{ top: '50%', left: '50%', opacity: 0 }} />
 
       {/* BODY: Summary (hidden for root) */}
       {!data.isRoot && (
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: '24px', lineHeight: '1.5', color: '#fff', fontWeight: '500' }}>
-            {data.summary || "No summary available."}
-          </div>
+        <div className={cn(
+          "leading-relaxed text-foreground/90",
+          (!data.relativePath || data.relativePath.split('/').length <= 1) && "text-lg",
+          (data.relativePath && data.relativePath.split('/').length === 2) && "text-base",
+          (data.relativePath && data.relativePath.split('/').length >= 3) && "text-sm",
+        )}>
+          {data.summary || "No summary available."}
         </div>
       )}
 
       {/* FOOTER: Icon + Label */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '12px' }}>
-        <div style={{ fontSize: '16px' }}>{colors.icon}</div>
-        <div style={{ overflow: 'hidden', flex: 1 }}>
-          <div style={{ fontWeight: '800', fontSize: '14px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{data.label}</div>
+      <div className="flex items-center gap-3 border-t border-white/10 pt-3">
+        <div className="text-base">{colors.icon}</div>
+        <div className="flex-1 overflow-hidden">
+          <div className="truncate text-xs font-semibold">{data.label}</div>
           {(data.isDirectory || data.isRoot) && (
-            <div style={{ fontSize: '12px', opacity: 0.7 }}>{data.fileCount} items</div>
+            <div className="text-[11px] text-foreground/70">{data.fileCount} items</div>
           )}
         </div>
         {risk && (
-          <div style={{
-            fontSize: '10px',
-            background: riskColor?.bg,
-            border: `1px solid ${riskColor?.border}`,
-            color: riskColor?.text,
-            padding: '2px 6px',
-            borderRadius: '8px',
-            fontWeight: 'bold',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px'
-          }}>
-            <span>{riskColor?.icon}</span>
-            <span style={{ textTransform: 'uppercase' }}>{risk}</span>
-          </div>
+          <Badge
+            className="text-[10px] uppercase"
+            style={{
+              background: riskColor?.bg,
+              borderColor: riskColor?.border,
+              color: riskColor?.text,
+            }}
+          >
+            {riskColor?.icon} {risk}
+          </Badge>
         )}
       </div>
     </div>
@@ -732,26 +604,17 @@ const StickyNode: React.FC<NodeProps<StickyNodeData>> = ({ data }) => {
   return (
     <div
       onDoubleClick={handleDoubleClick}
+      className="flex min-h-[120px] w-56 cursor-grab flex-col gap-2 rounded-xl border-2 p-3 shadow-lg"
       style={{
-        padding: '16px',
-        borderRadius: '8px',
         background: data.color || '#fefcbf',
+        borderColor: '#d69e2e',
         color: '#333',
-        border: '2px solid #d69e2e',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-        width: 200,
-        minHeight: 100,
-        fontFamily: 'system-ui, -apple-system, sans-serif',
-        cursor: 'grab',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '8px'
       }}
     >
       <Handle type="target" position={Position.Top} style={{ opacity: 0 }} />
       <Handle type="source" position={Position.Bottom} style={{ opacity: 0 }} />
 
-      <div style={{ fontSize: '14px', fontWeight: 'bold', opacity: 0.6 }}>
+      <div className="text-xs font-bold uppercase tracking-wide text-black/60">
         📝 Note
       </div>
       {isEditing ? (
@@ -761,20 +624,10 @@ const StickyNode: React.FC<NodeProps<StickyNodeData>> = ({ data }) => {
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
           autoFocus
-          style={{
-            flex: 1,
-            background: 'transparent',
-            border: 'none',
-            resize: 'none',
-            fontSize: '24px',
-            fontFamily: 'inherit',
-            color: '#333',
-            outline: 'none',
-            minHeight: '60px'
-          }}
+          className="min-h-[70px] flex-1 resize-none bg-transparent text-lg outline-none"
         />
       ) : (
-        <div style={{ fontSize: '24px', lineHeight: '1.4', flex: 1 }}>
+        <div className="flex-1 text-lg leading-snug">
           {text || 'Double-click to edit...'}
         </div>
       )}
@@ -783,23 +636,14 @@ const StickyNode: React.FC<NodeProps<StickyNodeData>> = ({ data }) => {
 };
 
 // --- DATA PREPARATION ---
+// --- DATA PREPARATION ---
 const prepareGraphData = (data: CapsulesData) => {
   const nodes: FileNode[] = [];
   const edges: Edge[] = [];
-  const filesByDir: Record<string, CapsuleFile[]> = { '.': [] };
-
-  Object.values(data.files).forEach(file => {
-    const parts = file.relativePath.split('/');
-    if (parts.length === 1) {
-      filesByDir['.'].push(file);
-    } else {
-      const dir = parts[0];
-      if (!filesByDir[dir]) filesByDir[dir] = [];
-      filesByDir[dir].push(file);
-    }
-  });
-
   const rootId = 'root';
+  const createdDirs = new Set<string>();
+
+  // Add Root Node
   nodes.push({
     id: rootId,
     type: 'capsule',
@@ -807,81 +651,114 @@ const prepareGraphData = (data: CapsulesData) => {
     position: { x: 0, y: 0 }
   });
 
-  Object.keys(filesByDir).forEach(dir => {
-    const files = filesByDir[dir];
-    const dirId = dir === '.' ? 'root-files' : `dir-${dir}`;
+  // Helper to ensure directory node exists and is linked
+  // Returns the ID of the directory node
+  const ensureDirectory = (dirPath: string): string => {
+    if (!dirPath || dirPath === '.' || dirPath === '') return rootId;
 
-    if (dir !== '.') {
-      const dirCapsule = data.directories && data.directories[dir];
-      nodes.push({
-        id: dirId,
-        type: 'capsule',
-        data: {
-          label: dir + '/',
-          lang: 'directory',
-          isDirectory: true,
-          fileCount: files.length,
-          exports: [],
-          imports: [],
-          summary: dirCapsule?.upperLevelSummary || "Folder containing " + files.length + " files.",
-          relativePath: dir
-        },
-        position: { x: 0, y: 0 }
-      });
+    // Normalize path just in case, though usually relativePath is clean
+    const dirId = `dir:${dirPath}`;
+    if (createdDirs.has(dirId)) return dirId;
 
-      edges.push({
-        id: `${rootId}->${dirId}`,
-        source: rootId,
-        target: dirId,
-        type: 'straight',
-        style: { stroke: '#48bb78', strokeWidth: 12, opacity: 0.8 },
-      });
-    }
+    const parts = dirPath.split('/');
+    const dirName = parts[parts.length - 1];
 
-    files.forEach(file => {
-      const fileId = file.relativePath;
+    // Recursively ensure parent exists
+    const parentPath = parts.length > 1 ? parts.slice(0, -1).join('/') : '';
+    const parentId = ensureDirectory(parentPath);
 
-      const importCount = file.imports.length || 0;
-      const usedByCount = file.metadata?.usedBy?.length || 0;
-      const trafficScore = importCount + usedByCount;
+    const dirCapsule = data.directories && data.directories[dirPath];
 
-      const structuralWidth = Math.min(Math.max(6, trafficScore * 2.0), 20);
-      const structuralOpacity = Math.min(Math.max(0.2, trafficScore * 0.15), 1.0);
-
-      nodes.push({
-        id: fileId,
-        type: 'capsule',
-        data: {
-          label: file.name,
-          lang: file.lang,
-          relativePath: file.relativePath,
-          summary: file.lowerLevelSummary || file.upperLevelSummary || file.metadata?.fileDocstring,
-          exports: file.exports.map(e => e.name),
-          imports: file.imports.map(i => i.pathOrModule),
-          topSymbols: file.topSymbols,
-          previewCode: file.metadata?.firstNLines,
-          fullCapsule: file,
-        },
-        position: { x: 0, y: 0 }
-      });
-
-      const parentId = dir === '.' ? rootId : dirId;
-
-      edges.push({
-        id: `${parentId}->${fileId}`,
-        source: parentId,
-        target: fileId,
-        type: 'straight',
-        style: {
-          stroke: '#888',
-          strokeWidth: structuralWidth,
-          opacity: structuralOpacity
-        },
-        data: { isStructural: true }
-      });
+    nodes.push({
+      id: dirId,
+      type: 'capsule',
+      data: {
+        label: dirName + '/',
+        lang: 'directory',
+        isDirectory: true,
+        fileCount: 0, // Will update when adding files
+        exports: [],
+        imports: [],
+        summary: dirCapsule?.upperLevelSummary || `Folder: ${dirName}`,
+        relativePath: dirPath
+      },
+      position: { x: 0, y: 0 }
     });
+
+    edges.push({
+      id: `${parentId}->${dirId}`,
+      source: parentId,
+      target: dirId,
+      type: 'straight',
+      style: { stroke: '#48bb78', strokeWidth: 10, opacity: 0.8 },
+    });
+
+    createdDirs.add(dirId);
+    return dirId;
+  };
+
+  Object.values(data.files).forEach(file => {
+    // 1. Ensure directory hierarchy exists
+    const parts = file.relativePath.split('/');
+    const dirPath = parts.length > 1 ? parts.slice(0, -1).join('/') : '';
+    const parentId = ensureDirectory(dirPath);
+
+    // 2. Add File Node
+    const fileId = file.relativePath;
+    const importCount = file.imports.length || 0;
+    const usedByCount = file.metadata?.usedBy?.length || 0;
+    const trafficScore = importCount + usedByCount;
+
+    const structuralWidth = Math.min(Math.max(6, trafficScore * 2.0), 20);
+    const structuralOpacity = Math.min(Math.max(0.2, trafficScore * 0.15), 1.0);
+
+    nodes.push({
+      id: fileId,
+      type: 'capsule',
+      data: {
+        label: file.name,
+        lang: file.lang,
+        relativePath: file.relativePath,
+        summary: file.lowerLevelSummary || file.upperLevelSummary || file.metadata?.fileDocstring,
+        exports: file.exports.map(e => e.name),
+        imports: file.imports.map(i => i.pathOrModule),
+        topSymbols: file.topSymbols,
+        previewCode: file.metadata?.firstNLines,
+        fullCapsule: file,
+      },
+      position: { x: 0, y: 0 }
+    });
+
+    // 3. Link to Parent Directory
+    edges.push({
+      id: `${parentId}->${fileId}`,
+      source: parentId,
+      target: fileId,
+      type: 'straight',
+      style: {
+        stroke: '#888',
+        strokeWidth: structuralWidth,
+        opacity: structuralOpacity
+      },
+      data: { isStructural: true }
+    });
+
+    // 4. Update file counts for ancestors
+    let currentDir = dirPath;
+    while (currentDir) {
+      const dId = `dir:${currentDir}`;
+      const dNode = nodes.find(n => n.id === dId);
+      if (dNode && dNode.data) {
+        dNode.data.fileCount = (dNode.data.fileCount || 0) + 1;
+      }
+      const p = currentDir.split('/');
+      if (p.length <= 1) break;
+      p.pop();
+      currentDir = p.join('/');
+    }
   });
 
+  // Add Dependency Edges
   Object.entries(data.files).forEach(([path, file]) => {
     if (file.metadata?.usedBy) {
       file.metadata.usedBy.forEach(usedByPath => {
@@ -945,18 +822,23 @@ const applyForceLayout = (nodes: FileNode[], edges: Edge[]) => {
   });
 
   const simulation = forceSimulation(simulationNodes as any)
-    .force('charge', forceManyBody().strength(-5000))
-    .force('collide', forceCollide().radius(250).strength(0.8))
+    .force('charge', forceManyBody().strength(-2000))
+    .force('collide', forceCollide().radius(200).strength(0.8))
     .force('radial', forceRadial((d: any) => {
       if (d.data.isRoot) return 0;
-      if (inDegree[d.id] && inDegree[d.id] > 2) return 350;
-      if (d.data.isDirectory) return 500;
-      return 950;
-    }, 0, 0).strength(0.7))
+      if (inDegree[d.id] && inDegree[d.id] > 2) return 250;
+
+      const depth = d.data.relativePath ? d.data.relativePath.split('/').length : 1;
+
+      if (d.data.isDirectory) {
+        return 250 + (depth * 120);
+      }
+      return 300 + (depth * 120);
+    }, 0, 0).strength(0.8))
     .force('link', forceLink(simulationEdges as any)
       .id((d: any) => d.id)
-      .distance((d: any) => d.data?.isDependency ? 100 : 350)
-      .strength((d: any) => d.data?.isDependency ? 0.8 : 0.1)
+      .distance((d: any) => d.data?.isDependency ? 100 : 150)
+      .strength((d: any) => d.data?.isDependency ? 0.8 : 0.4)
     )
     .force('sector', (alpha) => {
       simulationNodes.forEach((d: any) => {
@@ -965,8 +847,9 @@ const applyForceLayout = (nodes: FileNode[], edges: Edge[]) => {
 
         let dir = '.';
         if (d.data.isDirectory) {
-          dir = d.data.label.replace('/', '');
-          if (d.id === 'root-files') dir = '.';
+          const rawPath = d.id.replace('dir:', '');
+          const parts = rawPath.split('/');
+          dir = parts.length > 0 ? parts[0] : '.';
         } else {
           const parts = d.id.split('/');
           dir = parts.length > 1 ? parts[0] : '.';
@@ -1326,48 +1209,35 @@ export default function App() {
 
   if (loading) {
     return (
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '100vh',
-        background: '#0a0a0a',
-        color: '#fff',
-        fontSize: '18px'
-      }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔍</div>
-          Scanning workspace...
-        </div>
+      <div className="flex h-screen items-center justify-center text-foreground">
+        <Card className="w-[360px] border-border/70 bg-card/90 text-center">
+          <CardContent className="space-y-3 p-6">
+            <div className="text-4xl">🔍</div>
+            <div className="text-sm text-muted-foreground">Scanning workspace...</div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '100vh',
-        background: '#0a0a0a',
-        color: '#ff6b6b',
-        fontSize: '18px',
-        padding: '32px',
-        textAlign: 'center'
-      }}>
-        <div>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚠️</div>
-          {error}
-          <br />
-          <button onClick={handleRefresh} style={{ marginTop: '20px', padding: '10px 20px', background: '#333', border: 'none', color: '#fff', borderRadius: '4px', cursor: 'pointer' }}>Retry</button>
-        </div>
+      <div className="flex h-screen items-center justify-center px-6 text-foreground">
+        <Card className="w-full max-w-md border-red-500/50 bg-card/90 text-center">
+          <CardContent className="space-y-4 p-6">
+            <div className="text-4xl">⚠️</div>
+            <div className="text-sm text-red-300">{error}</div>
+            <Button variant="outline" onClick={handleRefresh}>
+              Retry
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div style={{ display: 'flex', width: '100vw', height: '100vh', background: '#0a0a0a', overflow: 'hidden' }}>
+    <div className="flex h-screen w-screen overflow-hidden">
       <Sidebar
         capsules={capsules}
         onSearch={handleSearch}
@@ -1384,7 +1254,7 @@ export default function App() {
         isCollapsed={isSidebarCollapsed}
         onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
       />
-      <div style={{ flex: 1, position: 'relative' }}>
+      <div className="relative flex-1">
         <ReactFlowProvider>
           <ReactFlow
             nodes={nodes}
@@ -1399,7 +1269,7 @@ export default function App() {
             proOptions={{ hideAttribution: true }}
           >
             <Background color="#1a1a1a" gap={50} />
-            <Controls style={{ background: '#1a1a1a' }} />
+            <Controls />
           </ReactFlow>
         </ReactFlowProvider>
         {selectedNodeData && (
